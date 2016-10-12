@@ -1,0 +1,342 @@
+%!TEX root = ../main.tex
+
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\subsection{Old problem statements[OLD]}
+
+\begin{problem}[Min Line Set Decomposition]
+\label{prob:min_line_set_decomp}
+Given a polygon $P$, compute a set $\Gamma = \{\gamma_i|i=1,\ldots,f\}$ such that $f$ is minimized and $\bigcup^f_{i=1}\gamma_i$ approximately decomposes $P$.
+\end{problem}
+
+With the notion of altitude for general polygons, the Problem~\ref{prob:min_line_set_decomp} can be restated as follows.
+\begin{problem}[Min Altitude Decomposition]
+\label{prob:min_lin_num_decomp_3}
+Given a polygon $P$, find $k$ and $P_1,P_2,\ldots,P_k$ such that $\sum^k_{i=1}\alpha^*(P_i)$ is minimized where $\bigcup^k_{i=1}P_i=P$.
+\end{problem}
+
+\begin{problem}[Minimum Cost Tour]
+\label{prob:min_tour}
+Given a polygon $P$ and a set of lines $\Gamma$, generate a matrix $M$ of transition costs between any pair of elements of $\Gamma$. Find a tour of $\Gamma$ such that cost of the tour is minimized.
+\end{problem}
+
+
+
+\begin{problem}[Distributed Coverage Path Planning Problem]
+\label{prb:distributed_cpp}
+
+	Given a polygon $P$, possibly with holes, $n$ robots, their respective set of footprints $\{\chi_i|i=1,\ldots,n\}$, and starting points $\{s_i|i=1,\ldots,n\}$, compute a set of $n$ paths, $\{\omega_i|i=1,\ldots,n\}$, contained entirely in $P$ such that the traversal of $\chi_j$ on $\omega_j$ for all $j\in\{1,\ldots,n\}$ results in all points in $P$ being covered and some metric $\phi(\omega_1,\omega_2,\ldots)$ is minimized.
+\end{problem}
+
+Note that
+\begin{equation}
+	\begin{aligned}
+		\omega_i\bigoplus\chi_i=p_i, i=1,\ldots,n,
+	\end{aligned}
+\end{equation}
+where $p_i$ is the area that the robot $i$ is responsible for.
+
+
+\begin{problem}[Min Altitude Decomposition]
+\label{prob:min_lin_num_decomp_3}
+	
+Given a polygon $P$, find $k$ and $P_1,P_2,\ldots,P_k$ such that $\sum^k_{i=1}\alpha^*(P_i)$ is minimized where $\bigcup^k_{i=1}P_i=P$.
+\end{problem}
+
+\begin{problem}[Minimum Cost Tour]
+\label{prob:min_tour}
+	
+Given a polygon $P$ and a set of lines $\Gamma$, generate a matrix $M$ of transition costs between any pair of elements of $\Gamma$. Find a tour of $\Gamma$ such that cost of the tour is minimized.
+\end{problem}
+
+%The problem can be solved by generating all $\omega_i$, which is similar to solving a \textit{Min-Max TSP} problem. It appears to be a computationally intensive task. Hence, our approach to Problem~\ref{prb:distr_cpp_1} is to generate $p_i$ first followed by generation of $\omega_i$. 
+
+For multi-agent case, the first order of business is to assign areas to each robot.
+\begin{problem}[Work Allocation for Distributed Coverage Path Planning]
+\label{prb:distr_cpp_2}
+
+Given a polygon $P$, possibly with holes, $n$ robots, their respective set of footprints $\{\chi_i|i=1,\ldots,n\}$, and starting points $\{s_i|i=1,\ldots,n\}$, compute $n$ subregions, $p_i$ such that $\sum_{i=1,\ldots,n}\phi(p_i,s_i)$ is minimized, where $\bigcup_{i=1,\ldots,n} p_i=P$ . Here, $\phi(p_i,s_i)$ refers to the metric that assigns cost to the region based on its size and the distance from the robot's starting location.
+\end{problem}
+
+%Given a polygon $P$, possibly with holes, $n$ robots, and their respective footprints $\chi_i$ with $i=1,\ldots,n$, distributed coverage path planning problem is a problem of computing $n$ shortest paths, $\omega_i, i=1,\ldots,n$, with the following conditions.
+%\begin{itemize}
+%	\item $\omega_i\bigoplus\chi_i\subseteq P, i=1,\ldots,n$.
+%	\item $\bigcup_{i=1,\ldots,n}\omega_i\bigoplus\chi_i=P$.
+%	\item Some metric is minimized.
+%\end{itemize}
+
+
+%==============================================================================%
+% Section containing coverage path planning for convex polygons	   			   %
+%==============================================================================%
+\section{Convex Coverage Path Planning with Straight Line Segments[SUBJECT TO FURTHER STUDY]}
+\label{sec:convex_cpp_with_lines}
+
+We begin exploring the Problem~\ref{problem:min_cost_cpp_with_lines} with a number of simplifications and restrictions and increase complexity as we go on. First of all, in this section, we consider convex workspace. Moreover, we restrict a class of workspaces under study to be polygonal. This simplifies the computational analysis and leads to a number of useful results.
+
+In this section, we will study different types of paths and analyze their properties in order to explore their respective strengths and weaknesses. We will first explore a type of paths called Boustrophedon paths followed by polygonal spiral paths.
+
+\subsection{Boustrophedon Paths}
+\label{sec:convex_cpp_with_lines__boustrophedon}
+An example of Boustrophedon type coverage is shown in Figure~\ref{fig:example_convex_boustrophedon}. The path $p$ consists of several straight line segments $\{s_1,s_2,
+\dots,s_n\}$ joined together by transition segments $\{t_1,t_2,\dots,t_{n-1}\}$. This type of path is by far the most commonly mentioned and used type of path for coverage. Its simplicity is very appealing in analysis and implementation. However, despite its popularity, to the best of our knowledge, nobody has proved that this type of path is optimal for convex polygons.
+
+An important notion in Boustrophedon type coverage is the notion of the \emph{altitude}. As shown by Huang~\cite{Huang2001optimal}, the minimum altitude of a polygon is orthogonal to one of the edges of a polygon. This makes the search for the minimum polygon, from the computational geometry's point of view, efficient. This important result justifies the restriction of the workspace to be a polygon.
+
+With help of altitude, one can compute the number of straight line segments that could be fitted into $W$. That is if the minimum altitude if $\alpha_{\min}$ and $r$ is the width of the footprint then the number of straight line segments is:
+\begin{equation}
+\label{equation:boustropheon_num_straight_lines}
+\begin{aligned}
+	n_s=\ceil*{\frac{\alpha_{\min}}{r}}
+\end{aligned}
+\end{equation}
+
+Equation~\ref{equation:boustropheon_num_straight_lines} gives the number of straight line segments as a function of the shape of the convex polygon. This notion can be extended to non-convex polygons. This is done in the next section.
+
+Since every straight line segment has one transition segment except the very last line then we have:
+\begin{equation}
+\label{equation:boustropheon_num_transition_segments}
+\begin{aligned}
+	n_t=n_s-1
+\end{aligned}
+\end{equation}
+
+Although the straight line segments is a common feature of all Boustrophedon paths, the transition segments vary significantly based on the applications and robot dynamics. Several types are shown in the Figure~\ref{fig:boustrophedon_transition_types}. They all have one thing in common and that is the transition segments traverses the angular distance of at least $\pi$ radians. This figure is exact except in the cases of larger turning radii. 
+
+Hence, the overall angular distance traversed by Boustrophedon paths is:
+\begin{equation}
+\label{equation:boustropheon_transition_angular_distance}
+\begin{aligned}
+	\Theta\geq n_t\pi
+\end{aligned}
+\end{equation}
+
+This is where the advantages of this type of path end. From this point on, we will be addressing the drawbacks of this path. As noted in Figure, this type of path leaves quite a bit of area uncovered near the corners of the polygon. For complete coverage, one must account for this area. There are several way to do that. The typical way in literature is to follow up by doing a wall following procedure. However, there were no studies comparing it to other approaches. For example, the Zamboni approach also covers all of the area near the edges.
+
+
+\subsection{Polygonal Spiral Type Path}
+
+This class of paths is a contour parallel path that follows the contours of the polygon inwards until all area is covered. An example of such path is shown in .
+
+\begin{figure}
+	\centering
+	\includestandalone[width=0.5\linewidth]{figs/example_convex_boustrophedon}
+
+	\caption{An example of Boustrophedon type path.}
+	\label{fig:example_convex_boustrophedon}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includestandalone[width=0.5\linewidth]{figs/boustrophedon_transition_types_i}%
+	\includestandalone[width=0.5\linewidth]{figs/boustrophedon_transition_types_ii}
+
+	\caption{Examples of transition segments for Boustrophedon paths.}
+	\label{fig:boustrophedon_transition_types}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includestandalone[width=0.5\linewidth]{figs/polygonal_spiral_types_i}%
+	\includestandalone[width=0.5\linewidth]{figs/polygonal_spiral_types_ii}
+
+	\caption{Examples of transition segments for polygonal spiral paths.}
+	\label{fig:polygonal_spiral_types}
+\end{figure}
+
+%==============================================================================%
+% Section containing coverage path planning for general polygons%
+%==============================================================================%
+
+
+%==============================================================================%
+% Section containing properties in no particular order			   			   %
+%==============================================================================%
+\section{Properties}
+\label{sec:properties}
+
+Interesting properties that would require proofs:
+\begin{itemize}
+	\item In an optimal coverage for convex regions, no turns are made inside the region, only on the boundaries.
+	\item Aside from the transition segments, there is no overlap between line footprints in optimal coverage.
+	\item If there is a better path with fewer turns that achieves complete coverage then it may not be longer than the existing path.
+	\item Optimal coverage path for convex shapes cannot disconnect uncovered regions. (Implies no crossing over in the optimal coverage path)
+	\item Optimal coverage path must travel along the boundary of the uncovered region for the duration of straight line.
+	\item The longest possible line that can be places in a convex polygon is going to the orthogonal to the direction of minimum altitude. (NOT TRUE)
+	\item Contour parallel coverage for triangles produces fewer turns than minimum direction parallel coverage.
+	\item Look at evolution of uncovered region as the robot travels.
+\end{itemize}
+
+
+\begin{theorem}[Optimal Coverage of Triangle]
+Suppose we are given a triangle $P$ specified by three points $\{p_1,p_2,p_3\}$ in $\mathbb{R}^2$(Figure~\ref{fig:triangle_1}). Polygonal spiral type path achieves complete coverage in fewer turns than the Boustrophedon type path.
+\end{theorem}
+
+
+\begin{proof}
+First, we calculate the number of lines for the polygonal spiral type path. The procedure for generating such path is described elsewhere. Referring to Figure~\ref{fig:triangle_2}, the point where the \emph{shrinking} procedure terminates is called the \emph{incenter} of the triangle, $c$. This point is also the intersection of the angle bisectors of the triangle. The incenter and the three angle bisectors form three triangles with the \emph{height} $\alpha$. For example, the triangle formed by $\{p_1,c,p_2\}$ has a height $\alpha$ (Figure~\ref{fig:triangle_2}). As a result, the polygonal spiral has
+\begin{equation}
+	\begin{aligned}
+	3\floor*{\frac{\alpha}{2r}}
+	\end{aligned}
+\end{equation}
+lines. To account for the uncovered regions near the turns on the path, three more lines need to be added to the count(Equation~\ref{eq:triangle_spiral_count}).
+\begin{equation}
+\label{eq:triangle_spiral_count}
+	\begin{aligned}
+	3\floor*{\frac{\alpha}{2r}}+3
+	\end{aligned}
+\end{equation}
+
+%In terms of coverage angle, each contour ring results in the robot turning for exactly 180$^{\circ}$. Hence, there is 180$^{\circ}\frac{\alpha}{2r}$ degrees of coverage.
+The coverage angle can now be computed as well. Each contour level contributed 360$^{\circ}$ to coverage angle. In addition, the finalizing portion of the path contributes at most, 540$^{\circ}$. Thefore, the coverage angle for the polygonal spiral is
+\begin{equation}
+\label{eq:triang_spiral_angle}
+\begin{aligned}
+	\Theta\leq360^{\circ}\floor*{\frac{\alpha}{2r}}+540^{\circ}
+\end{aligned}
+\end{equation}
+
+We now focus on the Boustrophedon type coverage. According to Huang~\cite{Huang2001optimal}, the best Boustrophedon style coverage is achieved in the direction of the minimum altitude. In the example triangle, this direction is orthogonal to $E_1$ (Figure~\ref{fig:triangle_3}) where the altitude if $h$. Note that,
+\begin{equation}
+\begin{aligned}
+	h=\alpha+\beta,
+\end{aligned}
+\end{equation}
+where $\beta$ is the distance from $c$ to $p_3$. It also should be noted that $\beta>\alpha$ for triangles. Hence, the Boustrophedon type path requires
+\begin{equation}
+\begin{aligned}
+	\floor*{\frac{h}{2r}}=\floor*{\frac{\alpha+\beta}{2r}}
+\end{aligned}
+\end{equation}
+parallel line segments. Together with the transition segments connecting parallel segments this results in\begin{equation}
+\label{eq:triangle_bous_lines}
+\begin{aligned}
+	2\floor*{\frac{\alpha+\beta}{2r}}
+\end{aligned}
+\end{equation}
+line segments in the path.
+
+The quantity in Equation~\ref{eq:triangle_bous_lines} needs to be modified to account for the required wall following step to achieve complete coverage.
+\begin{equation}
+\label{eq:triangle_bous_lines_2}
+\begin{aligned}
+	2\floor*{\frac{\alpha+\beta}{2r}}+3
+\end{aligned}
+\end{equation}
+
+The coverage angle is also computed. Each transition to the subsequent parallel line segments contributes 180$^{\circ}$ to the coverage angle. The wall following components contributes 360$^{\circ}$. Therefore,
+\begin{equation}
+\label{eq:triang_bous_angle}
+\begin{aligned}
+	\Theta=180^{\circ}\floor*{\frac{h}{2r}}+360^{\circ}
+\end{aligned}
+\end{equation}
+
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[scale=1]
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (6,0);
+		\coordinate (p3) at (2.5,4);
+		\coordinate (c) at  (2.85,1.35);
+
+		\draw [box] (p1) node[below ]{$p_1$}--node[below]{$E_1$}++(p2) node[below]{$p_2$}--node[above right]{$E_2$}(p3)node[above]{$p_3$}--node[above left]{$E_3$}(p1);
+
+		\draw [dashed, <->] (-0.1,0)--node[right]{$h$}(-0.1,4);
+
+		\draw [fill] (c) circle (0.1cm) node[left] {$c$};
+		\draw [<->] (2.85, 0)--node[right]{$\alpha$}++(0,1.25);
+		\draw [<->] (c)++(0,0.1)--node[right]{$\beta$}++(0,2.55);
+		\draw [<->] (c)++(0.05,0.05)--node[above]{$\alpha$}(3.95,2.35);
+		\draw [dashed] (-0.2,4)--++(3,0);
+
+	\draw[rotate around={130:(3.95,2.35)}] (3.95,2.35) rectangle (4.15,2.55);
+	\end{tikzpicture}
+
+	\caption{A triangle to be completely covered.}
+	\label{fig:triangle_3}
+\end{figure}
+
+Since each line on the coverage path corresponds to one turn, we can now compare the number of turns directly by comparing Equation~\ref{eq:triangle_spiral_count} and Equation~\ref{eq:triangle_bous_lines_2}
+\begin{equation}
+\label{eq:triang_comparison}
+\begin{aligned}
+	2\floor*{\frac{\alpha+\beta}{2r}}+3\geq2\floor*{\frac{2\alpha}{2r}}+3\geq
+	3\floor*{\frac{\alpha}{2r}}+3, \alpha>1
+\end{aligned}
+\end{equation}
+
+We also compare the coverage angle between two paths by comparing Equation~\ref{eq:triang_spiral_angle} and Equation~\ref{eq:triang_bous_angle}:
+\begin{equation}
+\label{eq:triang_comparison}
+\begin{aligned}
+	180^{\circ}\floor*{\frac{h}{2r}}+360^{\circ}<360^{\circ}\floor*{\frac{\alpha}{2r}}+k, k>0
+\end{aligned}
+\end{equation}
+
+
+Hence, the polygonal spiral path results in fewer turns. However, the Boustrophedon path results in slightly smaller coverage angle. The results are summarized in Table~\ref{table:path_comprasions}.
+
+\begin{table*}
+	\centering
+	\begin{tabular}{@{} l ccc@{}}
+		\toprule
+		& Polygonal Spiral & & Boustrophedon \\
+		\midrule
+		Parallel Line Segments & - & & $\floor*{\frac{h}{2r}}$\\
+		%\hline
+		Line Segments & $3\floor*{\frac{\alpha}{2r}}+3$ & $\leq$ & $2\floor{\frac{h}{2r}}+3$\\
+		%\hline 
+		Turns & $3\floor{\frac{\alpha}{2r}}+3$ & $\leq$ & $2\floor{\frac{h}{2r}}+3$\\
+		Coverage Angle & $360^{\circ}\floor*{\frac{\alpha}{2r}}+540^{\circ}$ & $\geq$ & $180^{\circ}\floor*{\frac{h}{2r}}+360^{\circ}$ \\
+
+		\bottomrule
+		%\hline
+
+	\end{tabular}
+	\caption{Analysis of spiral and Boustrophedon coverage paths.}
+	\label{table:path_comprasions}
+\end{table*}
+
+\end{proof}
+
+
+
+Suppose we are given a convex polygon $P_{\operatorname{orig}}$. We are interested in completely covering $P_{\operatorname{orig}}$ with a robot with a footprint $\chi$.
+Suppose the following:
+\begin{itemize}
+	\item The footprint $\chi$ is circle with radius $r$.
+	\item Due to some areas of $P_{\operatorname{orig}}$, such as the corners, not being reachable by $\chi$, we consider completely covering a modified polygon $P$ where the $P_{\operatorname{orig}}$ is modified by moving all edges inwards by distance $r$.
+	\item Any coverage path is polygonal. It consists of a sequence of straight line segments connected together. The point where two lines are conjoint  is considered to be a turn.
+	\item The footprint $\chi$ is allowed to intersect the area denoted by $P_{\operatorname{orig}}\setminus P$.
+	\item The coverage path need not be a cycle.
+\end{itemize}
+
+\begin{lemma}[No Inside Turns]
+
+\end{lemma}
+
+\begin{theorem}[Optimal Convex Coverage]
+	For convex cells, the optimal complete coverage in terms of the number of turns is boustrophedon type path with the sweeping direction along the minimum altitude direction.
+\end{theorem}
+\begin{proof}
+	Proof by contradiction.
+
+First, establish a few properties of the Boustrophedon type path, $L^*$. $L^*$ will be along a direction of minimum altitude, $\alpha_{\min}$. We classify this path to consist of two types of segments. First are the straight segments that are parallel to each other. The second are the segments connecting the straight segments. The number of straight line segments is $\frac{\alpha_{\min}}{2r}$. When stuyding the area covered via this path, one can look at the Riemann sum. In this case, all line are spaced $2r$ apart. And since the transition segments connect parallel segments they do not actually contribute to covered and contribute $0$ to covered area. Also, each straight segments has one transition segments. hence, $N=\frac{2\alpha_{\min}}{2r}$. Hence, the relation for the area looks like the following:
+\begin{equation}
+		A=\sum2rx_i=2rx_1+0+2rx_2+0+\ldots+2rx_N
+\end{equation}
+
+In this equation, $x_i$ refer to the \emph{height} of the line. We need to establish some properties of the height of these lines. The orientation of Boutstrophedon lines are orthogonal to $\alpha_{\min}$. Therefore, one line is going to the largest possible. Another is going to be second largest, and so on. Hence, the profile of the lengths of these lines is going be maximum. 
+
+Now, let us suppose that there exists another type of path that has fewer turns and achieves complete coverage. Let us call is $B$. The number of lines in this path is going to be $M<N$. Hence, the corresponding sum will have fewer terns. Hence, the following relation has to be true:
+\begin{equation}
+	\sum^Nx_i=\sum^My_i
+\end{equation}
+
+Hence, $y_i$ need to be as large as possible. However, where is the longest possible $y_i$. It is orthogonal to $\alpha_{\min}$, which means it is one of the $x_i$.
+\end{proof}
+\end{document}

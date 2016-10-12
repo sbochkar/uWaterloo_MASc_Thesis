@@ -1,0 +1,43 @@
+%!TEX root = ../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (1,4);
+		\coordinate (p3) at (4,0);
+		\coordinate (c) at (1.23,2.87);
+		\coordinate (d1) at (0.75,3.00);
+		\coordinate (d2) at (1.64,3.15);
+
+
+		%\draw [thin] (p1)--(p2) [fill] circle [radius=0.02cm]--(p3);
+		\draw [thin] (p1)--(d1);
+		\draw [thin] (p3)--(d2);
+
+		\draw [fill,color=green] (5,2) circle [radius=0.5cm];
+		\draw [fill] (5,2) circle [radius=0.05cm] node[below]{$x,y$};
+
+		%First line
+		\fill [covered_area, rotate around={76:(0,0)}] ([yshift=-0.5cm]p1) rectangle ([xshift=3.09cm,yshift=+0.5cm]p1);
+
+		%Second line
+		\fill [covered_area, rotate around={-53.1:(4,0)}] ([yshift=-0.5cm]p3) rectangle ([xshift=-3.95cm,yshift=+0.5cm]p3);
+
+		%\fill [covered_area] (p2) circle [radius=0.5cm];
+		\fill [] (p2) circle [radius=0.02cm];
+		%\fill [covered_area] (p2) arc (0:180:0.7cm);
+		\fill [covered_area] ($(p2) + (0:0.7cm)$) arc (0:180:0.7cm);
+		\fill (c) [fill] circle [radius=0.02cm];
+
+		\draw [very thin] (c) -- (d1) [fill] circle [radius=0.02cm] node [left] {$d_1$}; 
+		\draw [very thin] (c) -- (d2) [fill] circle [radius=0.02cm] node [right] {$d_2$}; 
+
+		%\draw [thin] ([xshift=0cm,yshift=0.75cm]d1) arc (250:-30:0.2cm);
+		\draw [thin] ($(p2) + (0:0.3cm)$) arc (0:180:0.3cm);
+
+		\draw (d1) edge[out=70,in=300,->] (0.7, 4.0);
+		\draw (1.3, 4.0) edge[out=250,in=120,->] (d2);
+	\end{tikzpicture}
+\end{document}

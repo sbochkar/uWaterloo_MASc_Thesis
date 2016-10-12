@@ -1,0 +1,184 @@
+%\documentclass[a4paper,11pt]{article}
+\documentclass[letterpaper,12pt,titlepage,oneside,final]{book}
+
+\makeatletter
+\def\input@path{{../../}{../}{./}}
+\makeatother
+
+\usepackage{mystyle}
+
+%======================================================================
+%   L O G I C A L    D O C U M E N T -- the content of your thesis
+%======================================================================
+\begin{document}
+
+% For a large document, it is a good idea to divide your thesis
+% into several files, each one containing one chapter.
+% To illustrate this idea, the "front pages" (i.e., title page,
+% declaration, borrowers' page, abstract, acknowledgements,
+% dedication, table of contents, list of tables, list of figures,
+% nomenclature) are contained within the file "uw-ethesis-frontpgs.tex" which is
+% included into the document by the following statement.
+%----------------------------------------------------------------------
+% FRONT MATERIAL
+%----------------------------------------------------------------------
+\input{tex/uw-ethesis-frontpgs} 
+
+%----------------------------------------------------------------------
+% MAIN BODY
+%----------------------------------------------------------------------
+\subfile{tex/chapter_1}
+\subfile{tex/chapter_2}
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_2/workspace_and_system}
+	\caption{The workspace polygon and a point model of the robot.}
+	\label{fig:workspace_and_system}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_2/configuration_space}
+	\caption{An example of a configuration space for a point robot.}
+	\label{fig:configuration_space}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_2/coverable_space}
+	\caption{An example of a coverable space.}
+	\label{fig:coverable_space}
+\end{figure}
+
+
+\section{Problem Statement}
+\label{sec:problem_statement}
+
+\subfile{tex/chapter_3}
+\subfile{tex/chapter_4}
+
+\section{Single Robot Coverage}
+\label{sec:single_robot_coverage}
+
+%\subfile{tex/chapter_5}
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_3/pinch_vertex}
+	\caption{An example of a pinch vertex at $v_p$.}
+	\label{fig:pinch_vertex}
+\end{figure}
+\begin{figure}
+	\centering
+	\subfile{img/chapter_3/transition_point}
+	\caption{An example of a transition point.}
+	\label{fig:transition_point}
+\end{figure}
+\begin{figure}
+	\centering
+	\subfile{img/chapter_3/altitude}
+	\caption{Process of measuring altitude with $\theta$ equal to 0.}
+	\label{fig:altitude}
+\end{figure}
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_3/reorient_solution_1}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_3/reorient_solution_2}
+	\end{subfigure}
+	\caption{Polygon regions where lines can be reoriented.}
+	\label{fig:reorder_regions}
+\end{figure}
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_3/altitude_func_pl_1}
+		\caption{\label{fig:altitude_case_i}}
+	\end{subfigure}%
+	\quad
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_3/altitude_func_pl_2}
+		\caption{\label{fig:altitude_case_ii}}
+	\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_3/altitude_func_pl_2}
+		\caption{\label{fig:altitude_case_iii}}
+	\end{subfigure}
+	\caption{Three cases of altitude behavior for $P_{\ell}$.}
+	\label{fig:altitude_cases_pl}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_3/altitude_func_pr_1}
+		\caption{\label{fig:altitude_case_pr_i}}
+	\end{subfigure}%
+	\quad
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_3/altitude_func_pr_2}
+		\caption{\label{fig:altitude_case_pr_ii}}
+	\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_3/altitude_func_pr_3}
+		\caption{\label{fig:altitude_case_pr_iii}}
+	\end{subfigure}
+	\caption{Three cases of altitude behavior for $P_r$.}
+	\label{fig:altitude_cases_pr}
+\end{figure}
+
+
+\section{Multi-agent Coverage}
+\label{sec:multi-agent_coverage}
+
+%\subfile{tex/chapter_6}
+\begin{figure}
+	\centering
+	\subfile{img/chapter_4/spiral_triangle_coverage}%
+	\subfile{img/chapter_4/spiral_triangle_coverage_1}%
+	\subfile{img/chapter_4/spiral_triangle_coverage_2}
+	\caption{A triangle to be completely covered.}
+	\label{fig:triangle_1}
+\end{figure}
+
+%----------------------------------------------------------------------
+% END MATERIAL
+%----------------------------------------------------------------------
+
+% B I B L I O G R A P H Y
+% -----------------------
+
+% The following statement selects the style to use for references.  It controls the sort order of the entries in the bibliography and also the formatting for the in-text labels.
+\bibliographystyle{plain}
+% This specifies the location of the file containing the bibliographic information.  
+% It assumes you're using BibTeX (if not, why not?).
+\cleardoublepage % This is needed if the book class is used, to place the anchor in the correct page,
+                 % because the bibliography will start on its own page.
+                 % Use \clearpage instead if the document class uses the "oneside" argument
+\phantomsection  % With hyperref package, enables hyperlinking from the table of contents to bibliography             
+% The following statement causes the title "References" to be used for the bibliography section:
+\renewcommand*{\bibname}{References}
+
+% Add the References to the Table of Contents
+\addcontentsline{toc}{chapter}{\textbf{References}}
+
+\bibliography{main}
+% Tip 5: You can create multiple .bib files to organize your references. 
+% Just list them all in the \bibliogaphy command, separated by commas (no spaces).
+
+% The following statement causes the specified references to be added to the bibliography% even if they were not 
+% cited in the text. The asterisk is a wildcard that causes all entries in the bibliographic database to be included (optional).
+\nocite{*}
+
+\end{document}

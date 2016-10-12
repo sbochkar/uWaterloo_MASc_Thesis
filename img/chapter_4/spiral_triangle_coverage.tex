@@ -1,0 +1,14 @@
+%!TEX root = ../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (6,0);
+		\coordinate (p3) at (2.5,4);
+		\coordinate (c) at  (2.85,1.35);
+
+		\draw [box] (p1) node[below ]{$p_1$}--node[below]{$E_1$}++(p2) node[below]{$p_2$}--node[above right]{$E_2$}(p3)node[above]{$p_3$}--node[above left]{$E_3$}(p1);
+	\end{tikzpicture}
+\end{document}
