@@ -8,6 +8,6 @@
 *.gz
 *.toc
 *.out
-
-main.lof
-main.lot
+*.lof
+*.lot
+*.dvi

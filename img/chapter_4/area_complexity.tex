@@ -1,0 +1,14 @@
+%!TEX root = ../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+		\coordinate (a) at (0,0);
+		\coordinate (b) at (5,0);
+		\coordinate (c) at (5,5);
+		\coordinate (d) at (0,5);
+
+		\draw [box] (a)--(b)--(c)--(d)--cycle;
+	\end{tikzpicture}
+\end{document}

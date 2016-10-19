@@ -2,9 +2,14 @@
 
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-In this section, we introduce the multi-agent coverage problem.
 
-\subsection{Previous Works}
+\chapter{Multi-agent Coverage}
+\label{chapter:multi-agent_coverage}
+
+In this section, we introduce the multi-agent coverage problem and out solution to this problem. Before that, we review some of the existing works in literature.
+
+
+\section{Previous Works}
 \label{sec:multi-agent_previous_works}
 There are many works that deal with multi-agent coverage. The concept of area coverage could be divided into classes. One has to be careful navigating the literature to pick the right class of coverage.
 
@@ -14,18 +19,64 @@ The work in \cite{maza2007multiple} studied an approach for multi-agent coverage
 
 The work in \cite{barrientos2011aerial} have considered a similar problem with aerial drones. The divide the problem into three sections. First is the task allocation and the second is the path planning for each individual drone. The subregions are represented as a grid.
 
-There are a number of works that study the coverage in a sense of sensor coverage. That is the problem becomes that of designing a control law that guides the robot to a location in the environment that maximizes some utility function\cite{}. 
+There are a number of works that study the coverage in a sense of sensor coverage. That is the problem becomes that of designing a control law that guides the robot to a location in the environment that maximizes some utility function%\cite{}. 
 
 
-\subsection{Modified Problem Statement}
-The general multi-agent coverage problem is shown in Problem~\ref{problem:min_cost_distr_cpp_with_lines}. However, as demonstrated in previous section, the solution to this problem is hard. As such, we simplify the problem a little bit with heuristics and simplifications.
+\section{Problem Statement}
+\label{sec:multi_problem_statement}
+
+First, we state the multi-agent coverage problem in its general form in Problem~\ref{problem:min_cost_distr_cpp}. This is similar to the Problem~\ref{problem:min_cost_cpp_with_lines} where only one path is computed.
+
+\begin{problem}[Minimum Cost Multi-agent Coverage Path Planning]
+\label{problem:min_cost_distr_cpp}
+	Given a workspace $W$ and $n$ robots with dynamics, compute a set of $n$ paths
+	\begin{equation}
+		\{p^*_i\in P_{i}\ |\ i=1,\dots,n\}
+	\end{equation}
+such that
+	\begin{equation}
+	\begin{aligned}
+		& \bigcup_{i=1,\dots,n}(\cup_{q\in p^*_i}\mathcal{M}_i(q))=\mathbb{C},\text{ and}\\
+		& \sum_{i=1.\dots,n}\mathcal{E}_i(p^*)\text{ is minimized}.
+	\end{aligned}
+	\end{equation}
+\end{problem}
+
+Problem~\ref{problem:min_cost_distr_cpp} has similar properties and the computation of a solution faces similar difficulties discussed in Chapter~\ref{chapter:single_robot_coverage}. As such, we take a similar heuristic based approach to this problem. First, we constrict the set of feasible paths to a set of segmented feasible paths. As such, the problem statement is modified as shown in Problem~\ref{problem:min_cost_distr_cpp_with_lines}.
 
 \begin{problem}[Minimum Cost Multi-agent Coverage Path Planning with Straight Line Segments]
 \label{problem:min_cost_distr_cpp_with_lines}
-	Given a workspace $W$ and $n$ robots with dynamics, compute a set of $n$ paths $\{p^*_i\in P_{\text{segmented},i}\ |\ i=1,\dots,n\}$ such that $\bigcup_{i=1,\dots,n}(\cup_{q\in p^*_i}\mathcal{M}_i(q))=\mathbb{C}$ and $\sum_{i=1.\dots,n}\mathcal{E}_i(p^*)$ is minimized.
+	Given a workspace $W$ and $n$ robots with dynamics, compute a set of $n$ paths
+	\begin{equation}
+		\{p^*_i\in P_{\text{segmented},i}\ |\ i=1,\dots,n\}
+	\end{equation}
+such that
+	\begin{equation}
+	\begin{aligned}
+		& \bigcup_{i=1,\dots,n}(\cup_{q\in p^*_i}\mathcal{M}_i(q))=\mathbb{C},\text{ and}\\
+		& \sum_{i=1.\dots,n}\mathcal{E}_i(p^*)\text{ is minimized}.
+	\end{aligned}
+	\end{equation}
 \end{problem}
 
-One of the common approaches in literature divides the task into two subtasks: task allocation and path planning. Inspired by this approach, we frame the multi-agent problem as two subproblems.
+Observe that Problem~\ref{problem:min_cost_distr_cpp_with_lines} is similar to the single-agent problem~\ref{problem:min_cost_cpp_with_lines}. Let us look at some of the differences between these problems.
+
+A path, $p_i$ is computed for each robot in Problem~\ref{problem:min_cost_distr_cpp_with_lines}. A robot $i$ traversing a path $p_i$, provides coverage for the following region, $T_i$:
+\begin{equation}
+	\bigcup_{q\in p_i}\mathcal{M}(q) = T_i,\ p_i\in P_{\text{segmented},i}
+\end{equation}
+
+Therefore, a set of $n$ robots provide coverage for a set of $n$ regions with the following condition as required by Problem~\ref{problem:min_cost_distr_cpp_with_lines}:
+\begin{equation}
+	\bigcup_{i=1,\ldots,n}T_i=\mathbb{C}
+\end{equation}
+This condition ensured that the team of $n$ robots covers entire coverable space.
+
+Since we would like the solution to Problem~\ref{problem:min_cost_distr_cpp_with_lines} to exhibit similar properties as the solution to Problem~\ref{problem:min_cost_cpp_with_lines}, we would like to leverage the algorithm from Chapter~\ref{chapter:single_robot_coverage} as much as possible.
+
+Our approach mimics some of the approaches in literature by performing area partition and assignment. In other words, our procedure computes a set of $n$ regions $T_i$ followed by computing $n$ solutions for the single-agent coverage problem, Problem~\ref{problem:min_cost_cpp_with_lines}, for each robot respectively. In other words, our approach performs $n$ partition of the environment followed by individual path planning component.
+
+The goal of this approach is to minimize the maximum cost amongst the $n$ paths. This is motivated by the following practical considerations. When a team of robots perform task, it is often undesirable when one robot finishes its assigned task much later than other robots. This means that the rest of the team was idle while the robot was performing its task. This leads to unnecessarily long job time. Hence, amongst the team of robots, one would like to minimize the task with the longest duration. This motivates the goal. At this point, we state the problem in Problem~\ref{problem:workspace_partitioning}.
 
 \begin{problem}[Workspace Partitioning based on Agent Capabilities]
 \label{problem:workspace_partitioning}
@@ -33,21 +84,21 @@ One of the common approaches in literature divides the task into two subtasks: t
 	\begin{equation}
 	\begin{aligned}
 		& \bigcup_{i=1,\dots,n}w_i=W\text{ and}\\
-		& \sum_{i=1,\dots,n}\chi(w_i,q_i)\text{ is minimized}.
+		& \max_{i=1,\ldots,n}\{\chi_i(w_i,q_i)\}\text{ is minimized.}
+		%& \sum_{i=1,\dots,n}\chi(w_i,q_i)\text{ is minimized}.
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-The second subproblem is to solve Problem~\ref{problem:min_cost_cpp_with_lines} for each $w_i$ in the partition. The key to a good solution to Problem~\ref{problem:workspace_partitioning} is the metric, which will be introduces in the next section.
+Once the partition is calculated, Problem~\ref{problem:min_cost_cpp_with_lines} is solved for each $w_i$ resulting in a path for each robot.
 
 
-\subsection{Task Allocation Algorithm}
-\label{sec:task_allocation_algo}
-In this section, we introduce the solution approach to the problems introduces in the previous sections.
+\section{Area Allocation Algorithm}
+\label{sec:area_allocation_algo}
+In this section, we introduce our solution to Problem~\ref{problem:workspace_partitioning} introduced in the previous sections.
 
-First, we will give a brief overview of the task allocation algorithm. As the input, we are given a polygonal workspace with $n$ starting locations of $n$ robots. The whole environment is partitioned into $n$ subregions of equal area. This step is the initialization step after which the partitioned will be re-optimized. From this point on, for every pair of adjacent cells in this partition, we combine their area and perform a search for the most optimal cut that will separate the two cells. The evaluation of the cut is done with our metric, which will be introduced later. Once the lowest cost cut is found, it is implemented and new partition is created. The loop repeats itself until the overall cost of the whole partition stops decreasing. 
+First, we will give a brief overview of the task allocation algorithm. As the input, we are given a polygonal workspace with $n$ starting locations of $n$ robots. The whole environment is partitioned into $n$ subregions of equal area. This step is the initialization step after which the partition is iteratively re-optimized. From this point on, for every pair of adjacent cells in this partition, we combine their area and perform a search for the most optimal cut that will separate the two cells. The evaluation of the cut is done with our metric, which will be introduced later. Once the lowest cost cut is found, it is implemented and new partition is created. The loop repeats itself until the overall cost of the whole partition stops decreasing. Algorithm~\ref{alg:optimization_procedure} shows this procedure.
 
-Algorithm~\ref{alg:optimization_procedure} shows this procedure.
 \begin{algorithm}
 	\small
 	\caption{$\operatorname{optimization\_procedure}(P, S)$}
@@ -106,11 +157,11 @@ The Algorithm~\ref{alg:update_contours} shows a procedure for recalculating the 
 \end{algorithm}
 
 
-\subsection{Path Planning Algorithm}
+\section{Path Planning Algorithm}
 It should be noted that once Algorithm~\ref{alg:optimization_procedure} is finished and a partition is generated, then each robot has been assigned a task in a suboptimal way. Then it becomes a problem of planning a coverage path for single robot. For this, it is sufficient to run the algorithm introduces in previous section $n$ times for $n$ robots for achieve the final coverage paths.
 
 
-\subsection{Task Allocation Metric}
+\section{Task Allocation Metric}
 \label{sec:task_allocation_metric}
 
 In this section, we introduce and analyze the partition metric used to solve Problem~\ref{problem:workspace_partitioning}.
@@ -127,7 +178,7 @@ Given a polygonal workspace $W$ and a robot with dynamics, the partition metric 
 \end{definition}
 
 
-\subsubsection{Initialization Distance}
+\subsection{Initialization Distance}
 
 The $n$ robots have $n$ starting locations. Depending on the partitioning scheme used, the starting location of a robot might be some distance away from its assigned partition. Since this travel distance may end up being significant, it needs to be accounted for in the metric.
 
@@ -148,7 +199,7 @@ There are several way to measure this quantity. For this paper, we will consider
 \end{equation}
 
 
-\subsubsection{Area of the Region}
+\subsection{Area of the Region}
 
 Once the robot reaches the assigned workspace, it has to complete the coverage task. The amount of work required depends on the dynamics of the robot and the size and complexity of the workspace. With this term, we will address the size of the workspace. To truly capture the amount of work required, one would have to compute a solution to Problem~\ref{problem:min_cost_cpp_with_lines} for that particular robot and workspace. Since we only need a lower bound of the area, we underestimate the amount of work by following heuristics. 
 
@@ -170,32 +221,53 @@ This quantity is clearly an under-estimator for the true length of the coverage 
 
 
 \subsection{Number of Turns}
-The amount of work required for coverage depends on the area of the workspace and its complexity. We have accounted for the area of the workspace in the previous section. In this section, we will develop methods for differentiating between polygons of equal area but varying complexity as shown in Figure[].
+The amount of work required for coverage depends on the area of the workspace and its complexity. We have accounted for the area of the workspace in the previous section. In this section, we will develop methods for differentiating between polygons of equal area but varying complexity as shown in Figure~\ref{fig:area_complexity}.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_4/area_complexity}%
+		\caption{\label{fig:area_complexity_i}}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_4/area_complexity_b}
+		\caption{\label{fig:area_complexity_ii}}
+	\end{subfigure}
+	\caption{An example of polygons with same area but various complexity.}
+	\label{fig:area_complexity}
+\end{figure}
 
 In this section, we develop a relation between the complexity of the polygon and the number of turns required to cover it.
 
-The difference between the two polygons in the Figure is the complexity. Even though they have equal areas, they have different structure. By the Riemann sum principle, a more complex polygon will have similar total length of straight line segments. However, they will have more segments in the first place. Each pair of segments needs to be connected. This connection has some length. Hence, one should expect the total overhead in terms of length of transition segments to go up as the number of straight segment goes up. Hence, if we scale the number of turns required for complete coverage by some distance, we compare the complexity of the polygon. However, to compute the true number of turns, one needs to solve Problem~\ref{prob:min_line_set_decomp}, which is hard. Hence, we rely on a lower bound or an under-estimator.
+The difference between the two polygons in Figure~\ref{fig:area_complexity} is the complexity. Even though they have equal areas, they have different structure. By the Riemann sum principle, a more complex polygon will have similar total length of straight line segments. However, they will have more segments in the first place. Each pair of segments needs to be connected. This connection has some length. Hence, one should expect the total overhead in terms of length of transition segments to go up as the number of straight segment goes up. Hence, if we scale the number of turns required for complete coverage by some distance, we compare the complexity of the polygon. However, to compute the true number of turns, one needs to compute a coverage path, which is hard. Hence, we rely on a lower bound or an under-estimator.
 
 This quantity is computed by computing the contours of the polygon. These contours are related to the notion of straight skeletons and medial axis[CITE]. An example of the type of algorithm for computing these contours is shown in Algorithm~\ref{alg:compute_contours}.
 
-Suppose we run Algorithm~\ref{alg:compute_contours} and we get a set, $\mathcal{E}$, of contours.
-\begin{property}[Lower Bound on Turns]
-The lower bound on the number of turns for coverage of polygon $W$ is $|\mathcal{E}|$.
-\end{property}
-
-This method is efficient when making cuts as well. Since this the quantity introduces in this section needs to be computed constantly as the polygon is partitioned, it is imperative that the computation of this quantity is quick. For that, we introduce Algorithm~\ref{alg:update_contours}.
-
-Algorithm~\ref{alg:update_contours} allows us to reuse previous computations of the contours to compute the new ones.
-
+Suppose we run Algorithm~\ref{alg:compute_contours} and we get a set of contours, $\mathcal{E}$.
+%\begin{property}[Lower Bound on Turns]
+%The lower bound on the number of turns for coverage of polygon $W$ is $|\mathcal{E}|$.
+%\end{property}
+%To prove this property, we begin by establishing this result in convex polygons.
 
 \begin{proposition}
-Given a polygonal convex workspace $W$, the number of encirclements times three is a lower number of straight line segments required to cover $W$ compared to the Boustrophedon path.
+	Given a polygonal convex workspace $W$, $|\mathcal{E}|$ is a lower number of straight line segments required to cover $W$ compared to the Boustrophedon path.
 \end{proposition}
 \begin{proof}
 
+Start with a convex shape. The distance to the skeleton is $\beta$. The minimum altitude is $\alpha$. By definition of the skeleton and the altitude, $\beta\leq 0.5\alpha$. But $|\mathcal{E}|=\ceil{\frac{\beta}{r}}$. Hence, any efficient coverage technique such as Boustrophedon coverage would need twice as many line for coverage, which support the claim of a lower bound.
+
+Similar argument can be made for nonconvex shapes. The $|\mathcal{E}|$ should be at least $\ceil{\frac{\beta}{r}}$ and the following is still true $\beta\leq 0.5\alpha$. Therefore, the property is true.
+\end{proof}
+
+
+
+
+\iffalse
 Suppose $W$ is a triangle. Let us establish the number of straight line segments required with Boustrophedon type coverage. There are two ways to achieve complete coverage via Boustrophedon type coverage that is known to us. Those are shown in the following figures. The first is the classical Boustrophedon followed by the wall following component. The second approach is using the zamboni-like transitions to achieve complete coverage near the walls. Both of these methods produce different 
 
-\emph{With wall following:} There are $\ceil*{\frac{h}{r}}+|E|$ necessary straight line segments in the path.
+%\emph{With wall following:} There are $\ceil*{\frac{h}{r}}+|E|$ necessary straight line segments in the path.
 
 \emph{Zamboni-like:} There are $2\ceil*{\frac{h}{r}}$ necessary straight line segments.
 
@@ -206,6 +278,15 @@ h=\alpha+\beta\geq2\alpha
 \end{aligned}
 \end{equation}
 
+\begin{figure}
+	\centering
+	\subfile{img/chapter_4/spiral_triangle_coverage}%
+	\subfile{img/chapter_4/spiral_triangle_coverage_1}%
+	\subfile{img/chapter_4/spiral_triangle_coverage_2}
+	\caption{A triangle to be completely covered.}
+	\label{fig:triangle_1}
+\end{figure}
+
 Hence, for the triangle, we have:
 \begin{equation}
 \begin{aligned}
@@ -215,7 +296,7 @@ Hence, for the triangle, we have:
 
 
 \end{proof}
-
+\fi
 %Let us now compute the encirclements for $P$ by repeatedly shrinking the boundaries of $P$ by a fixed distance $r$. This process is known to produce a graph called straight skeleton graph. Let us analyze modified version the skeleton graph, $\mathcal{S}$, where edges that are adjacent to vertices of $P$ are removed. From the properties of the skeleton graph, the shortest distance, $b$, from any edge of $P$ to $\mathcal{S}$ determines the number of encirclement, $e$, as follows:
 %\begin{equation}
 %\begin{aligned}
@@ -237,9 +318,9 @@ Hence, for the triangle, we have:
 %
 %\end{proof}
 
-\subsection{Computational Complexity}
+\section{Computational Complexity}
 
-
+\section{Simulations}
 
 
 

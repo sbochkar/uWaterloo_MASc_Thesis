@@ -1,0 +1,15 @@
+%!TEX root = ../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\draw [very thick] (0,0) -- (5,0) node [right] {$\gamma_j$};
+		\draw [very thick] (0,2) -- (5,2) node [right] {$\gamma_i$};
+
+		\draw [dashed, ->] plot [smooth] coordinates {(0,0) (-0.5,1) (0,2)}; 
+		\draw [dashed, ->] plot [smooth] coordinates {(0,0) (-0.5,0.5) (5.5,1.5) (5,2)};
+		
+	\end{tikzpicture}
+\end{document}	
