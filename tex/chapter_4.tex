@@ -25,73 +25,94 @@ There are a number of works that study the coverage in a sense of sensor coverag
 \section{Problem Statement}
 \label{sec:multi_problem_statement}
 
-First, we state the multi-agent coverage problem in its general form in Problem~\ref{problem:min_cost_distr_cpp}. This is similar to the Problem~\ref{problem:min_cost_cpp_with_lines} where only one path is computed.
+First, the multi-agent coverage problem is stated in its general form in Problem~\ref{problem:distr_cpp}.
 
-\begin{problem}[Minimum Cost Multi-agent Coverage Path Planning]
-\label{problem:min_cost_distr_cpp}
-	Given a workspace $W$ and $n$ robots with dynamics, compute a set of $n$ paths
-	\begin{equation}
-		\{p^*_i\in P_{i}\ |\ i=1,\dots,n\}
-	\end{equation}
-such that
+\begin{problem}[Multi-agent Coverage Path Planning]
+\label{problem:distr_cpp}
+	Given a workspace $W$, $n$ robots with same dynamics and corresponding coverage map $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
 	\begin{equation}
 	\begin{aligned}
-		& \bigcup_{i=1,\dots,n}(\cup_{q\in p^*_i}\mathcal{M}_i(q))=\mathbb{C},\text{ and}\\
-		& \sum_{i=1.\dots,n}\mathcal{E}_i(p^*)\text{ is minimized}.
+		& \{p_i\in P_{i}\ |\ i=1,\dots,n\},\\
+		& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\\
+		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
+		& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized.}
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-Problem~\ref{problem:min_cost_distr_cpp} has similar properties and the computation of a solution faces similar difficulties discussed in Chapter~\ref{chapter:single_robot_coverage}. As such, we take a similar heuristic based approach to this problem. First, we constrict the set of feasible paths to a set of segmented feasible paths. As such, the problem statement is modified as shown in Problem~\ref{problem:min_cost_distr_cpp_with_lines}.
+Problem~\ref{problem:distr_cpp} shares some similarities with the single agent coverage problem introduced in Chapter~\ref{chapter:single_robot_coverage}. However, there are several noticeable differences. First, an assumption is made that the team of robots exhibits same dynamics. This assumption is in place to ensure that the coverable space is equivalent between all robots. [UNLESS DISTRIBUTED APPROACH WHEN PARTITIONING THE WORKSPACE]. Also, the conditions now require that the combination of $n$ paths footprints covers the entire coverable area. Another important difference is the objective of the problem. Where as in the single agent case, the objective was to minimize the cost of the path, with this problem, the objective is minimize the cost of the path with the maximum cost amongst $n$ robots. There are several motivations for this. When a team of robots performs a task, it is often undesirable when one robot finishes its assigned task much later than the other robots. This means that the rest of the team is idle while the robot is performing its task. This results in unnecessarily long duration for the whole coverage task. It is more desirable to redistribute the work of the robot with the longest duration amongst the team of robots such that the duration of the whole coverage task is reduced. In other words, amongst the team of robots, one would like to minimize the task with the longest duration.
 
-\begin{problem}[Minimum Cost Multi-agent Coverage Path Planning with Straight Line Segments]
-\label{problem:min_cost_distr_cpp_with_lines}
-	Given a workspace $W$ and $n$ robots with dynamics, compute a set of $n$ paths
-	\begin{equation}
-		\{p^*_i\in P_{\text{segmented},i}\ |\ i=1,\dots,n\}
-	\end{equation}
+We take a similar heuristic based approach to this problem. First, we constrict the set of feasible paths to a set of segmented feasible paths. As such, the problem statement is modified as shown in Problem~\ref{problem:distr_cpp_with_lines}.
+
+\begin{problem}[Multi-agent Coverage Path Planning with Straight Line Segments]
+\label{problem:distr_cpp_with_lines}
+	Given a workspace $W$, $n$ robots with dynamics and corresponding coverage map $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
 such that
 	\begin{equation}
 	\begin{aligned}
-		& \bigcup_{i=1,\dots,n}(\cup_{q\in p^*_i}\mathcal{M}_i(q))=\mathbb{C},\text{ and}\\
-		& \sum_{i=1.\dots,n}\mathcal{E}_i(p^*)\text{ is minimized}.
+		& \{p_i\in P_{\text{segmented},i}\ |\ i=1,\dots,n\},\\
+		& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\text{ and}\\
+		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
+		& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized.}
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-Observe that Problem~\ref{problem:min_cost_distr_cpp_with_lines} is similar to the single-agent problem~\ref{problem:min_cost_cpp_with_lines}. Let us look at some of the differences between these problems.
-
-A path, $p_i$ is computed for each robot in Problem~\ref{problem:min_cost_distr_cpp_with_lines}. A robot $i$ traversing a path $p_i$, provides coverage for the following region, $T_i$:
+Notice in Problem~\ref{problem:distr_cpp_with_lines}, a path for each robot is computed. A robot $i$ traversing a path $p_i$ covers a region $w_i$. Formally, $w_i$ is defined as follows:
 \begin{equation}
-	\bigcup_{q\in p_i}\mathcal{M}(q) = T_i,\ p_i\in P_{\text{segmented},i}
+	\bigcup_{q\in p_i}\mathcal{M}(q) = w_i,\ p_i\in P_{\text{segmented},i}
 \end{equation}
 
-Therefore, a set of $n$ robots provide coverage for a set of $n$ regions with the following condition as required by Problem~\ref{problem:min_cost_distr_cpp_with_lines}:
+By conditions stated in Problem~\ref{problem:distr_cpp_with_lines}, a team of robots has to entirely cover the coverable area. Therefore, the following condition has to be met.
 \begin{equation}
+	\label{eq:partition_condition}
 	\bigcup_{i=1,\ldots,n}T_i=\mathbb{C}
 \end{equation}
-This condition ensured that the team of $n$ robots covers entire coverable space.
 
-Since we would like the solution to Problem~\ref{problem:min_cost_distr_cpp_with_lines} to exhibit similar properties as the solution to Problem~\ref{problem:min_cost_cpp_with_lines}, we would like to leverage the algorithm from Chapter~\ref{chapter:single_robot_coverage} as much as possible.
+Notice that condition (\ref{eq:partition_condition}) suggests an exact decomposition of $\mathbb{C}$. Suppose a decomposition of $\mathbb{C}$ is given with a guarantee that $\max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}$ is minimized provided that all $p_i$ have the lowest possible cost. Then the only thing left to do is to compute $n$ lowest cost paths for each cell in the decomposition. As such, the following problem and Problem~\ref{problem:distr_cpp_with_lines} are equivalent.
+\begin{problem}[]
+\label{problem:distr_cpp_with_lines_ii}
+	Given a workspace $W$, $n$ robots with dynamics and corresponding coverage map $\mathcal{M}_i$, compute
+	\begin{equation}
+	\begin{aligned}
+		&\{w_1,w_2,\ldots,w_n\},\\
+		&\{p_1,p_2,\ldots,p_n\}
+	\end{aligned}
+	\end{equation}
+	such that
+	\begin{equation}
+	\begin{aligned}
+		&i)& \bigcup_{i=1,\dots,n}(w_i)=\mathbb{C},\\
+		&ii)& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized,}\\
+		&iii) &\{p_i\in P_{\text{segmented},i}\ |\ i=1,\dots,n\},\\
+		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
+		&iv)&\mathcal{E}_i(p_i)\leq\mathcal{E}_i(p_j), \forall p_j\in P_{\text{segmented},i}\\
+	\end{aligned}
+	\end{equation}
+\end{problem}
 
-Our approach mimics some of the approaches in literature by performing area partition and assignment. In other words, our procedure computes a set of $n$ regions $T_i$ followed by computing $n$ solutions for the single-agent coverage problem, Problem~\ref{problem:min_cost_cpp_with_lines}, for each robot respectively. In other words, our approach performs $n$ partition of the environment followed by individual path planning component.
-
-The goal of this approach is to minimize the maximum cost amongst the $n$ paths. This is motivated by the following practical considerations. When a team of robots perform task, it is often undesirable when one robot finishes its assigned task much later than other robots. This means that the rest of the team was idle while the robot was performing its task. This leads to unnecessarily long job time. Hence, amongst the team of robots, one would like to minimize the task with the longest duration. This motivates the goal. At this point, we state the problem in Problem~\ref{problem:workspace_partitioning}.
+However, Problem~\ref{problem:distr_cpp_with_lines_ii} can be solved via a decoupled approach by solving two separate problems. The first problem deals with an optimal decomposition of the workspace. The second problem deals with computing the lowest cost paths for each cell in the decomposition. The first problem is shown in Problem~\ref{problem:workspace_partitioning} while the second problem is just an invocation of Problem~\ref{problem:min_cost_cpp_with_lines} $n$ times. The solution to that problem is covered in Chapter~\ref{chapter:single_robot_coverage}.
 
 \begin{problem}[Workspace Partitioning based on Agent Capabilities]
 \label{problem:workspace_partitioning}
-	Given a workspace $W$ and $n$ robots with dynamics, compute a partitioning of $W$ into $\{w_1,w_2,\dots,w_n\}$ such that
+	Given a workspace $W$ and $n$ robots with dynamics, compute a partitioning of $\mathbb{C}$ into $\{w_1,w_2,\dots,w_n\}$ such that
 	\begin{equation}
 	\begin{aligned}
-		& \bigcup_{i=1,\dots,n}w_i=W\text{ and}\\
-		& \max_{i=1,\ldots,n}\{\chi_i(w_i,q_i)\}\text{ is minimized.}
+		& \bigcup_{i=1,\dots,n}w_i=\mathbb{C}\text{ and}\\
+		& \max_{i=1,\ldots,n}\{\mathcal{E}_i(w_i)\}\text{ is minimized.}
 		%& \sum_{i=1,\dots,n}\chi(w_i,q_i)\text{ is minimized}.
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-Once the partition is calculated, Problem~\ref{problem:min_cost_cpp_with_lines} is solved for each $w_i$ resulting in a path for each robot.
 
+\section{Our Approach}
+
+This section will introduce the approach that we have taken to solve the problems defined in the previous section. The solution to Problem~\ref{problem:workspace_partitioning} relies on iterative pair-wise re-optimization technique similar to one discussed in Chapter~\ref{chapter:single_robot_coverage}.
+
+First, we design a metric that helps with the evaluation of the partition. Then we use an established anchored area partitioning algorithm to evaluate various partitions according to our metric. 
+
+Define algorithm and conditions for acceptance possibly.
 
 \section{Area Allocation Algorithm}
 \label{sec:area_allocation_algo}
@@ -268,7 +289,7 @@ Similar argument can be made for nonconvex shapes. The $|\mathcal{E}|$ should be
 Suppose $W$ is a triangle. Let us establish the number of straight line segments required with Boustrophedon type coverage. There are two ways to achieve complete coverage via Boustrophedon type coverage that is known to us. Those are shown in the following figures. The first is the classical Boustrophedon followed by the wall following component. The second approach is using the zamboni-like transitions to achieve complete coverage near the walls. Both of these methods produce different 
 
 %\emph{With wall following:} There are $\ceil*{\frac{h}{r}}+|E|$ necessary straight line segments in the path.
-
+f
 \emph{Zamboni-like:} There are $2\ceil*{\frac{h}{r}}$ necessary straight line segments.
 
 Now let us count the number of encirclements for a polygon. It is equal to $\ceil*{\frac{\alpha}{r}}$. Therefore, our lower bound is $2\ceil*{\frac{\alpha}{r}}$. Hence, $\alpha$ is the shortest distance from the edge of a polygon to the straight skeleton of that polygon. However, observer:
