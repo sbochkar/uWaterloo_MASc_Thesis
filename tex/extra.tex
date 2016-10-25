@@ -339,4 +339,63 @@ Now, let us suppose that there exists another type of path that has fewer turns 
 
 Hence, $y_i$ need to be as large as possible. However, where is the longest possible $y_i$. It is orthogonal to $\alpha_{\min}$, which means it is one of the $x_i$.
 \end{proof}
+
+
+
+\iffalse
+Suppose $W$ is a triangle. Let us establish the number of straight line segments required with Boustrophedon type coverage. There are two ways to achieve complete coverage via Boustrophedon type coverage that is known to us. Those are shown in the following figures. The first is the classical Boustrophedon followed by the wall following component. The second approach is using the zamboni-like transitions to achieve complete coverage near the walls. Both of these methods produce different 
+
+%\emph{With wall following:} There are $\ceil*{\frac{h}{r}}+|E|$ necessary straight line segments in the path.
+f
+\emph{Zamboni-like:} There are $2\ceil*{\frac{h}{r}}$ necessary straight line segments.
+
+Now let us count the number of encirclements for a polygon. It is equal to $\ceil*{\frac{\alpha}{r}}$. Therefore, our lower bound is $2\ceil*{\frac{\alpha}{r}}$. Hence, $\alpha$ is the shortest distance from the edge of a polygon to the straight skeleton of that polygon. However, observer:
+\begin{equation}
+\begin{aligned}
+h=\alpha+\beta\geq2\alpha
+\end{aligned}
+\end{equation}
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_4/spiral_triangle_coverage}%
+	\subfile{img/chapter_4/spiral_triangle_coverage_1}%
+	\subfile{img/chapter_4/spiral_triangle_coverage_2}
+	\caption{A triangle to be completely covered.}
+	\label{fig:triangle_1}
+\end{figure}
+
+Hence, for the triangle, we have:
+\begin{equation}
+\begin{aligned}
+	\ceil*{\frac{h}{r}}+|E|\geq\ceil*{\frac{2\alpha}{r}}+|E|\geq2\ceil*{\frac{\alpha}{r}} 
+\end{aligned}
+\end{equation}
+
+
+\end{proof}
+\fi
+%Let us now compute the encirclements for $P$ by repeatedly shrinking the boundaries of $P$ by a fixed distance $r$. This process is known to produce a graph called straight skeleton graph. Let us analyze modified version the skeleton graph, $\mathcal{S}$, where edges that are adjacent to vertices of $P$ are removed. From the properties of the skeleton graph, the shortest distance, $b$, from any edge of $P$ to $\mathcal{S}$ determines the number of encirclement, $e$, as follows:
+%\begin{equation}
+%\begin{aligned}
+%e=\floor{\frac{b}{r}}.
+%\end{aligned}
+%\end{equation}
+%
+%\begin{equation}
+%\begin{aligned}
+%\theta_e=360*e.
+%\end{aligned}
+%\end{equation}
+%By construction of straight skeletons,$b\leq\frac{\alpha}{2}$. Hence,
+%\begin{equation}
+%\begin{aligned}
+%\theta_e=360*\floor{\frac{b}{r}}\leq180*\floor{\frac{\alpha}{r}}=\theta_B.
+%\end{aligned}
+%\end{equation}
+%
+%\end{proof}
+
+
+
 \end{document}
