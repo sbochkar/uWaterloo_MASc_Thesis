@@ -5,6 +5,8 @@
 *.fls
 *.log
 *.pdf
+!img/*.pdf
+!figs/*.pdf
 *.gz
 *.toc
 *.out

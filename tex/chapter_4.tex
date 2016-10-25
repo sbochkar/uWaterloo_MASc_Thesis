@@ -9,26 +9,6 @@
 In this section, we introduce the multi-agent coverage problem and our solution. Before that, we review some of the existing works in literature.
 
 
-\section{Previous Works}
-\label{sec:multi-agent_previous_works}
-There are many works that deal with multi-agent coverage. The concept of area coverage could be divided into classes. One has to be careful navigating the literature to pick the right class of coverage.
-
-\textit{Sensor Coverage:}
-The work by Durham~\cite{durham2012discrete} outlines a solution to the  multi-agent coverage under unreliable communication network. The environment is modeled as a grid with obstacles where the robots can move from one cell to another in the grid. The objective is to compute a partition that minimizes the coverage cost function. The computation of this function shares some similarities to Voronoi partitioning. The partitioning algorithm relies in pair-wise partitioning and reaches pair-wise optimality. The problem with this approach is that the environment as modeled as an occupancy grid. Also, this approach differs from ours as the robots is not requires to visit all cells; therfore, the cost function used in the optimization of the partition reflects that.
-
-The work by Maza~\cite{maza2007multiple} proposed a solution to multi-agent coverage. Given $n$ robots, they partition the polygonal environment into $n$ regions. The partition is performed by anchored area partitioning algorithm. The area amount is reflective of the abilities of the robot. Once, the partition is formed, each robot cover their regions in an optimal sweeping fashion. The problems with the proposed approach is that the work only considered convex polygons. Furthermore, the assumption that the area alone reflects the abilities of the robot is too restrictive.
-
-The work in \cite{barrientos2011aerial} have considered a similar problem with aerial drones. The divide the problem into three sections. First is the task allocation and the second is the path planning for each individual drone. The subregions are represented as a grid. This work shares a lot of similarities to the previous author but with extensive test trials.
-
-Hokeyam~\cite{hokayem2007dynamic} worked on an algorithmic approach to coverage by robots following inner level sets of the polygonal workspace. Any collisions between robots are resolved by sporadic communications. The problem with using inner level sets of a polygon is that they make sense for convex polygons. However, for nonconvex polygons, some of these level sets become complicated. 
-
-In another work~\cite{atincc2013supervised}, a control law for sensor coverage is developed for a team of robots that is based on gradient representation of coverage with the addition of the transition control law that helps the robots avoid local minima of gradients.
-
-Another multi-robot visual coverage method developed by Valente~\cite{valente2011multi} where the approach is similar to our and that of Barrientos~\cite{barrientos2011aerial} where the robot divide the area via communications and plan the path accordingly. The assumption made here is that of convex polygon. One of the metric is the number of turns.
-
-There are a number of works that study the coverage in a sense of sensor coverage. That is the problem becomes that of designing a control law that guides the robot to a location in the environment that maximizes some utility function%\cite{}. 
-
-
 \section{Problem Statement}
 \label{sec:multi_problem_statement}
 
