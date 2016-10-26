@@ -6,44 +6,37 @@
 \chapter{Single Robot Coverage}
 \label{chapter:single_robot_coverage}
 
-This chapter addresses the problem of the single agent coverage. In this section, we motivate the problem, state the problem, and propose a solution.
-
-First, we state the problem of coverage in its most general form.
-\begin{problem}[Minimum Cost Coverage Path Planning]
-\label{problem:min_cost_cpp}
-	Given a workspace $W$, a robot with dynamics, and a coverage footprint mapping $\mathcal{M}(q)$, compute a path $p^*\in P$ such that
-	\begin{equation}
-	\label{condition:full_coverage}
-	\begin{aligned}
-		& \bigcup_{q\in p^*}\mathcal{M}(q)=\mathcal{C},\\
-		& \mathcal{E}(p^*)\leq\mathcal{E}(p), \forall p\in P.
-	\end{aligned}
-	\end{equation}
-\end{problem}
-
-In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the path is equal to the coverable space of the environment and the cost of the path is minimized.
-
-A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $P$ contain infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}). In this work, we rely on heuristics by making justified restrictions to the feasible set to simplify the problem.
-
+This chapter addresses the problem of a single agent coverage. Here, problem statement is developed from its general form.
 
 \section{Problem Statement}
 \label{sec:single_problem_statement}
 
-From our experience working with robotic companies and from some of the literature, we have observed that one of the most efficient paths for many types of robots are paths that are completely straight line segments. Here, efficiency could be interpreted in various ways. For instance, a battery powered differential drive robot traveling in a straight line has to do work to execute a turn. This is because it needs to slow down or speed up some of its wheels. Once it finishes executing a turn, it needs to speed up again by using energy from the battery. Hence, any turns on its path leads to decrease in energy efficiency, which is undesirable. Other examples include area scanning via a fixed wing UAV. Whenever a UAV has to make a turn while executing a coverage path, its scanning equipment, which is typically points downwards and fixed to the airframe, will swivel and point in a different direction~\cite{frew2004vision}. This reduces the quality of the coverage and will usually result in a second pass. Hence, turns in the scanning applications reduce the efficiency of coverage paths.
-
-Motivated by these observations, we aim to compute coverage paths with minimum turning. There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
-
-To that end, we restrict the set of feasible paths to the set of feasible but segmented paths as shown in Figure~\ref{fig:nonsegmented_vs_segmented}. The set of feasible segmented path is defined in Definition~\ref{definition:segmented_feasible_paths}.
-\begin{definition}[Set of Feasible Segmented Path]
-\label{definition:segmented_feasible_paths}
-A set of feasible segmented paths is defined as:
+The general coverage problem is defined as follows.
+\begin{problem}[Minimum Cost Coverage Path Planning]
+\label{problem:min_cost_cpp}
+	Given a workspace $W$, a robot with dynamics, and a coverage footprint mapping $\mathcal{M}(q)$, compute a path $p_i\in P$ such that
 	\begin{equation}
+	\label{condition:full_coverage}
 	\begin{aligned}
-		P_{\text{segmented}}=\{p_i\ |\ p_i\subseteq Q_{\text{free}},\  p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}\}\subseteq P.
+		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathcal{C},\\
+		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P.
 	\end{aligned}
 	\end{equation}
-\end{definition}
-where $s_i$ refers to straight line segments and $t_i$ refers to the transition segments.
+\end{problem}
+
+In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint map are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the whole path is equal to the coverable space and the cost of the path is minimized. A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $P$ contain infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}). In this work, we simplify the problem by   restricting the feasible set.
+
+From the literature and our collaborations with companies that deal with coverage, we have observed that in path planning field, the most desirable paths for many types of robots are paths that are mostly straight lines. Path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robots often cannot maintain the same linear speed when executing turn maneuvers. As a result, they need to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
+
+To that end, we assume the dynamics of the coverage robot are as such that the lowest cost path between two points in an environment is a straight line. With that in mind and for the purpose of easier analysis, we restrict the set of feasible paths to the set of feasible but segmented paths. The set of feasible segmented path is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:nonsegmented_vs_segmented}.
+\begin{definition}[Set of Feasible Segmented Paths]
+\label{definition:segmented_feasible_paths}
+A set of feasible segmented paths is defined as:%
+	\begin{equation}
+		P_{\text{segmented}}=\{p_i\ |\ p_i\subseteq Q_{\text{free}},\  p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}\}\subseteq P
+	\end{equation}
+	where $s_i$ refers to $i$th straight line segment and $t_i$ refers to $i$th transition segment.
+\end{definition}%
 
 \begin{figure}
 	\centering
@@ -55,26 +48,25 @@ where $s_i$ refers to straight line segments and $t_i$ refers to the transition 
 		\centering
 		\subfile{img/chapter_3/segmented_path}
 	\end{subfigure}
-	\caption{An example of non-segmented path and a segmented path.}
+	\caption{An example of non-segmented path[left] and a segmented path[right].}
 	\label{fig:nonsegmented_vs_segmented}
 \end{figure}
 
-Problem~\ref{problem:min_cost_cpp} is modified accordingly to specify the search space of feasible paths.
+Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified search space of feasible paths.
 \begin{problem}[Minimum Cost Coverage Path Planning with Straight Line Segments]
 \label{problem:min_cost_cpp_with_lines}
-	Given a workspace $W$, a robot with dynamics, and a coverage footprint mapping $\mathcal{M}(q)$, compute a path $p^*\in P_{\text{segmented}}$ such that
+	Given a workspace $W$, a robot with dynamics, and a coverage footprint mapping $\mathcal{M}(q)$, compute a path $p_i\in P_{\text{segmented}}$ such that
 	\begin{equation}
 	\label{condition:full_coverage_2}
 	\begin{aligned}
-		& \bigcup_{q\in p^*}\mathcal{M}(q)=\mathcal{C},\\
-		& \mathcal{E}(p^*)\leq\mathcal{E}(p), \forall p\in P.
+		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathcal{C},\\
+		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P.
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-[Connect Segmented Coverage Path Planning Problem to Minimum Number of Lines Problem]
-
-Our earlier assumption relies on the fact that straight line segments are the cheapest paths for a robot. In other words, any transition segments connecting point $a$ and $b$ are going to have higher cost than a straight line segment connecting points $a$ and $b$. As such, it is intuitive to try to minimize the number of transition segments in the path. Note the structure of paths in $P_{\text{segmented}}$, i.e., $p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}$. Minimizing the number of straight line segment in the path is equivalent to minimizing the number of transition segments.
+%As such, it is intuitive to try to minimize the number of transition segments in the path.
+Note the structure of paths in $P_{\text{segmented}}$, i.e., $p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}$. The cost of the whole path could be stated as $\sum_{i=1}^n(\mathcal{E}(s_i)+\mathcal{E}(t_i))$. Minimizing the number of straight line segment in the path is equivalent to minimizing the number of transition segments.
 
 In literature, Problem~\ref{problem:min_cost_cpp_with_lines} is a lot more common. Moreover, a very common approach is to utilize a type of path called Boustrophedon paths~\cite{choset2000coverage}. With this approach, the whole workspace or a number of subregions of the workspace are covered via straight line segments placed parallel to each other. It should be noted that by itself, the Boustrophedon path does not achieve complete coverage even for convex polygons. A wall following part is required to achieve full coverage. However, since the wall following component is a fixed cost part of the path, it is useful from the analysis standpoint to look at just Boustrophedon component of the path.
 

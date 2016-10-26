@@ -6,13 +6,15 @@
 	\begin{tikzpicture}[scale=1]
 
 	\coordinate(a1) at (0,0);
-	\coordinate(a2) at (4,0);
+	\coordinate(a11) at (2,0.1);
+	\coordinate(a2) at (4,-0.1);
 	\coordinate(a3) at (4,1);
-	\coordinate(a4) at (0,2);
+	\coordinate(a31) at (2,1.2);
+	\coordinate(a4) at (0,1.8);
 	\coordinate(a5) at (1,2.5);
 	\coordinate(a6) at (5,3);
 
-	\draw [] plot [smooth] coordinates {(a1) (a2) (a3) (a4) (a5) (a6)};
+	\draw [] plot [smooth] coordinates {(a1) (a11) (a2) (a3) (a31) (a4) (a5) (a6)};
 
 	\end{tikzpicture}
 \end{document}	
