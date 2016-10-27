@@ -24,15 +24,15 @@ The general coverage problem is defined as follows.
 	\end{equation}
 \end{problem}
 
-In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint map are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the whole path is equal to the coverable space and the cost of the path is minimized. A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $P$ contain infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}). In this work, we simplify the problem by   restricting the feasible set.
+In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint map are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the whole path is equal to the coverable space and the cost of the path is minimized. A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $P$ contain infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}).
 
-From the literature and our collaborations with companies that deal with coverage, we have observed that in path planning field, the most desirable paths for many types of robots are paths that are mostly straight lines. Path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robots often cannot maintain the same linear speed when executing turn maneuvers. As a result, they need to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
+From the literature and our collaborations with companies that deal with coverage, we have observed that the most desirable path for numerous types of robots is a straight line segment. Path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robot often cannot maintain the same linear speed when executing turn maneuvers. As a result, it needs to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
 
 To that end, we assume the dynamics of the coverage robot are as such that the lowest cost path between two points in an environment is a straight line. With that in mind, let us take a look at the cost of a path, $\mathcal{E}(p_i)$. A path mapped to the workspace will have two components: linear and angular. Our assumption for the cost is that the cost of the path is proportional to these components. i.e,
 \begin{equation}
 	\mathcal{E}(p_i)=c_1l(p_i)+c_2a(p_i)
 \end{equation}
-where $l(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment has only the linear component, i.e, $\mathcal{E}(s_i)=c_1l(s_i)$, whereas the cost of a transition segments has both linear and angular component, i.e, $\mathcal{E}(t_i)=c_1l(t_i)+c_2a(t_i)$.
+where $l(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment has only the linear component, i.e, $\mathcal{E}(s_i)=c_1l(s_i)$, whereas the cost of a transition segments has both linear and angular component, i.e, $\mathcal{E}(t_i)=c_1l(t_i)+c_2a(t_i)$. For robots with dynamics that are in line with our assumption, $c_2 > c_1$.
 
 For the purpose of easier analysis, we restrict the set of feasible paths to the set of feasible but segmented paths. The set of feasible segmented path is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:nonsegmented_vs_segmented}.
 \begin{definition}[Set of Feasible Segmented Paths]
@@ -64,29 +64,41 @@ Note the cost for a segmented path has the following structure:
 	\label{fig:nonsegmented_vs_segmented}
 \end{figure}
 
-We shall now derive an interesting result regarding the total length of the straight line segments, which will assist us with the formulation of the problem. In much of literature, one of the most common types of paths used for coverage path planning are sweeping paths consisting of a series of parallel straight lines. The benefits of such arrangement is that there is no overlap between lines leading to efficient paths in terms of length per area covered. Suppose a system when a robot can teleport between straight line segments in effect ignoring the transition segments. One would like to find the total length of such a path. As it turns out, the length of such a path as directly related to the area of the workspace. We shall establish this by recalling the concepts of a Riemann sum.
+We shall now focus on an interesting property of straight line segments, which will assist us with the formulation of the problem.%
+%In much of literature, one of the most common types of paths used for coverage path planning are sweeping paths consisting of a series of parallel straight lines. The benefits of such arrangement is that there is no overlap between lines leading to efficient paths in terms of length per area covered.
+Suppose we are given a robot that can can travel in straight line segments and teleport between them. In effect, the transition segments have cost zero. With such a system, the total length of any coverage path for such a system is directly related to the area of the workspace. For example, consider a polygon in Figure~\ref{fig:riemann_sum}. Here, the line segments are labeled $\ell_1,\ldots,\ell_{11}$. These segments are spaced distance $\delta x$ apart from each other. Suppose $\delta x$ is the width of the coverage footprint as the robot traverses the line. Then each line results in $\l_i\delta x$ amount of area covered. Then the total area covered would be as follows:
+\begin{equation}
+	\text{Area}_{\text{covered}}=\sum_{i=1}^N\ell_i\delta x.
+\end{equation}
+One should notice the similarities of this value with the Riemann sum. In other words, as $\delta x\to 0$ then the number of lines will tend to infinity and the Riemann sum converges to a Riemann integral.
+\begin{equation}
+	\lim_{\delta x\to 0} \sum_{i=1}^N\ell_i\delta x = \text{Area}.
+\end{equation}
 
 \begin{figure}
 	\centering
 	\subfile{img/chapter_3/riemann_sum}
 	\caption{Riemann sum.}
-	\label{fig:nonsegmented_vs_segmented}
+	\label{fig:riemann_sum}
 \end{figure}
 
-Suppose the coverage path consists of a series of parallel line segments spaces distance $\delta x$ apart. This shares some similarities with a concept of integrals. As such, the area is equal to 
+Since $N$ is always finite in practice, the Riemann sum will always be an approximation of the actual area of the workspace. 
 \begin{equation}
-	A\approx \sum \ell\delta x=\delta x\sum\ell
+	\sum_{i=1}^N \ell_i\delta x=\delta x\sum_{i=1}^N\ell_i\approx\text{Area}_{\text{actual}}.
 \end{equation}
 
-In other words, the total length of the path is approximated by the area. That is,
+This gives us a relation for the total length of the coverage path as follows:
 \begin{equation}
-	\ell_t=\sum\ell_i\approx\frac{A}{\delta x}.
+	\ell_t=\sum_{i=1}^N\ell_i\approx\frac{\text{Area}_{\text{actual}}}{\delta x}.
 \end{equation}
 
-The important side effect of this is that there is no relation to the orientation of these parallel lines. That is these lines could be reoriented. The number of lines could go up or down, but the total length is going to remain approximately constant. The error can be studied by analyzing the error attributed to a Riemann sum, which is a well studies subject. 
-The error is \ldots
+The important side effect of this is that there is no relation to the orientation of these parallel lines. These lines could be reoriented to an arbitrary degree and the total number of lines could increase but the total length will remain approximately constant. 
+The error can be studied by analyzing the error attributed to a Riemann sum, which is a well studies subject. The error is \ldots [Maybe for the background section]
 
-Finally, let us take a look at the cost again in equation~\ref{eq:segmented_cost}. This tells us that the first term is going to be approximately constant given that the area is covered in the most efficient manner without any overlap. Hence, th 
+Now we relate these findings to the cost of the solution in equation(~\ref{eq:segmented_cost}). By the observation described previously, the first term is going to be approximately constant regardless of how these straight segments are populated or oriented provided that there is no overlap between the footprints of these lines.
+
+Recall that straight line segments do not incur any turn costs. Based on our assumption, the turns costs are expensive. Hence, a good solution will utilize straight line segments where ever possible with as few transition segments connecting them as possible. However, observe that by the structure of the segmented paths, higher number of straight line segments leads to higher number of transition segments. Hence, the pseudo-problem becomes one of covering as much area as possible with as few straight line segments as possible. One can think of this as trying to cover entire workspace with the hypothetical teleporting robot but trying to minimize the number of straight line segments required. Followed by finding the minimum transition segments connecting these lines. As such, we are ready to formally state the problem.
+
 Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified search space of feasible paths.
 \begin{problem}[Minimum Cost Coverage Path Planning with Straight Line Segments]
 \label{problem:min_cost_cpp_with_lines}
@@ -101,11 +113,12 @@ Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified searc
 \end{problem}
 
 %As such, it is intuitive to try to minimize the number of transition segments in the path.
-Note the structure of paths in $P_{\text{segmented}}$, i.e., $p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}$. The cost of the whole path could be stated as $\sum_{i=1}^n(\mathcal{E}(s_i)+\mathcal{E}(t_i))$. Minimizing the number of straight line segment in the path is equivalent to minimizing the number of transition segments.
+%Note the structure of paths in $P_{\text{segmented}}$, i.e., $p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}$. The cost of the whole path could be stated as $\sum_{i=1}^n(\mathcal{E}(s_i)+\mathcal{E}(t_i))$. Minimizing the number of straight line segment in the path is equivalent to minimizing the number of transition segments.
 
-In literature, Problem~\ref{problem:min_cost_cpp_with_lines} is a lot more common. Moreover, a very common approach is to utilize a type of path called Boustrophedon paths~\cite{choset2000coverage}. With this approach, the whole workspace or a number of subregions of the workspace are covered via straight line segments placed parallel to each other. It should be noted that by itself, the Boustrophedon path does not achieve complete coverage even for convex polygons. A wall following part is required to achieve full coverage. However, since the wall following component is a fixed cost part of the path, it is useful from the analysis standpoint to look at just Boustrophedon component of the path.
+%In literature, Problem~\ref{problem:min_cost_cpp_with_lines} is a lot more common. Moreover, a very common approach is to utilize a type of path called Boustrophedon paths~\cite{choset2000coverage}. With this approach, the whole workspace or a number of subregions of the workspace are covered via straight line segments placed parallel to each other. It should be noted that by itself, the Boustrophedon path does not achieve complete coverage even for convex polygons. A wall following part is required to achieve full coverage. However, since the wall following component is a fixed cost part of the path, it is useful from the analysis standpoint to look at just Boustrophedon component of the path.
 
-For demonstrative purposes, we will state a simpler problem where a simple solution exists in literature. Suppose we have the following problem:
+%For demonstrative purposes, we will state a simpler problem where a simple solution exists in literature. Suppose we have the following problem:
+We now state the two decoupled problems. The first problem that deals with line placement is stated in Problem~\ref{problem:min_cost_cpp_with_parllel_lines}. The second problem is stated later in Problem~\ref{problem:min_tour}.
 \begin{problem}[Minimum Cost Coverage Path Planning with Parallel Straight Line Segments]
 \label{problem:min_cost_cpp_with_parllel_lines}
 	Given a workspace $W$ and a robot with dynamics, compute a path $p^*\in P_{\text{segmented}}$ such that $\{s_1,s_2,\dots,s_n\}$ is a set of parallel straight line segments $|S|$ is minimized.
