@@ -28,15 +28,27 @@ In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, a
 
 From the literature and our collaborations with companies that deal with coverage, we have observed that in path planning field, the most desirable paths for many types of robots are paths that are mostly straight lines. Path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robots often cannot maintain the same linear speed when executing turn maneuvers. As a result, they need to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
 
-To that end, we assume the dynamics of the coverage robot are as such that the lowest cost path between two points in an environment is a straight line. With that in mind and for the purpose of easier analysis, we restrict the set of feasible paths to the set of feasible but segmented paths. The set of feasible segmented path is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:nonsegmented_vs_segmented}.
+To that end, we assume the dynamics of the coverage robot are as such that the lowest cost path between two points in an environment is a straight line. With that in mind, let us take a look at the cost of a path, $\mathcal{E}(p_i)$. A path mapped to the workspace will have two components: linear and angular. Our assumption for the cost is that the cost of the path is proportional to these components. i.e,
+\begin{equation}
+	\mathcal{E}(p_i)=c_1l(p_i)+c_2a(p_i)
+\end{equation}
+where $l(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment has only the linear component, i.e, $\mathcal{E}(s_i)=c_1l(s_i)$, whereas the cost of a transition segments has both linear and angular component, i.e, $\mathcal{E}(t_i)=c_1l(t_i)+c_2a(t_i)$.
+
+For the purpose of easier analysis, we restrict the set of feasible paths to the set of feasible but segmented paths. The set of feasible segmented path is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:nonsegmented_vs_segmented}.
 \begin{definition}[Set of Feasible Segmented Paths]
 \label{definition:segmented_feasible_paths}
-A set of feasible segmented paths is defined as:%
+A set of feasible segmented paths is defined as:
 	\begin{equation}
 		P_{\text{segmented}}=\{p_i\ |\ p_i\subseteq Q_{\text{free}},\  p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}\}\subseteq P
 	\end{equation}
 	where $s_i$ refers to $i$th straight line segment and $t_i$ refers to $i$th transition segment.
-\end{definition}%
+\end{definition}
+
+Note the cost for a segmented path has the following structure:
+\begin{equation}
+	\label{eq:segmented_cost}
+	\mathcal{E}(p_i)=\sum_{i=1}^N(\mathcal{E}(s_i)+\mathcal{E}(t_i))=\sum_{i=1}^N(c_1l(p_i)+c_1l(t_i)+c_2a(t_i)).
+\end{equation}
 
 \begin{figure}
 	\centering
@@ -52,6 +64,29 @@ A set of feasible segmented paths is defined as:%
 	\label{fig:nonsegmented_vs_segmented}
 \end{figure}
 
+We shall now derive an interesting result regarding the total length of the straight line segments, which will assist us with the formulation of the problem. In much of literature, one of the most common types of paths used for coverage path planning are sweeping paths consisting of a series of parallel straight lines. The benefits of such arrangement is that there is no overlap between lines leading to efficient paths in terms of length per area covered. Suppose a system when a robot can teleport between straight line segments in effect ignoring the transition segments. One would like to find the total length of such a path. As it turns out, the length of such a path as directly related to the area of the workspace. We shall establish this by recalling the concepts of a Riemann sum.
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_3/riemann_sum}
+	\caption{Riemann sum.}
+	\label{fig:nonsegmented_vs_segmented}
+\end{figure}
+
+Suppose the coverage path consists of a series of parallel line segments spaces distance $\delta x$ apart. This shares some similarities with a concept of integrals. As such, the area is equal to 
+\begin{equation}
+	A\approx \sum \ell\delta x=\delta x\sum\ell
+\end{equation}
+
+In other words, the total length of the path is approximated by the area. That is,
+\begin{equation}
+	\ell_t=\sum\ell_i\approx\frac{A}{\delta x}.
+\end{equation}
+
+The important side effect of this is that there is no relation to the orientation of these parallel lines. That is these lines could be reoriented. The number of lines could go up or down, but the total length is going to remain approximately constant. The error can be studied by analyzing the error attributed to a Riemann sum, which is a well studies subject. 
+The error is \ldots
+
+Finally, let us take a look at the cost again in equation~\ref{eq:segmented_cost}. This tells us that the first term is going to be approximately constant given that the area is covered in the most efficient manner without any overlap. Hence, th 
 Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified search space of feasible paths.
 \begin{problem}[Minimum Cost Coverage Path Planning with Straight Line Segments]
 \label{problem:min_cost_cpp_with_lines}
@@ -60,7 +95,7 @@ Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified searc
 	\label{condition:full_coverage_2}
 	\begin{aligned}
 		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathcal{C},\\
-		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P.
+		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P_{\text{segmented}}.
 	\end{aligned}
 	\end{equation}
 \end{problem}

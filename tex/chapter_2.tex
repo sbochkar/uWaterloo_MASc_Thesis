@@ -97,18 +97,18 @@ A path metric is a function $\mathcal{E}:P\to\mathbb{R}$ that assign a cost to a
 \end{definition}
 
 \begin{definition}[Straight Line Segment]
-A straight line segment, $s$, is a path consisting of points in a straight line. i.e.
+A straight line segment, $s$, is a path consisting of points in a straight line. A robot travelling in a straight segment will not change its heading. i.e.
 	\begin{equation}
-	\begin{aligned}
 		s=\{\theta x+(1-\theta)y\in W\ |\ \theta\in[0,1],\ x,y\in W\}.
-	\end{aligned}
 	\end{equation}
 A set of straight line segments in path is $S$.
 \end{definition}
 
 \begin{definition}[Transition Segment]
-A transition segment, $t$, is a path connecting two straight line segments. A set of transition segments in a path is $T$.
+A transition segment, $t$, is a path connecting two straight line segments and a robot traversing a transition segment must have a rate of change of the heading greater than zero. A set of transition segments in a path is $T$.
 \end{definition}
+
+Riemann sum
 
 \subsection{Geometric Preliminaries}
 \begin{definition}[Simple Polygon]
