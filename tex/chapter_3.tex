@@ -6,15 +6,17 @@
 \chapter{Single Robot Coverage}
 \label{chapter:single_robot_coverage}
 
+In this chapter, we formulate the problem of single agent coverage and propose a solution. The chapter is organized into six sections. Section~\ref{section:single_problem_statement} goes through the formulation of the problem into its final form. Section~\ref{section:min_alt_decomposition} proposes a solution to the problem. Section~\ref{section:single_agent_complexity} offers the computational complexity analysis of the proposed algorithm. Section~\ref{section:single_agent_improvment} offers suggestions for improvements of the algorithm. Section~\ref{section:single_agent_gtsp_tour} 
+
 This chapter addresses the problem of a single agent coverage. Here, problem statement is developed from its general form.
 
 \section{Problem Statement}
-\label{sec:single_problem_statement}
+\label{section:single_problem_statement}
 
 The general coverage problem is defined as follows.
 \begin{problem}[Minimum Cost Coverage Path Planning]
 \label{problem:min_cost_cpp}
-	Given a workspace $W$, a robot with dynamics, and a coverage footprint mapping $\mathcal{M}(q)$, compute a path $p_i\in P$ such that
+	Given a workspace $W$, a robot with dynamics, and a coverage footprint map $\mathcal{M}(q)$, compute a path $p_i\in P$ such that
 	\begin{equation}
 	\label{condition:full_coverage}
 	\begin{aligned}
@@ -24,15 +26,15 @@ The general coverage problem is defined as follows.
 	\end{equation}
 \end{problem}
 
-In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint map are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the whole path is equal to the coverable space and the cost of the path is minimized. A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $P$ contain infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}).
+In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint map are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the whole path is equal to the coverable space and the cost of the path is minimized. A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $P$ contains infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}). As such, we rely on a number of assumptions and heuristics to aid us with the analysis of the problem.
 
-From the literature and our collaborations with companies that deal with coverage, we have observed that the most desirable path for numerous types of robots is a straight line segment. Path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robot often cannot maintain the same linear speed when executing turn maneuvers. As a result, it needs to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
+From the literature and our collaborations with companies that deal with coverage, we have observed that the most desirable path for numerous types of robots is a straight line segment. Human path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robot often cannot maintain the same linear speed when executing turn maneuvers. As a result, it needs to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in an other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
 
 To that end, we assume the dynamics of the coverage robot are as such that the lowest cost path between two points in an environment is a straight line. With that in mind, let us take a look at the cost of a path, $\mathcal{E}(p_i)$. A path mapped to the workspace will have two components: linear and angular. Our assumption for the cost is that the cost of the path is proportional to these components. i.e,
 \begin{equation}
 	\mathcal{E}(p_i)=c_1l(p_i)+c_2a(p_i)
 \end{equation}
-where $l(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment has only the linear component, i.e, $\mathcal{E}(s_i)=c_1l(s_i)$, whereas the cost of a transition segments has both linear and angular component, i.e, $\mathcal{E}(t_i)=c_1l(t_i)+c_2a(t_i)$. For robots with dynamics that are in line with our assumption, $c_2 > c_1$.
+where $l(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment has only the linear component, i.e, $\mathcal{E}(s_i)=c_1l(s_i)$, whereas the cost of a transition segment has both linear and angular component, i.e, $\mathcal{E}(t_i)=c_1l(t_i)+c_2a(t_i)$. For robots with dynamics that are in line with our assumption, $c_2 > c_1$.
 
 For the purpose of easier analysis, we restrict the set of feasible paths to the set of feasible but segmented paths. The set of feasible segmented path is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:nonsegmented_vs_segmented}.
 \begin{definition}[Set of Feasible Segmented Paths]
@@ -64,13 +66,16 @@ Note the cost for a segmented path has the following structure:
 	\label{fig:nonsegmented_vs_segmented}
 \end{figure}
 
-We shall now focus on an interesting property of straight line segments, which will assist us with the formulation of the problem.%
+We shall now focus on a useful property of straight line segments, which will assist us with the formulation of the problem. %
 %In much of literature, one of the most common types of paths used for coverage path planning are sweeping paths consisting of a series of parallel straight lines. The benefits of such arrangement is that there is no overlap between lines leading to efficient paths in terms of length per area covered.
-Suppose we are given a robot that can can travel in straight line segments and teleport between them. In effect, the transition segments have cost zero. With such a system, the total length of any coverage path for such a system is directly related to the area of the workspace. For example, consider a polygon in Figure~\ref{fig:riemann_sum}. Here, the line segments are labeled $\ell_1,\ldots,\ell_{11}$. These segments are spaced distance $\delta x$ apart from each other. Suppose $\delta x$ is the width of the coverage footprint as the robot traverses the line. Then each line results in $\l_i\delta x$ amount of area covered. Then the total area covered would be as follows:
+Suppose we are given a robot that can only travel in a straight line segment. Once it traverses a straight line segment, it is able to teleport to the next straight segment. In effect, the transition segments have no effect on the coverage. There is a useful relation between the total length of a coverage path for such a system and the area of the workspace.
+
+Suppose there are $n$ such straight line segments. Suppose the robot has a line footprint of width $\delta x$. Then each line results in the coverage of $\l_i\delta x$ units of area. Assuming that these lines are placed in a way such that there is no overlap between any of their footprints, then 
 \begin{equation}
-	\text{Area}_{\text{covered}}=\sum_{i=1}^N\ell_i\delta x.
+	\text{Area}_{\text{covered}}=\sum_{i=1}^N\ell_i\delta x.%\approx\text{Area}_{\text{actual}}.
 \end{equation}
-One should notice the similarities of this value with the Riemann sum. In other words, as $\delta x\to 0$ then the number of lines will tend to infinity and the Riemann sum converges to a Riemann integral.
+
+The goal of coverage is to make the covered area equal the actual area of the workspace. Noe that there is no restriction on how to place these lines. As long as there is no overlap, the formula holds. As such, suppose these lines are oriented as shown in Figure~\ref{fig:riemann_sum}. Here, the line segments are labeled $\ell_1,\ldots,\ell_{11}$. These segments are spaced distance $\delta x$ apart from each other. Suppose $\delta x$ is the width of the coverage footprint as the robot traverses the line. Then each line results in $\l_i\delta x$ amount of area covered. One should notice the similarities between the summation of footprints area and the notion of the Riemann sum. In other words, as $\delta x\to 0$ then the number of lines will tend to infinity and the Riemann sum converges to a Riemann integral.
 \begin{equation}
 	\lim_{\delta x\to 0} \sum_{i=1}^N\ell_i\delta x = \text{Area}.
 \end{equation}
@@ -169,7 +174,7 @@ One of the solutions to this problem is presented in the work by Huang~\cite{Hua
 However, as demonstrated in Figure~\ref{fig:reorder_regions}, this solution is clearly not optimal. There are certain regions in the polygon where a subset of straight line segments could be reoriented resulting in a smaller set. In other words, the minimum altitude of the overall workspace can be reduced by considering the sum of minimum altitudes of a certain partition of a polygon. As such, we propose the following problem.
 
 \begin{problem}[Minimum Altitude Decomposition]
-\label{problem:min_lin_num_decomp}
+\label{problem:min_alt_decomp}
 Given a polygonal workspace $W$, find $k$ and $w_1,w_2,\ldots,w_k$ such that $\sum^k_{i=1}\alpha^*(w_i)$ is minimized where $\bigcup^k_{i=1}w_i=P$.
 \end{problem}
 
@@ -183,12 +188,12 @@ Given a polygon $P$ and a set of lines $\Gamma$, generate a matrix $M$ of transi
 The following sections will introduce our approach to these problems.
 
 \section{Min Altitude Polygon Decomposition for Coverage Planning}
-\label{sec:decomposition}
+\label{section:min_alt_decomposition}
 
-This section covers our solution to Problem~\ref{prob:min_lin_num_decomp_3}. Section~\ref{sec:preliminaries} introduces decomposition related terminology that is needed to present our decomposition method.
+This section covers our solution to Problem~\ref{prob:min_alt_decomp}. Section~\ref{chapter:preliminaries} introduces decomposition related terminology that is needed to present our decomposition method.
 
 \subsubsection{Min Altitude Decomposition}
-This section outlines the approach to Problem~\ref{prob:min_lin_num_decomp_3}. The overall steps of the process are described in Algorithm~\ref{alg:min_alt_decomposition}.
+This section outlines the approach to Problem~\ref{prob:min_alt_decomp}. The overall steps of the process are described in Algorithm~\ref{alg:min_alt_decomposition}.
 \begin{algorithm}
 	\caption{$\operatorname{min\_alt\_decomposition}(P)$}
 	\label{alg:min_alt_decomposition}
@@ -356,6 +361,7 @@ There is an altitude associated with the cut itself in $A_{\ell}$ and in $A_r$ t
 By Lemma \ref{lemma:min_at_trans_pts}, it is enough to compute the cost of each transition point for each $S_i\in S$ and all combinations of elements from $A_{\ell}$ and $A_r$ and pick one point with lowest cost. This is the procedure described in Algorithm~\ref{alg:optimal_cut}.
 
 \section{Computational Complexity}
+\label{section:single_agent_complexity}
 Algorithm~\ref{alg:find_candidate} is $\mathbb{O}(1)$. Algorithm~\ref{alg:optimal_cut} is more complicated. The inner most loop is $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. So is the second inner most loop. Hence, the run time of two inner loops is $\mathbb{O}(n^2)$ where $n$ is the number of edges in the polygon. The first for loop runs in $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. Hence, the overall polygon runs in $\mathbb{O}(n^3)$ where $n$ is the number of edges in a polygon.
 
 \begin{figure}
@@ -404,13 +410,13 @@ Algorithm~\ref{alg:find_candidate} is $\mathbb{O}(1)$. Algorithm~\ref{alg:optima
 
 
 \section{Improvements to Decomposition}
-\label{sec:improvment}
+\label{section:single_agent_improvment}
 The most computational intensive task in Algorithm~\ref{alg:optimal_cut}  is computing cut candidates for each pair of altitude directions (Line~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for}). The computation load can be reduced by only evaluating a subset of direction pairs as follows.
 
 Define $\underline{P}_{\ell}$ and $\underline{P}_{r}$ to be the polygons on either side of the cone of bisection. It is important to note that the cone of bisection is not a part of these polygons. We compute look-up tables of altitudes for every direction for $\underline{P}_{\ell}$ and $\underline{P}_{r}$ separately such that $\alpha(\underline{P}_{\ell},\text{dir}_1)$ returns the altitude of $\underline{P}_{\ell}$ in direction $\text{dir}_1$. These look-up tables represent the best case scenario for a pair of directions. In the main loop of Algorithm~\ref{alg:optimal_cut}, we keep track of the best altitude so far. A check is added to the main loop such that for a pair of directions, $\text{dir}_1$ and $\text{dir}_2$, if $\alpha(\underline{P}_{\ell},\operatorname{dir}_1)+\alpha(\underline{P}_{r},\operatorname{dir}_2)$ is larger than the best altitude so far, then this pair of directions cannot be optimal, and no further computation is needed.
 
-\subsection{GTSP Tour Generation}
-\label{sec:gtsp_tour}
+\section{GTSP Tour Generation}
+\label{section:single_agent_gtsp_tour}
 
 Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$, resulting in a set $D$ of polygons. For each $P_i\in D$, we generate the minimum set $\Gamma_i$ of straight segment footprints. Note, each $\gamma_j\in\Gamma_i$ has two possible traversal directions. We refer to the choice of this direction as $\gamma_j^1$ or $\gamma_j^2$  as shown in Figure~\ref{fig:traversal_directions}. Define $\operatorname{cost}(\gamma_i^m, \gamma_j^l)$ as the robot transition cost from region $\gamma_i$ in $m$ direction to region $\gamma_j$ in $l$ direction where $m,l\in\{1,2\}$ and $i,j\in\{1,\ldots,k\},i\neq j$. This transition cost takes the dynamics of the robot into account. Computing this cost for each pair $\gamma_i^m, \gamma_j^l$, a complete graph $G=(V,E,w)$ is constructed where each vertex $v\in V$ represents $\gamma^m_i$ for some $m\in\{1,2\}$ and $i=\{1,\ldots,k\}$, each edge $e=\{v,z\}$ in $E$ represents transition between vertices $v$ and $z$, and weights represent robot transition costs between vertices. Furthermore, $V$ is partitioned into sets $\{\gamma_i^1,\gamma_i^2\}$ for $i=\{1,\ldots,k\}$. The graph $G$ and the partition define the GTSP instance, and a GTSP tour on this graph gives a coverage path for the robot. 
 
@@ -427,8 +433,8 @@ Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$,
 	\label{fig:cost}
 \end{figure}
 
-\subsection{Simulations}
-\label{sec:simulation}
+\section{Simulations}
+\label{section:single_agent_simulation}
 Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely\footnote{The Shapely library is available at \url{https://github.com/Toblerity/Shapely}} and Visilibity%\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model.
 
 Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.

@@ -7,6 +7,16 @@
 \chapter{Background}
 \label{chapter:background}
 
+This chapter reviews some of the concepts required to understand the proposed solution in this thesis. This chapter is organized as follows. Section~ reviews some aspects of geometry related to polygons, Section~ reviews representation of robot dynamics. 
+
+Outstanding terms:
+connected
+minkowski sum
+
+\section{Robot Dynamics}
+\label{section:robot_dynamics}
+
+Throughout the thesis, we make multiple references to the coverage environment of the robot. In fact, the coverage environment serves as an input to the problem under study in this thesis. The environment refers to the space where the robot will operate. For example, the room or the hallway of the building is an environment. It is important to consider the environment from the dynamics point of view since the features of the environment will determine the configuration space of the robot. The environment is denoted as $E\subset\mathbb{R}^3$. We further differentiate between the coverage environment and the coverage workspace. The coverage workspace refers to the region, typically a surface, in the environment that is required to be covered. The workspace is denoted by $W\subset\mathbb{R}^2$. For the purpose of this thesis, we assume that $W$ is connected. An example of a workspace is demonstrated in Figure~\ref{fig:workspace_and_system}.
 
 \begin{figure}
 	\centering
@@ -14,6 +24,22 @@
 	\caption{The workspace polygon and a point model of the robot.}
 	\label{fig:workspace_and_system}
 \end{figure}
+
+%Since our assumption for the workspace is only that it is connected, the workspace may contain $k$ obstacles. These obstacles are denoted by $O_1,\ldots,O_k$. The obstacles are subsets of $W$ are subregions contained entirely in the workspace that are not reachable by the robot. 
+
+
+%\begin{definition}[Free Workspace]
+%A free workspace is defined as a subset of $W$ that is free of obstacles:
+%	\begin{equation}
+%		W_{\text{free}}=W\setminus(O_1\cup\dots O_n).
+%	\end{equation}
+%\end{definition}
+
+Another important set to consider is the configuration space of the robot denoted as $Q$.
+\begin{definition}[Robot Configuration Space and Map]
+\label{definition:c_space_and_map}
+Given a robot with dynamics, the configuration space of the robot is $Q$. A configuration map $\mathcal{B}:Q\to O\subseteq W$ is a function mapping the configuration $q\in Q$ of the robot to a set of points in $W$ located under the robot's \emph{footprint}. For example, in Figure~\ref{fig:configuration_space}, the footprint is the orange disk centered at $(x,y)$ and the set $O$ is all points under the orange disk.
+\end{definition}
 
 \begin{figure}
 	\centering
@@ -29,31 +55,14 @@
 	\label{fig:coverable_space}
 \end{figure}
 
+
 \begin{definition}[Minkowski Sum]
 Given two sets $A$ and $B$, a Minkowski sum is a set $C=\{a+b\ |\ a\in A, b\in B\}$.
 \end{definition}
 
-\begin{definition}[Workspace]
-The workspace $W\in\mathbb{R}^n$ is a region where the robot tasked with coverage will operate. The workspace $W$ is connected and may be convex or non-convex. In this paper, we will sometime constrain $W$ to be polygonal. An example of such workspace is demonstrated in Figure~\ref{fig:workspace_and_system}.
-\end{definition}
 
-\begin{definition}[Obstacles]
-A workspace may contain $k$ obstacles, $O_1,\ldots,O_k$. These are subregions contained entirely in the workspace that are not reachable by the robot. 
-\end{definition}
 
-\begin{definition}[Free Workspace]
-A free workspace is defined as a subset of $W$ that is free of obstacles:
-	\begin{equation}
-	\begin{aligned}
-		W_{\text{free}}=W\setminus(O_1\cup\dots O_n).
-	\end{aligned}
-	\end{equation}
-\end{definition}
 
-\begin{definition}[Robot Configuration Space and Map]
-\label{definition:c_space_and_map}
-Given a robot with dynamics, the configuration space of the robot is $Q$. A configuration map $\mathcal{B}:Q\to O\subseteq W$ is a function mapping the configuration $q\in Q$ of the robot to a set of points in $W$ located under the robot's \emph{footprint}. For example, in Figure~\ref{fig:configuration_space}, the footprint is the orange disk centered at $(x,y)$ and the set $O$ is all points under the orange disk.
-\end{definition}
 
 \begin{definition}[Robot Location Map]
 \label{definition:location_map}
