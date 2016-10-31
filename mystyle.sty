@@ -273,3 +273,11 @@
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\newcommand{\simpleplot}[3]{
+\begin{figure}
+    \centering
+    \subfile{#1}
+    \caption{#2}
+    \label{#3}
+\end{figure}}
