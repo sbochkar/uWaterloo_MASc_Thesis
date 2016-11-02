@@ -11,7 +11,7 @@ In this chapter, we formulate the problem of single agent coverage and propose a
 \section{Problem Statement}
 \label{section:single_problem_statement}
 
-In this section, the problem statement is developed. We start with the statement of the general problem. We then make a couple of assumptions and justify these assumptions. The final problem statement is then stated.
+In this section, the problem statement is developed. We start with the statement of the general problem. We then describe a set of assumptions being made with justifications. The final problem statement is then stated.
 
 The general coverage problem is defined as follows.
 \begin{problem}[Minimum Cost Coverage Path Planning]
@@ -38,7 +38,7 @@ where $\ell(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angl
 \begin{equation}
 	\mathcal{E}(s_i)=c_1\ell(s_i),
 \end{equation}
-whereas the cost of a transition segment has both linear and angular component, i.e,
+whereas the cost of a transition segment typically has both linear and angular components, i.e,
 \begin{equation}
 	\mathcal{E}(t_i)=c_1\ell(t_i)+c_2a(t_i).
 \end{equation}
@@ -49,7 +49,7 @@ Here, the first assumption is made with regards to the dynamics of the coverage 
 \end{equation}
 In other words, for such a robot, the best path between any two points is a straight line segment if it is feasible.
 
-Our second assumption places a restriction on the feasible set of paths. This is done to ensure that all paths under study have a certain structure. We call this new set a set of feasible segmented paths and it is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:segmented}.
+Our second assumption places a restriction on the feasible set of paths. This is done to ensure that all paths under study have a certain structure. The new set of called a set of feasible segmented paths and it is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:segmented}.
 \begin{definition}[Set of Feasible Segmented Paths]
 \label{definition:segmented_feasible_paths}
 A set of feasible segmented paths is defined as:
@@ -59,7 +59,6 @@ A set of feasible segmented paths is defined as:
 	where $s_i$ refers to $i$th straight line segment and $t_i$ refers to $i$th transition segment.
 \end{definition}
 
-The problem statement is modified accordingly.
 Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified search space of feasible paths.
 \begin{problem}[Minimum Cost Coverage Path Planning with Straight Line Segments]
 \label{problem:min_cost_cpp_with_lines}
@@ -73,7 +72,7 @@ Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified searc
 	\end{equation}
 \end{problem}
 
-Note the cost for a segmented path has the following structure:
+Note that the cost for a segmented path has the following structure:
 \begin{equation}
 	\label{eq:segmented_cost}
 	\mathcal{E}(p_i)=\sum_{i=1}^n(\mathcal{E}(s_i)+\mathcal{E}(t_i))=\sum_{i=1}^n(c_1\ell(p_i)+c_1\ell(t_i)+c_2a(t_i)).
@@ -90,7 +89,7 @@ Intuitively, a solution should aim to arrange the straight line segments in a wa
 
 \simpleplot{img/chapter_3/riemann_sum}{Parallel line arrangement.}{fig:riemann_sum}
 
-However, there are a couple of issues with this method. The first issue is related to the coverage near the borders of the workspace. Some areas cannot be covered by this path alone and usually requires a wall following path. Second issue is with choosing the orientation of these parallel line segments. And lastly, for concave workspaces, this type of coverage is highly non-optimal. See Figure~\ref{fig:reorder_regions} for an example.
+However, there are a couple of issues with this method. The first issue is related to the coverage near the borders of the workspace. Some areas cannot be covered by this path alone and usually requires a wall following path. Second issue is with choosing the orientation of these parallel line segments. Some orientations are more optimal than others. And lastly, for concave workspaces, this type of coverage is highly non-optimal. See Figure~\ref{fig:reorder_regions} for an example.
 
 \begin{figure}
 	\centering
@@ -106,14 +105,14 @@ However, there are a couple of issues with this method. The first issue is relat
 	\label{fig:reorder_regions}
 \end{figure}
 
-Recall the structure of the cost function of a segmented path from equation(~\ref{eq:segmented_cost}) and the property of Boustrophedon paths where transition segments have an roughly fixed cost. The problem becomes one of minimizing the number of straight line segments $n$ to achieve complete coverage. For convex polygons, this problem is solved by Huang~\cite{Huang2001optimal}.
+Recall the structure of the cost function of a segmented path from equation(\ref{eq:segmented_cost}) and the property of Boustrophedon paths where transition segments have a roughly fixed cost. The problem becomes one of minimizing the number of straight line segments, $n$, to achieve complete coverage. The solution to this problem is proposed by Huang~\cite{Huang2001optimal}. This solution relies on a notion of altitude.
 
 \textbf{Minimum Altitude:} For convex polygons, the altitude in direction $\theta$ is defined as the minimum distance between two parallel lines angled at $\theta+\frac{\pi}{2}$ with respect to the $x$-axis such that all vertices of the convex polygon are contained between these two lines~\cite{Huang2001optimal}. The altitude of the polygon in Figure~\ref{fig:transition_point} is the distance between lines $e_i$ and $h_i$. This notion can be extended to general polygons. The method of obtaining $\theta$ altitude for a general polygon is shown in Algorithm~\ref{alg:altitude}. Figure \ref{fig:altitude} provides an example of this procedure. In the example, the altitude is $x_1 + 2x_2 + 3x_3 + 2x_4 + x_5$. Note that if $r$ is the radius of the footprint of the robot and $\alpha$ is the altitude of a polygon along $\theta$ then the total number of lines required for complete coverage in direction $\theta$ is
 \begin{equation}
 	n=\ceil*{\frac{\alpha}{2r}}.
 \end{equation}
 
-Moreover, this metric also gives the angular component of the whole path. Specifically, 
+Moreover, because of the structure of the Boustrophedon paths, the altitude also provides the angular component of the whole path. Specifically, 
 \begin{equation}
 	a(p_i)=180^o\ceil*{\frac{\alpha}{2r}}.
 \end{equation}
@@ -148,13 +147,15 @@ By Proposition~\ref{prop:min_alt_dirs_convex}, minimum altitude can be computed 
 
 \simpleplot{img/chapter_3/altitude}{Process of measuring altitude with $\theta$ equal to 0.}{fig:altitude}
 
+As stated before, one possible solution is to arrange all lines to be parallel to each other throughout the entire polygon. This solution is not necessarily optimal but can act as a starting point in an optimization. A more sophisticated approach is to decompose $W$ into polygons $w_0,w_1,\ldots,w_k$, where for each $w_i$, the associated set of lines consists of parallel segments. The segments in each set should be oriented to minimize the number of lines. For example, the polygon in Figure~\ref{fig:reorder_regions} is decomposed into four regions. Lines in the two regions on the sides of the polygon are reoriented to reduce the number of lines in those regions. For the optimal orientation, we define the $\theta$ altitude of a polygon.
+
 With the notion of altitude for general polygons, the problem statement becomes as follows.
 \begin{problem}[Min Altitude Decomposition]
 \label{prob:min_alt_decomp}
-Given a polygon $P$, find $k$ and $P_1,P_2,\ldots,P_k$ such that $\sum^k_{i=1}\alpha^*(P_i)$ is minimized where $\bigcup^k_{i=1}P_i=P$.
+Given a polygon $W$, find $k$ and $w_1,w_2,\ldots,w_k$ such that $\sum^k_{i=1}\alpha^*(w_i)$ is minimized where $\bigcup^k_{i=1}w_i=P$.
 \end{problem}
 
-For each $P_i$, a number of parallel lines is generated in an orientation that minimizes the altitude. The result is a set of lines, $\Gamma$. Now the problem becomes that of choosing an order and direction to traverse each line with, i.e., a tour of $\Gamma$. Observe that each line can be traversed with two directions. Hence, the second subproblem can be defined as follows:
+For each $w_i$, a number of parallel lines is generated in an orientation that minimizes the altitude. The result is a set of lines, $\Gamma$. Now the problem becomes that of choosing an order and direction to traverse each line with, i.e., a tour of $\Gamma$. Observe that each line can be traversed with two directions. Hence, the second subproblem can be defined as follows:
 
 \begin{problem}[Minimum Cost Tour]
 \label{prob:min_tour}

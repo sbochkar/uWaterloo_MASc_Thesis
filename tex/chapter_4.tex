@@ -209,39 +209,59 @@ The key idea behind the metric is that the metric must reflect the cost of the s
 Given a polygonal workspace $W$ and a robot with dynamics, the partition metric $\chi:W,Q\to\mathbb{R}$ maps the workspace properties and the robot dynamics in the following way:
 	\begin{equation}
 		\begin{aligned}
-			\chi(w_j,q_j^0)=\operatorname{dist}(\mathcal{L}(q^0_j,w_j)+K*\operatorname{Area}(w_j)+\operatorname{Turns}(w_j).
+			\chi(w_j,q_j^0)=\text{dist}(q^0_j,w_j)+K\text{Area}(w_j)+\text{Turns}(w_j).
 		\end{aligned}
 	\end{equation}
 \end{definition}
 
 
-\subsection{Initialization Distance}
+\subsection{Initialization and Return Distance}
 
-A team of $n$ robots have $n$ starting locations. Depending on the partitioning scheme used, the starting location of a robot might be some distance away from its assigned partition. Since this travel distance may end up being significant, it needs to be accounted for in the metric. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$.
+A team of $n$ robots have $n$ starting locations. Depending on the partitioning scheme used, the starting location of a robot might be some distance away from its assigned partition. Since this travel distance may end up being significant, it needs to be accounted for in the metric. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
 
-This quantity that measures the distance of the robot's $j$ starting location to the assigned region is:
+This quantity that measures the distance of the robot's $j$ starting location to the assigned region, $w_j$, and back is:
 \begin{equation}
-\begin{aligned}
 	\text{dist}(q^0_j,w_j).
-\end{aligned}
 \end{equation}
 
-There are several way to measure this quantity. For this paper, we will consider the smallest geodesic distance from the starting location to one of the points on the boundary of $w_j$. More formally,
+There are several way to measure this quantity. For this paper, we utilize twice the shortest distance from the starting location to one of the points on the boundary of $w_j$. More formally, 
 \begin{equation}
-\begin{aligned}
-	\text{dist}(q^0_j,w_j)=\min_{p_i\in\partial w_j}|\mathcal{L}(q^0_j)-p_i|.
-\end{aligned}
+	\text{dist}(q^0_j,w_j)=2c_1\min_{x\in\partial w_j}||q^0_j-x||_2.
 \end{equation}
+where $c_1$ is the metric used in the cost function in Section~\ref{section:single_problem_statement}.
+
+It is important to note that a straight path from the starting location to the closest point on the boundary of $w_j$ may not be always feasible as it may intersect an obstacle. However, it is clearly a lower bound on the cost of the actual path to get to the assigned region $w_j$ because of the triangular inequality. Hence,
+\begin{equation}
+	\text{dist}(q^0_j,w_j)\leq\ell(p_i).
+\end{equation}
+where $p_i$ is a feasible path from $q^0_j$ to the region $w_j$.
 
 
 \subsection{Area of the Region}
 
-Once the robot reaches the assigned workspace, it has to complete the coverage task. The amount of work required depends on the dynamics of the robot and the size and complexity of the workspace. With this term, we will address the size of the workspace. To truly capture the amount of work required, one would have to compute a solution to Problem~\ref{problem:min_cost_cpp_with_lines} for that particular robot and workspace. Since we only need a lower bound of the area, we underestimate the amount of work by following heuristics. 
+Once the robot reaches the assigned workspace, it has to complete the coverage task. The amount of work required depends on the dynamics of the robot and the size and complexity of the workspace. Recall that the main method of coverage is via a Boustrophedon type path or a set of Boustrophedon type paths. Recall the structure of a Boustrophedon path. Mainly, such a path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have shown an interesting result that states that the total length of all parallel line segments combined is approximately proportional to the area of the workspace. In other words, we can use the area of a workspace to estimate a portion of the cost of the path. That is the portion that is associated with straight line segments. Here, we would like to show that with some modifications to the area we can get a lower bound estimate of such a value.
 
-Suppose the workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure[]. Assuming that the footprint is a line of width $r$, we can approximate the amount of area covered this way. We can do that by using a Riemann sum principle where we get the following:
+\simpleplot{img/chapter_4/riemann_sum}{Parallel line arrangment.}{fig:ch4_riemann_sum}
+
+Suppose the workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure~\ref{fig:ch4_riemann_sum}. Assuming that the footprint is a line of width $r$, the area covered by a robot traversing a line $l_1$ is:
 \begin{equation}
-	\text{Area}(w_j)\approx\sum_{i}rl_i
+	rl_i+k
 \end{equation}
+where $k$ is the amount of area covered beyond the starting and stop points of a line associated with footprint such as a circle. The total area covered in this way is then:
+\begin{equation}
+	\sum_{i=1}^n(rl_i+k)=A_{\text{covered}}\leq A_{\text{actual}}
+\end{equation}
+
+We would like to study the discrepancy between the area covered and the actual area of the workspace. To illustrate the reason why the covered area is less than the actual area refer to Figure~\ref{fig:line_footprint}. Assume that the coverage footprint is a circle.
+
+\simpleplot{img/chapter_4/area_discrepancy}{Coverage footprint over a line.}{fig:line_footprint}
+
+We shall now derive an expression for the discrepancy. Suppose a trapezoid is to be covered as shown in Figure~\ref{fig:error_derivation}. We would like to have an expression for the two corners of the trapezoid. First, the are of whole trapezoid is:
+
+
+\simpleplot{img/chapter_4/area_error}{test}{fig:error_derivation}%
+\simpleplot{img/chapter_4/area_error_i}{test}{fig:error_derivation_i}
+
 
 However, here $r$ is held constant. Hence, we can compute the total length of these straight non-overlapping line segments by:
 \begin{equation}

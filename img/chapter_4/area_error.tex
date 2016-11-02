@@ -1,0 +1,21 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (0,2);
+		\coordinate (p3) at (2,4);
+		\coordinate (p4) at (2,0);
+		\coordinate (c1) at (0,1.58);
+		\coordinate (c2) at (2,1.58);
+
+		\draw (p1)--(p2)--(p3)--(p4);
+
+		\fill [covered_area] (c1) arc (180:0:1);
+		\fill [covered_area] (p1)--(c1)--(c2)--(2,0)--cycle;
+
+	\end{tikzpicture}
+\end{document}
