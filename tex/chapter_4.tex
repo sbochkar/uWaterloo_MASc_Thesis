@@ -4,75 +4,78 @@
 \begin{document}
 
 \chapter{Multi-agent Coverage}
-\label{chapter:multi-agent_coverage}
+\label{chapter:multi_agent_coverage}
 
-In this section, we introduce the multi-agent coverage problem and our solution. Before that, we review some of the existing works in literature.
+In this chapter, the problem of coverage with multiple robots is introduced. The problem statement is derived and the algorithm is proposed in Section. One of the most important aspects of the algorithm is the metric used during the search algorithm. This metric is designed and analyzed in Section. Section presents the computational complexity analysis of the algorithm. Lastly, Section presents simulations and discussed the results.
 
 
 \section{Problem Statement}
-\label{sec:multi_problem_statement}
+\label{section:multi_agent_problem_statement}
 
-First, the general multi-agent coverage problem statement is developed. Observe that a team of robots that is tasked with coverage may have robots with different dynamics and coverage footprints. In other words, a robot $i$ has its corresponding set of feasible paths $P_i$, which is not necessarily equal to that of other robots. Moreover, each robot may have a unique corresponding coverage map $\mathcal{M}_i$. As a consequence, each robot may have a unique coverable space show as a Minkowski sum:
+First, we develop the general multi-agent coverage problem statement. Observe that a team of robots that is tasked with coverage may contain robots with different dynamics and coverage footprints. As a result, for every robot $i$ on the team, there is a corresponding set of feasible paths $P_i$. Similarly, each robot in the team has its own coverage map $\mathcal{M}_i(q)$. The coverage space for each robot could then be stated as:
 \begin{equation}
-	\mathcal{C}_i=P_i\oplus \mathcal{M}_i.
-\end{equation}
-Since these sets may not necessarily be the same between all robots, there are some regions in the workspace that are only accessible by certain robots. This complicates the path planning process. As a simplifying assumption, we make sure that if a point on the workspace is coverable by robot $i$, it is coverable by all other robots on the team. This could be achieved by either assuming that all robots have equal coverable space or by only considering the coverable space defined as follows:
-\begin{equation}
-	\mathbb{C}=\bigcap_{i=1,\ldots,n}\mathcal{C}_i.
+	\mathcal{C}_i=\bigcup_{q\in Q_{i,\text{free}}}\mathcal{M}_i(q).
 \end{equation}
 
-As such, the general problem is stated in Problem~\ref{problem:distr_cpp}.
+Amongst $n$ robots in the team, these sets, $\mathcal{C}_1, \mathcal{C}_2,\ldots,\mathcal{C}_n$, may not necessarily be the same. Because of this, there are some regions in the workspace that may be accessible only by certain robots. This complicates the path planning process as the ability of a robot to cover a certain section of the workspace is conditional on the robot's dynamics. In this work, we make a simplifying assumption that if a point on the workspace is coverable by robot $i$, it is coverable by all other robots on the team. In other words, we assume that all robots have the same coverable space. That is:
+\begin{equation}
+	\mathcal{C}_1=\mathcal{C}_2=\ldots=\mathcal{C}_n=\mathbb{C}.
+\end{equation}
 
+%\begin{equation}
+%	\mathbb{C}=\bigcap_{i=1,\ldots,n}\mathcal{C}_i.
+%\end{equation}
+
+The general problem is now introduced in Problem~\ref{problem:multi_cpp}.
 \begin{problem}[Multi-agent Coverage Path Planning]
-\label{problem:distr_cpp}
-	Given a workspace $W$, $n$ robots with dynamics and corresponding coverage maps $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
+\label{problem:multi_cpp}
+	Given a workspace $W$, $n$ robots with equal dynamics and corresponding coverage maps $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
 	\begin{equation}
 	\begin{aligned}
-		& \{p_i\in P_{i}\ |\ i=1,\dots,n\},\\
-		%& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\\
-		& \bigcup_{i=1,\dots,n}(p_i\oplus\mathcal{M}_i)=\mathbb{C},\\
+		& p_i\in P_{i},\ i=1,\dots,n,\\
+		& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\\
+		%& \bigcup_{i=1,\dots,n}(p_i\oplus\mathcal{M}_i)=\mathbb{C},\\
 		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
 		& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized.}
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-Problem~\ref{problem:distr_cpp} shares some similarities with the single agent coverage problem introduced in Chapter~\ref{chapter:single_robot_coverage}. However, there are several noticeable differences. %
-% First, an assumption is made that the team of robots exhibits same dynamics. This assumption is in place to ensure that the coverable space is equivalent between all robots[UNLESS DISTRIBUTED APPROACH WHEN PARTITIONING THE WORKSPACE????].
-The conditions now require that the union of $n$ paths footprints covers the entire coverable area. Another important difference is the objective of the problem. Where as in the single agent case, the objective was to minimize the cost of the path, with this problem, the objective is minimize the cost of the path with the maximum cost amongst $n$ robots. There are several motivations for this. When a team of robots performs a task, it is often undesirable when one robot finishes its assigned task much later than the other robots. This means that the rest of the team is idle while the robot is performing its task. This results in unnecessarily long duration for the whole coverage task. It is more desirable to redistribute the work of the robot with the longest duration amongst the team of robots such that the duration of the whole coverage task is reduced. In other words, amongst the team of robots, one would like to minimize the task with the longest duration.
+Problem~\ref{problem:multi_cpp} shares some similarities with the single agent coverage problem introduced in Chapter~\ref{chapter:single_agent_coverage}. However, there are several noticeable differences. One of the conditions now requires that the union of $n$ path footprints covers the entire coverable area. Another important difference in the conditions is the condition of optimality. While with the single agent coverage case, an optimal solution is a path with the minimum cost, in multi-agent coverage case, the optimal solution is the one where the cost of the path with the maximum cost amongst $n$ robots is minimum. Here, the cost $\mathcal{E}(p_i)$ is the same cost described in Section~\ref{section:single_problem_statement}.
 
-We take a similar heuristic based approach to this problem. First, we constrict the set of feasible paths to a set of segmented feasible paths. As such, the problem statement is modified as shown in Problem~\ref{problem:distr_cpp_with_lines}.
+This objective is motivated by the following. When a team of robots performs a task, it is often undesirable when one robot finishes its assigned task much later than the other robots. This means that the rest of the team is idle while the single robot is performing its task. This results in unnecessarily long duration for the whole coverage task. It is more desirable to redistribute the work of the robot with the longest duration path amongst the team of robots such that the duration of the whole coverage task is reduced. In other words, amongst the team of robots, one would like to minimize the task with the longest duration.
 
+However, while the problem as stated in Problem~\ref{problem:multi_cpp} is general, it does not point to a solution. Hence, we take some of steps taken in Section~\ref{section:single_problem_statement} to alleviate that. As a first step, the set of feasible paths is replaced with a set of segmented feasible paths. The problem statement is modified accordingly as shown in Problem~\ref{problem:multi_cpp_with_lines}.
 \begin{problem}[Multi-agent Coverage Path Planning with Straight Line Segments]
-\label{problem:distr_cpp_with_lines}
-	Given a workspace $W$, $n$ robots with dynamics and corresponding coverage map $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
-such that
+\label{problem:multi_cpp_with_lines}
+	Given a workspace $W$, $n$ robots with same dynamics and corresponding coverage maps $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
 	\begin{equation}
 	\begin{aligned}
-		& \{p_i\in P_{\text{segmented},i}\ |\ i=1,\dots,n\},\\
-		& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\text{ and}\\
+		& p_i\in P_{\text{segmented},i},\ i=1,\dots,n,\\
+		& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\\
 		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
 		& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized.}
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-Notice in Problem~\ref{problem:distr_cpp_with_lines}, a path for each robot is computed. A robot $i$ traversing a path $p_i$ covers a region $w_i$. Formally, $w_i$ is defined as follows:
+Observe that a robot $i$ traversing a path $p_i$ covers the following region $w_i$:
 \begin{equation}
-	\bigcup_{q\in p_i}\mathcal{M}(q) = w_i,\ p_i\in P_{\text{segmented},i}
+	w_i=\bigcup_{q\in p_i}\mathcal{M}(q).
 \end{equation}
-
-By conditions stated in Problem~\ref{problem:distr_cpp_with_lines}, a team of robots has to entirely cover the coverable area. Therefore, the following condition has to be met.
+By conditions stated in Problem~\ref{problem:multi_cpp_with_lines}, a team of robots has to entirely cover the coverable space. As a result, a solution to the problem has to satisfy the following:
 \begin{equation}
 	\label{eq:partition_condition}
 	\bigcup_{i=1,\ldots,n}w_i=\mathbb{C}
 \end{equation}
 
-Notice that condition (\ref{eq:partition_condition}) suggests some sort of decomposition of $\mathbb{C}$. Suppose a decomposition of $\mathbb{C}$ is given with a guarantee that $\max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}$ is minimized provided that all $p_i$ have the lowest possible cost. Then the only thing left to do is to compute $n$ lowest cost paths for each cell in the decomposition. This suggests that Problem~\ref{problem:distr_cpp_with_lines} could be solved via a decoupled approach that involves two steps. First step is to compute a partition of $\mathbb{C}$. Second step is to compute a minimum cost path for each cell in the partition. The first problem is stated in Problem~\ref{problem:workspace_partitioning}. The second step involves a problem that has been covered in Chapter~\ref{chapter:single_robot_coverage}.
+Notice that equation~(\ref{eq:partition_condition}) suggests some sort of decomposition of $\mathbb{C}$. Suppose a decomposition of $\mathbb{C}$ is given with a guarantee that $\max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}$ is minimized provided that all $p_i$ have the lowest possible cost. The decomposition is a set of cells $\{w_i\}$ where $\cup_{i=1}^nw_i=\mathbb{C}$. Provided with this set, one has to compute a lowest cost path $p_i$ for each $w_i$ in the decomposition for a solution to Problem~\ref{problem:multi_cpp_with_lines}.
 
-% As such, the following problem and Problem~\ref{problem:distr_cpp_with_lines} are equivalent.
+This suggests that Problem~\ref{problem:multi_cpp_with_lines} could be solved via a decoupled approach involving two subproblems. The first subproblem involves computing a partition of $\mathbb{C}$. The second subproblem involves computing a minimum cost path for each cell in the decomposition.  We note that the second subproblem is the problem solved in Chapter~\ref{chapter:single_agent_coverage} and will not be covered in this section. The rest of this chapter focuses on the first subproblem, which is stated in Problem~\ref{problem:workspace_decomposition}.
+
+% As such, the following problem and Problem~\ref{problem:multi_cpp_with_lines} are equivalent.
 %\begin{problem}[]
-%\label{problem:distr_cpp_with_lines_ii}
+%\label{problem:multi_cpp_with_lines_ii}
 %	Given a workspace $W$, $n$ robots with dynamics and corresponding coverage map $\mathcal{M}_i$, compute
 %	\begin{equation}
 %	\begin{aligned}
@@ -92,11 +95,11 @@ Notice that condition (\ref{eq:partition_condition}) suggests some sort of decom
 %	\end{aligned}
 %	\end{equation}
 %\end{problem}
-%However, Problem~\ref{problem:distr_cpp_with_lines_ii} can be solved via a decoupled approach by solving two separate problems. The first problem deals with an optimal decomposition of the workspace. The second problem deals with computing the lowest cost paths for each cell in the decomposition. The first problem is shown in Problem~\ref{problem:workspace_partitioning} while the second problem is just an invocation of Problem~\ref{problem:min_cost_cpp_with_lines} $n$ times. The solution to that problem is covered in Chapter~\ref{chapter:single_robot_coverage}.
+%However, Problem~\ref{problem:multi_cpp_with_lines_ii} can be solved via a decoupled approach by solving two separate problems. The first problem deals with an optimal decomposition of the workspace. The second problem deals with computing the lowest cost paths for each cell in the decomposition. The first problem is shown in Problem~\ref{problem:workspace_decomposition} while the second problem is just an invocation of Problem~\ref{problem:min_cost_cpp_with_lines} $n$ times. The solution to that problem is covered in Chapter~\ref{chapter:single_agent_coverage}.
 
-\begin{problem}[Workspace Partitioning based on Robot Capabilities]
-\label{problem:workspace_partitioning}
-	Given a workspace $W$ and $n$ robots with dynamics, compute a partitioning of $\mathbb{C}$ into $\{w_1,w_2,\dots,w_n\}$ such that
+\begin{problem}[Workspace Decomposition based on Robot Capabilities]
+\label{problem:workspace_decomposition}
+	Given a workspace $W$ and $n$ robots with equal dynamics, compute a decomposition of $\mathbb{C}$ into $\{w_1,w_2,\dots,w_n\}$ such that
 	\begin{equation}
 	\begin{aligned}
 		& \bigcup_{i=1,\dots,n}w_i=\mathbb{C}\text{ and}\\
@@ -105,12 +108,190 @@ Notice that condition (\ref{eq:partition_condition}) suggests some sort of decom
 	\end{aligned}
 	\end{equation}
 \end{problem}
-In this problem statement, a metric $\chi$ is designed to reflect the cost of the path computed by the solution proposed in Chapter~\ref{chapter:single_robot_coverage}. The computation of this metric is shown in later sections.
+In Problem~\ref{problem:workspace_decomposition}, a metric $\chi$ is used in one of the conditions for optimality. This metric is designed as an approximation of the cost of the path without having to explicitly compute the path itself. This metric is an important aspect of the solution and Section~\ref{section:metric} covers the design and analysis.
+
+\section{Metric}
+\label{section:metric}
+
+In this section, the metric used in the proposed algorithm is discussed. The metric itself consists of three terms, which are derived and analyzes in the following subsections. 
+
+The solution to Problem~\ref{problem:multi_cpp_with_lines} is a set of cells forming a decomposition of the workspace. These cells are formed with the help of a metric. Ideally, this metric would be the real cost of a coverage path for a given cell. However, as we have shown in the previous chapter, such metric would be extraordinarily  computationally expensive. In this chapter, we aim to develop an approximation of such cost that is easy to compute. 
+
+The main observation behind the derivation of such metric is the observation behind the structure of a coverage path. The cost of a path, as mentioned in previous chapter, consists of two components:
+\begin{equation}
+	\mathcal{E}(p_i)=c_1\ell(p_i)+c_2a(p_i).
+\end{equation}
+These two components are the linear and angular component of the path $p_i$. Hence, this metric that acts as an approximation of this cost needs to reflect this cost. For that purpose, we make the following observations. A coverage path $p_i$ for a robot $i$ can be divided into parts. These parts include the distance from the starting location of the robot to its assigned region, the part of path consisting of straight line segments, and the part that consists of transition segments connecting the straight segments together as shown in Figure~\ref{fig:path_parts}. 
+
+One of the core contributions of this thesis is the derivation of the approximations for all three of these components, which we use together to form an approximate of the cost of the actual path.
+
+\simpleplot{img/chapter_4/path_parts}{Test}{fig:path_parts}
+
+\begin{definition}[Partition Metric]
+Given a polygonal workspace $W$ and a robot with dynamics, the partition metric $\chi:W,Q\to\mathbb{R}$ maps the workspace properties and the robot dynamics in the following way:
+	\begin{equation}
+		\chi(w_j,q_j^0)=c_1(\text{dist}(q^0_j,w_j)+K\text{Area}(w_j))+c_2360^o\text{Turns}(w_j).
+	\end{equation}
+\end{definition}
+
+
+\subsection{Initialization and Return Distance}
+
+A team of $n$ robots have $n$ starting locations. Depending on the partitioning scheme used, the starting location of a robot might be some distance away from its assigned partition. Since this travel distance may end up being significant, it needs to be accounted for in the metric. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
+
+This quantity that measures the distance of the robot's $j$ starting location to the assigned region, $w_j$, and back is:
+\begin{equation}
+	\text{dist}(q^0_j,w_j).
+\end{equation}
+
+There are several way to measure this quantity. For this paper, we utilize twice the shortest distance from the starting location to one of the points on the boundary of $w_j$. More formally, 
+\begin{equation}
+	\text{dist}(q^0_j,w_j)=2c_1\min_{x\in\partial w_j}||q^0_j-x||_2.
+\end{equation}
+where $c_1$ is the metric used in the cost function in Section~\ref{section:single_problem_statement}.
+
+It is important to note that a straight path from the starting location to the closest point on the boundary of $w_j$ may not be always feasible as it may intersect an obstacle. However, it is clearly a lower bound on the cost of the actual path to get to the assigned region $w_j$ because of the triangular inequality. Hence,
+\begin{equation}
+	\text{dist}(q^0_j,w_j)\leq\ell(p_i).
+\end{equation}
+where $p_i$ is a feasible path from $q^0_j$ to the region $w_j$.
+
+
+\subsection{Area of the Region}
+
+Once the robot reaches the assigned workspace, it has to complete the coverage task. The amount of work required depends on the dynamics of the robot and the size and complexity of the workspace. Recall that the main method of coverage is via a Boustrophedon type path or a set of Boustrophedon type paths. Recall the structure of a Boustrophedon path. Mainly, such a path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have shown an interesting result that states that the total length of all parallel line segments combined is approximately proportional to the area of the workspace. In other words, we can use the area of a workspace to estimate a portion of the cost of the path. That is the portion that is associated with straight line segments. Here, we would like to show that with some modifications to the area we can get a lower bound estimate of such a value.
+
+\simpleplot{img/chapter_4/riemann_sum}{Parallel line arrangement.}{fig:ch4_riemann_sum}
+
+Suppose the workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure~\ref{fig:ch4_riemann_sum}. Assuming that the footprint is a line of width $r$, the area covered by a robot traversing a line $l_1$ is:
+\begin{equation}
+	rl_i+k
+\end{equation}
+where $k$ is the amount of area covered beyond the starting and stop points of a line associated with footprint such as a circle. The total area covered in this way is then:
+\begin{equation}
+	\sum_{i=1}^n(rl_i+k)=A_{\text{covered}}\leq A_{\text{actual}}
+\end{equation}
+
+We would like to study the discrepancy between the area covered and the actual area of the workspace. To illustrate the reason why the covered area is less than the actual area refer to Figure~\ref{fig:line_footprint}. Assume that the coverage footprint is a circle.
+
+\simpleplot{img/chapter_4/area_discrepancy}{Coverage footprint over a line.}{fig:line_footprint}
+
+We shall now derive an expression for the discrepancy. Suppose a trapezoid is to be covered as shown in Figure~\ref{fig:error_derivation}. We would like to have an expression for the two corners of the trapezoid. First, the area of whole trapezoid is:
+\begin{equation}
+	A=\frac{a+b}{2}h
+\end{equation}
+where $a$ and $b$ are the length of two parallel sides of the trapezoid, and $h$ is the height of  the trapezoid. An expression as a function of $r$ and $\theta$ was derived to be:
+\begin{equation}
+	A=2r^2\csc\theta
+\end{equation}
+
+The area of a half circle is $\frac{\pi r^2}{2}$.
+
+The uncovered area is:
+\begin{equation}
+	A_{\text{uncovered}}=2r^2\csc\theta-\frac{\pi r^2}{2}=\frac{r^2}{2}(4\csc\theta-\pi).
+\end{equation}
+This amount is clearly determined by the angle between the sweeping lines orientation and an edge of the exterior of the polygonal workspace. We are interested in finding $\theta$ that maximizes this value since we are interested in a lower bound. However, clearly when $\theta$ tends to infinity, this area tends to infinity as well. Fortunately, thanks to the result from Huang, there are only a finite number of possible $\theta$s that needs to be checked. 
+
+\simpleplot{img/chapter_4/area_error}{test}{fig:error_derivation}%
+\simpleplot{img/chapter_4/area_error_i}{test}{fig:error_derivation_i}%
+\simpleplot{img/chapter_4/area_error_ii}{test}{fig:error_derivation_ii}%
+
+There is one more issue that needs to be addressed and that is how do we extend this to many lines. Well this value basically scales with the number of lines. Moreover, if one takes the worst case $\theta$ then we get a conservative upper bound on the possible missed area. Hence, the lower bound on the area covered would be:
+\begin{equation}
+	A_{\text{actual}}-\frac{r^2}{2}(4\csc\theta_{\max}-\pi).
+\end{equation}
+
+From this, one can get an estimate of the sum of lengths of straight segments.
+\begin{equation}
+	\sum_{i=1}^nl_i=\frac{A_{\text{actual}}-\frac{r^2}{2}(4\csc\theta_{\max}-\pi)}{r}.
+\end{equation}
+which is guaranteed to be smaller than the actual sum of lengths.
+
+
+\subsection{Coverage Angle}
+
+So far, we have looked at two terms of the metrics. Recalling the cost structure of the path, it includes two components: linear and angular. The first two terms described so far contribute to the linear component. However, there is still a part of a coverage path that we have no accounted for. And that is the transitions between straight line segments. In my opinion, it is one of the more important aspects of the path.
+
+When we have derived the length of the straight line segments, it turns out that it is only determined by the area of the polygon and the angle. However, no other information is captured. The amount of work required for coverage depends on the area of the workspace and its complexity. We have accounted for the area of the workspace in the previous section. In this section, we will find a relation between polygons of equal area but varying complexity as shown in Figure~\ref{fig:area_complexity}.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_4/area_complexity}%
+		\caption{\label{fig:area_complexity_i}}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_4/area_complexity_b}
+		\caption{\label{fig:area_complexity_ii}}
+	\end{subfigure}
+	\caption{An example of polygons with same area but various complexity.}
+	\label{fig:area_complexity}
+\end{figure}
+
+The difference between the two polygons in Figure~\ref{fig:area_complexity} is the complexity. Even though they have equal areas, they have different structure.
+
+For convex polygons, there is a solution to computing a minimum coverage angle for a Boustrophedon type path and this method relies on the notion of an altitude. This is because every parallel line segments has a 180$^o$ turn associated with it. Hence, for convex polygons, one only has to find the minimum altitude in order to compute the coverage angle. However, how does one compute the coverage angle for the general polygon. The answer is not trivial short of computing a path. However, in this section, we develop an approximation and more specifically a lower bound on the coverage angle as a function of the shape of a polygon. This approximation deals a lot with the concepts of medial-axis or straight skeletons. We start by introducing the concept of encirclements for convex polygons.
+
+
+%This quantity is computed by computing the contours of the polygon. These contours are related to the notion of straight skeletons and medial axis[CITE]. An example of the type of algorithm for computing these contours is shown in Algorithm~\ref{alg:compute_contours}.
+
+%Suppose we run Algorithm~\ref{alg:compute_contours} and we get a set of contours, $\mathcal{E}$.
+%\begin{property}[Lower Bound on Turns]
+%The lower bound on the number of turns for coverage of polygon $W$ is $|\mathcal{E}|$.
+%\end{property}
+%To prove this property, we begin by establishing this result in convex polygons.
+
+An encirclement of a polygon is a inner contour of a polygon's formed by shifting polygon's exterior inwards by a fixed distance. In our case, this distance is going to be a multiple of $r$. The process of generating contours is outlined in Algorithm. In the process, a set of contours are generated until no more can be generated. The following proposition states an important result of these encirclements.
+\begin{proposition}
+	Given a polygonal convex workspace $W$, suppose that the coverage angle by a Boustrophedon path is $\theta$. Then $360^o|\mathcal{E}|\leq\theta$.
+\end{proposition}
+\begin{proof}
+
+The proof of this proposition relies on some properties of straight skeleton graphs. Suppose the distance from any edge of the convex polygonal workspace to the straight skeleton is $\beta$. Suppose that the minimum altitude is $\alpha$. By construction of the straight skeleton and the altitude, refer to Figure~\ref{fig:skeleton_altitude}.
+\begin{equation}
+	\beta\leq 0.5\alpha.
+\end{equation}
+\simpleplot{img/chapter_4/skeleton_altitude}{Test}{fig:skeleton_altitude}
+
+However, $|\mathcal{E}|=\ceil{\frac{\beta}{r}}$ and $\theta=180^o\ceil{\frac{\alpha}{r}}$. Hence, assuming that $\frac{\alpha}{r}$ is exact then
+\begin{equation}
+ 360^o|\mathcal{E}|\leq180^o\frac{\alpha}{r}
+ \end{equation}
+\end{proof}
+
+To show the usefulness of this result, this result needs to be extended to concave polygons. Similar argument can be made for non-convex shapes. With concave polygons, the distance from an edge to the straight skeleton may not necessarily be the same. A shown in Figure~\ref{fig:concave_skeleton}.
+
+\simpleplot{img/chapter_4/concave_skeleton}{test}{fig:concave_skeleton}
+
+Recall that any concave polygon can be decomposed into a set of convex sets. We have demonstrated that any convex polygon has a minimum altitude. The overall altitude of the concave polygon will then be the sum of all altitude of convex polygons. Also note that every cell will have its own straight skeleton as well. However, we have shown previously that for convex polygons, the property holds for convex polygon. If the property holds for one convex cell then this property is satisfied for the sum of these altitude.
+
+%In Figure~\ref{fig:concave_skeleton}, $\beta_2>\beta_1$. Hence, the number of encirclements will be determined by $\beta_2$.
+
+
+\begin{algorithm}
+	\small
+	\caption{$\operatorname{recalc\_encirclements}$}
+	\label{alg:update_contours}
+	\begin{algorithmic}[1]
+		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$, Set of contours $\mathbb{E}$, cut $c$
+		\STATE $\mathcal{C}\gets\emptyset$ 
+		\REPEAT
+			\STATE $E\gets$ \textit{parallel\_offset\_inwards}$(P)$
+			\STATE $\mathcal{C}\gets\{\mathcal{C},E\}$
+		\UNTIL{Shrinking results in a point or line}
+		\RETURN $\mathcal{C}$
+	\end{algorithmic}
+\end{algorithm}
 
 
 \section{Area Allocation Algorithm}
 \label{sec:area_allocation_algo}
-In this section, we introduce our solution to Problem~\ref{problem:workspace_partitioning} introduced in the previous section. We begin with a brief overview of the algorithm.
+\textbf{UNDER DEVELOPMENT}
+
+In this section, we introduce our solution to Problem~\ref{problem:workspace_decomposition} introduced in the previous section. We begin with a brief overview of the algorithm.
 
 The main idea behind the algorithm is to converge to a suboptimal solution greedily. An initial solution to act as a starting point for the optimization is fed to the algorithm. The algorithm then performs an iterative pair-wise re-optimization procedure until the cost of the solution converges. The result is a partition with minimized maximum cost. 
 
@@ -197,137 +378,6 @@ Throughout the algorithm, many references are made for the metric. This metric i
 \section{Path Planning Algorithm}
 It should be noted that once Algorithm~\ref{alg:optimization_procedure} is finished and a partition is generated, then each robot has been assigned a task in a suboptimal way. Then it becomes a problem of planning a coverage path for single robot. For this, it is sufficient to run the algorithm introduces in previous section $n$ times for $n$ robots for achieve the final coverage paths.
 
-
-\section{Metric}
-\label{sec:metric}
-
-In this section, we introduce and analyze the partition metric used to solve Problem~\ref{problem:workspace_partitioning}.
-
-The key idea behind the metric is that the metric must reflect the cost of the solution to the minimum cost single robot coverage problem without explicitly computing the path. Moreover, this metric should be computed quickly since it will be used in a search algorithm. We believe that there are three components that contribute to the cost. These components are: the distance from the starting location of the robot to its assigned region, the area of the assigned region, and an approximation of the turn content of the region as a function of the robot's dynamics. These components are studied in the coming sections separately. The overall metric looks as follows.
-
-\begin{definition}[Partition Metric]
-Given a polygonal workspace $W$ and a robot with dynamics, the partition metric $\chi:W,Q\to\mathbb{R}$ maps the workspace properties and the robot dynamics in the following way:
-	\begin{equation}
-		\begin{aligned}
-			\chi(w_j,q_j^0)=\text{dist}(q^0_j,w_j)+K\text{Area}(w_j)+\text{Turns}(w_j).
-		\end{aligned}
-	\end{equation}
-\end{definition}
-
-
-\subsection{Initialization and Return Distance}
-
-A team of $n$ robots have $n$ starting locations. Depending on the partitioning scheme used, the starting location of a robot might be some distance away from its assigned partition. Since this travel distance may end up being significant, it needs to be accounted for in the metric. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
-
-This quantity that measures the distance of the robot's $j$ starting location to the assigned region, $w_j$, and back is:
-\begin{equation}
-	\text{dist}(q^0_j,w_j).
-\end{equation}
-
-There are several way to measure this quantity. For this paper, we utilize twice the shortest distance from the starting location to one of the points on the boundary of $w_j$. More formally, 
-\begin{equation}
-	\text{dist}(q^0_j,w_j)=2c_1\min_{x\in\partial w_j}||q^0_j-x||_2.
-\end{equation}
-where $c_1$ is the metric used in the cost function in Section~\ref{section:single_problem_statement}.
-
-It is important to note that a straight path from the starting location to the closest point on the boundary of $w_j$ may not be always feasible as it may intersect an obstacle. However, it is clearly a lower bound on the cost of the actual path to get to the assigned region $w_j$ because of the triangular inequality. Hence,
-\begin{equation}
-	\text{dist}(q^0_j,w_j)\leq\ell(p_i).
-\end{equation}
-where $p_i$ is a feasible path from $q^0_j$ to the region $w_j$.
-
-
-\subsection{Area of the Region}
-
-Once the robot reaches the assigned workspace, it has to complete the coverage task. The amount of work required depends on the dynamics of the robot and the size and complexity of the workspace. Recall that the main method of coverage is via a Boustrophedon type path or a set of Boustrophedon type paths. Recall the structure of a Boustrophedon path. Mainly, such a path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have shown an interesting result that states that the total length of all parallel line segments combined is approximately proportional to the area of the workspace. In other words, we can use the area of a workspace to estimate a portion of the cost of the path. That is the portion that is associated with straight line segments. Here, we would like to show that with some modifications to the area we can get a lower bound estimate of such a value.
-
-\simpleplot{img/chapter_4/riemann_sum}{Parallel line arrangment.}{fig:ch4_riemann_sum}
-
-Suppose the workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure~\ref{fig:ch4_riemann_sum}. Assuming that the footprint is a line of width $r$, the area covered by a robot traversing a line $l_1$ is:
-\begin{equation}
-	rl_i+k
-\end{equation}
-where $k$ is the amount of area covered beyond the starting and stop points of a line associated with footprint such as a circle. The total area covered in this way is then:
-\begin{equation}
-	\sum_{i=1}^n(rl_i+k)=A_{\text{covered}}\leq A_{\text{actual}}
-\end{equation}
-
-We would like to study the discrepancy between the area covered and the actual area of the workspace. To illustrate the reason why the covered area is less than the actual area refer to Figure~\ref{fig:line_footprint}. Assume that the coverage footprint is a circle.
-
-\simpleplot{img/chapter_4/area_discrepancy}{Coverage footprint over a line.}{fig:line_footprint}
-
-We shall now derive an expression for the discrepancy. Suppose a trapezoid is to be covered as shown in Figure~\ref{fig:error_derivation}. We would like to have an expression for the two corners of the trapezoid. First, the are of whole trapezoid is:
-
-
-\simpleplot{img/chapter_4/area_error}{test}{fig:error_derivation}%
-\simpleplot{img/chapter_4/area_error_i}{test}{fig:error_derivation_i}
-
-
-However, here $r$ is held constant. Hence, we can compute the total length of these straight non-overlapping line segments by:
-\begin{equation}
-	\text{cost}=\sum_{i}l_i\approx\frac{\text{Area}(w_j)}{r}
-\end{equation}
-
-This quantity is clearly an under-estimator for the true length of the coverage path since transition lengths are not accounted for.
-
-
-\subsection{Number of Turns}
-
-The amount of work required for coverage depends on the area of the workspace and its complexity. We have accounted for the area of the workspace in the previous section. In this section, we will find a relation between polygons of equal area but varying complexity as shown in Figure~\ref{fig:area_complexity}.
-
-\begin{figure}
-	\centering
-	\begin{subfigure}{0.5\linewidth}
-		\centering
-		\subfile{img/chapter_4/area_complexity}%
-		\caption{\label{fig:area_complexity_i}}
-	\end{subfigure}%
-	\begin{subfigure}{0.5\linewidth}
-		\centering
-		\subfile{img/chapter_4/area_complexity_b}
-		\caption{\label{fig:area_complexity_ii}}
-	\end{subfigure}
-	\caption{An example of polygons with same area but various complexity.}
-	\label{fig:area_complexity}
-\end{figure}
-
-The difference between the two polygons in Figure~\ref{fig:area_complexity} is the complexity. Even though they have equal areas, they have different structure.
-
-\todo{Should be noted in single agent}
-For convex polygons, it is easy to establish the number of lines required for complete coverage. By the Riemann sum principle, a more complex polygon will have similar total length of straight line segments. However, they will have more segments in the first place. Each pair of segments needs to be connected. This connection has some length. Hence, one should expect the total overhead in terms of length of transition segments to go up as the number of straight segment goes up. Hence, if we scale the number of turns required for complete coverage by some distance, we compare the complexity of the polygon. However, to compute the true number of turns, one needs to compute a coverage path, which is hard. Hence, we rely on a lower bound or an under-estimator.
-
-%This quantity is computed by computing the contours of the polygon. These contours are related to the notion of straight skeletons and medial axis[CITE]. An example of the type of algorithm for computing these contours is shown in Algorithm~\ref{alg:compute_contours}.
-
-%Suppose we run Algorithm~\ref{alg:compute_contours} and we get a set of contours, $\mathcal{E}$.
-%\begin{property}[Lower Bound on Turns]
-%The lower bound on the number of turns for coverage of polygon $W$ is $|\mathcal{E}|$.
-%\end{property}
-%To prove this property, we begin by establishing this result in convex polygons.
-
-\begin{proposition}
-	Given a polygonal convex workspace $W$, $|\mathcal{E}|$ is a lower number of straight line segments required to cover $W$ compared to the Boustrophedon path.
-\end{proposition}
-\begin{proof}
-
-Start with a convex shape. The distance to the skeleton is $\beta$. The minimum altitude is $\alpha$. By definition of the skeleton and the altitude, $\beta\leq 0.5\alpha$. But $|\mathcal{E}|=\ceil{\frac{\beta}{r}}$. Hence, any efficient coverage technique such as Boustrophedon coverage would need twice as many line for coverage, which support the claim of a lower bound.
-
-Similar argument can be made for nonconvex shapes. The $|\mathcal{E}|$ should be at least $\ceil{\frac{\beta}{r}}$ and the following is still true $\beta\leq 0.5\alpha$. Therefore, the property is true.
-\end{proof}
-
-\begin{algorithm}
-	\small
-	\caption{$\operatorname{recalc\_encirclements}$}
-	\label{alg:update_contours}
-	\begin{algorithmic}[1]
-		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$, Set of contours $\mathbb{E}$, cut $c$
-		\STATE $\mathcal{C}\gets\emptyset$ 
-		\REPEAT
-			\STATE $E\gets$ \textit{parallel\_offset\_inwards}$(P)$
-			\STATE $\mathcal{C}\gets\{\mathcal{C},E\}$
-		\UNTIL{Shrinking results in a point or line}
-		\RETURN $\mathcal{C}$
-	\end{algorithmic}
-\end{algorithm}
 
 
 \section{Computational Complexity}

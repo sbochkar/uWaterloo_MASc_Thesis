@@ -1,0 +1,35 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (2,2);
+		
+		\draw (-0.5,-0.5)--(1.8,-0.5)--(1.8,1.5)--(6.5,1.5)--(6.5,5.5)--(1.8,5.5)--(-0.5,5.5)--cycle;
+		\fill [teal] (1.8,1.5) rectangle (6.5,5.5);
+
+		\draw [yellow,line width=0.1cm] (p1)--(p2);
+		\draw (p1)--(p2);
+
+		\fill [covered_area] (p1) circle [radius=0.5];
+
+		\foreach \y in {2,3,...,5} {
+			\draw [red, line width=0.1cm](2,\y)--(6,\y);
+			\draw (2,\y)--(6,\y);
+		}
+
+		\draw [green, line width=0.1cm] (6,2) arc (-90:90:0.5);
+		\draw [green, line width=0.1cm] (2,3) arc (270:90:0.5);
+		\draw [green, line width=0.1cm] (6,4) arc (-90:90:0.5);
+		\draw (6,2) arc (-90:90:0.5);
+		\draw (2,3) arc (270:90:0.5);
+		\draw (6,4) arc (-90:90:0.5);
+
+		\draw [yellow,line width=0.1cm] (2,5)--(p1);
+		\draw (2,5)--(p1);
+
+	\end{tikzpicture}
+\end{document}
