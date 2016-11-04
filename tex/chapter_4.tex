@@ -108,108 +108,142 @@ This suggests that Problem~\ref{problem:multi_cpp_with_lines} could be solved vi
 	\end{aligned}
 	\end{equation}
 \end{problem}
-In Problem~\ref{problem:workspace_decomposition}, a metric $\chi$ is used in one of the conditions for optimality. This metric is designed as an approximation of the cost of the path without having to explicitly compute the path itself. This metric is an important aspect of the solution and Section~\ref{section:metric} covers the design and analysis.
+In Problem~\ref{problem:workspace_decomposition}, a metric $\chi$ is used in one of the conditions for optimality. This metric is designed as an approximation of the cost of the path without having to explicitly compute the path itself. This metric is an important aspect of the solution and Section~\ref{section:decomposition_metric} covers the design and analysis.
 
-\section{Metric}
-\label{section:metric}
+\section{Decomposition Metric}
+\label{section:decomposition_metric}
 
-In this section, the metric used in the proposed algorithm is discussed. The metric itself consists of three terms, which are derived and analyzes in the following subsections. 
+In this section, the design of  the metric used in the Algorithm~\ref{alg:optimization_procedure} is presented. The metric consists of three terms, which are derived and analyzed in the following subsections.
 
-The solution to Problem~\ref{problem:multi_cpp_with_lines} is a set of cells forming a decomposition of the workspace. These cells are formed with the help of a metric. Ideally, this metric would be the real cost of a coverage path for a given cell. However, as we have shown in the previous chapter, such metric would be extraordinarily  computationally expensive. In this chapter, we aim to develop an approximation of such cost that is easy to compute. 
+The solution to Problem~\ref{problem:multi_cpp_with_lines} is a set of cells forming a decomposition of the coverable space. This decomposition is computed by using a metric $\chi$ to evaluate a decomposition. Ideally, this metric would be the real cost of a coverage path for a given cell. However, as we have shown in the previous chapter, such metric would be computationally expensive. In this chapter, we aim to develop an approximation of such cost that is easy to compute. 
 
-The main observation behind the derivation of such metric is the observation behind the structure of a coverage path. The cost of a path, as mentioned in previous chapter, consists of two components:
+The main motivation for the design of the metric $\chi$ is the structure of a coverage path. Recall the cost of a path, as mentioned in Section~\ref{section:single_problem_statement}, consists of two components:
 \begin{equation}
 	\mathcal{E}(p_i)=c_1\ell(p_i)+c_2a(p_i).
 \end{equation}
-These two components are the linear and angular component of the path $p_i$. Hence, this metric that acts as an approximation of this cost needs to reflect this cost. For that purpose, we make the following observations. A coverage path $p_i$ for a robot $i$ can be divided into parts. These parts include the distance from the starting location of the robot to its assigned region, the part of path consisting of straight line segments, and the part that consists of transition segments connecting the straight segments together as shown in Figure~\ref{fig:path_parts}. 
+These two components are the linear and angular components of the path $p_i$. Hence, the metric $\chi$ needs to have similar structure if it were to be a good approximation. To that end, the following observation about a structure of a coverage path is important. A coverage path $p_i$ for a robot $i$ can be divided into three parts. The first part is the distance from a starting location of the robot to its assigned region. The second part consisting of all straight line segments used in the segmented path. The last part includes all the transition segments connecting the straight segments together as shown in Figure~\ref{fig:path_parts}. Note that the first and the second parts contribute to the linear components of the cost and the third part contribute to the angular component. The following subsections discuss all three components in detail.
 
-One of the core contributions of this thesis is the derivation of the approximations for all three of these components, which we use together to form an approximate of the cost of the actual path.
+\simpleplot{img/chapter_4/path_parts}{Demonstration of the structure of a coverage path. Orange: Path portion where the robot travels to its assigned region shown in blue. Red: Path segments that are straight line segments. Yellow: path segments that are transition segments.}{fig:path_parts}
 
-\simpleplot{img/chapter_4/path_parts}{Test}{fig:path_parts}
-
-\begin{definition}[Partition Metric]
-Given a polygonal workspace $W$ and a robot with dynamics, the partition metric $\chi:W,Q\to\mathbb{R}$ maps the workspace properties and the robot dynamics in the following way:
+\begin{definition}[Decomposition Metric]
+Given a polygonal workspace $W$ and a robot with dynamics, the partition metric $\chi:W,Q\to\mathbb{R}$ maps the workspace properties and the robot dynamics to an approximation of a coverage path cost in the following way:
 	\begin{equation}
-		\chi(w_j,q_j^0)=c_1(\text{dist}(q^0_j,w_j)+K\text{Area}(w_j))+c_2360^o\text{Turns}(w_j).
+		%\chi(w_j,q_j^0)=c_1(\text{dist}(q^0_j,w_j)+K\text{Area}(w_j))+c_2360^o\text{Turns}(w_j).
+		\chi(w_j,q_j^0)=c_1[\mathcal{F}_1(q^0_j,w_j)+\mathcal{F}_2(w_j)]+c_2\mathcal{F}_3(w_j).
 	\end{equation}
 \end{definition}
 
 
 \subsection{Initialization and Return Distance}
+\label{subsection:init_ret_distance}
 
-A team of $n$ robots have $n$ starting locations. Depending on the partitioning scheme used, the starting location of a robot might be some distance away from its assigned partition. Since this travel distance may end up being significant, it needs to be accounted for in the metric. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
+A team of $n$ robots have $n$ starting locations, $q^0_1,q^0_2,\ldots,q^0_n$. Depending on the decomposition technique, the starting location of a robot may be some distance away from its assigned cell. Since this travel distance may be significant, it cannot be ignored when computing the cost of the path. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
 
-This quantity that measures the distance of the robot's $j$ starting location to the assigned region, $w_j$, and back is:
+Let us refer to the distance from the starting location of the robot $i$, $q^0_i$, to the begging of the coverage path in $w_i$ and from the end of the path to $q^0_i$ as:
 \begin{equation}
-	\text{dist}(q^0_j,w_j).
+	\text{dist}(q^0_i,w_i).
 \end{equation}
 
-There are several way to measure this quantity. For this paper, we utilize twice the shortest distance from the starting location to one of the points on the boundary of $w_j$. More formally, 
+This quantity cannot be computed as such because it requires the information about where the coverage path starts and ends. This is not known prior to computing the actual path. The only information available is $q^0_i$ and $w_i$. However, we can compute an approximation of this quantity, $\mathcal{F}_1(q^0_i,w_i)$, that is going to be a lower bound on the actual value. In this work, this is accomplished via twice the shortest Euclidean distance to $w_j$. More formally, 
 \begin{equation}
-	\text{dist}(q^0_j,w_j)=2c_1\min_{x\in\partial w_j}||q^0_j-x||_2.
-\end{equation}
-where $c_1$ is the metric used in the cost function in Section~\ref{section:single_problem_statement}.
-
-It is important to note that a straight path from the starting location to the closest point on the boundary of $w_j$ may not be always feasible as it may intersect an obstacle. However, it is clearly a lower bound on the cost of the actual path to get to the assigned region $w_j$ because of the triangular inequality. Hence,
-\begin{equation}
-	\text{dist}(q^0_j,w_j)\leq\ell(p_i).
-\end{equation}
-where $p_i$ is a feasible path from $q^0_j$ to the region $w_j$.
-
-
-\subsection{Area of the Region}
-
-Once the robot reaches the assigned workspace, it has to complete the coverage task. The amount of work required depends on the dynamics of the robot and the size and complexity of the workspace. Recall that the main method of coverage is via a Boustrophedon type path or a set of Boustrophedon type paths. Recall the structure of a Boustrophedon path. Mainly, such a path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have shown an interesting result that states that the total length of all parallel line segments combined is approximately proportional to the area of the workspace. In other words, we can use the area of a workspace to estimate a portion of the cost of the path. That is the portion that is associated with straight line segments. Here, we would like to show that with some modifications to the area we can get a lower bound estimate of such a value.
-
-\simpleplot{img/chapter_4/riemann_sum}{Parallel line arrangement.}{fig:ch4_riemann_sum}
-
-Suppose the workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure~\ref{fig:ch4_riemann_sum}. Assuming that the footprint is a line of width $r$, the area covered by a robot traversing a line $l_1$ is:
-\begin{equation}
-	rl_i+k
-\end{equation}
-where $k$ is the amount of area covered beyond the starting and stop points of a line associated with footprint such as a circle. The total area covered in this way is then:
-\begin{equation}
-	\sum_{i=1}^n(rl_i+k)=A_{\text{covered}}\leq A_{\text{actual}}
+	\mathcal{F}_1(q^0_i,w_i)=2\min_{x\in\partial w_i}||q^0_i-x||_2.
 \end{equation}
 
-We would like to study the discrepancy between the area covered and the actual area of the workspace. To illustrate the reason why the covered area is less than the actual area refer to Figure~\ref{fig:line_footprint}. Assume that the coverage footprint is a circle.
+However, it is clearly a lower bound on the cost of the actual path to get to the assigned region $w_i$ because of the triangular inequality. Hence,
+\begin{equation}
+	\mathcal{F}_1(q^0_i,w_i)\leq\text{dist}(q^0_i,w_i).
+\end{equation}
+
+The benefits of this metric includes its simplicity and ease of computation. However, it is important to note that a straight path from the starting location to the closest point on the boundary of $w_i$ may not be always feasible as it may intersect an obstacle. Therefore, a situation is possible where the distance from the starting location to the assigned region is close but in reality, requires extensive navigation through obstacles. A way to mitigate this situation is by computing the distance of a shortest feasible path to $w_i$. However, this requires computation of a visibility graph.
+
+
+\subsection{Length of Straight Line Segments}
+\label{section:sum_straight_segments}
+
+Once the robot reaches the assigned workspace, it has to complete the coverage task. As mentioned in Section~\ref{section:decomposition_metric}, the second part of a coverage path is a set of straight line segments. Recall that the coverage in Chapter~\ref{chapter:single_agent_coverage} is performed via a Boustrophedon type path or a set of Boustrophedon type paths. Recall that the structure of a Boustrophedon path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have demonstrated a relation between an area of the workspace and the total length of all parallel line segments combined. In other words, the area of a workspace can be used to estimate a linear component of the path cost. In this section, we show that with some modifications to the area, a lower bound estimate for the length of straight line segments can be computed cheaply.
+
+Suppose a workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure~\ref{fig:line_footprint}. Assuming that the coverage footprint has a width of $r$, then the area covered by a robot traversing a line $l_i$ is $rl_i+k$. Here, $k$ is the amount of area covered beyond the starting and stopping points of a line. These areas are associated with footprint such as a circle. The total area covered in this way is then:
+\begin{equation}
+	\label{eq:covered_area}
+	\sum_{i=1}^n(rl_i+k)=A_{\text{covered}}.%\leq A_{\text{actual}}
+\end{equation}
 
 \simpleplot{img/chapter_4/area_discrepancy}{Coverage footprint over a line.}{fig:line_footprint}
 
-We shall now derive an expression for the discrepancy. Suppose a trapezoid is to be covered as shown in Figure~\ref{fig:error_derivation}. We would like to have an expression for the two corners of the trapezoid. First, the area of whole trapezoid is:
+Equation~\ref{eq:covered_area} suggests that it is possible to compute the total length of all straight line segments combined from the covered area. However, note that to compute the covered area, one would need to know the placement of parallel line segments. This is not know prior to path planning. The only information available is the workspace and the required spacing between the parallel line segments.
+
+Also note that $A_{\text{covered}}\leq A_{\text{actual}}$. This is because of area near the borders of the workspace remain uncovered. An example is shown in Figure~\ref{fig:line_footprint}. We shall now derive an expression for the difference.
+
+Suppose a workspace is to be covered and is populated with some parallel line segments as shown in Figure~\ref{fig:sample_area}. Note the white uncovered areas near the borders of the polygon. First, look at the uncovered area one line segments at a time. Observe Figure~\ref{fig:area_error}(a), which demonstrates the top half of a straight segment.
+
+\simpleplot{img/chapter_4/sample_area}{Sample workspace with parallel line segments.}{fig:sample_area}%
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_4/area_error}%
+		\caption{\label{fig:area_error_i}}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\subfile{img/chapter_4/area_error_i}
+		\caption{\label{fig:area_error_i}}
+	\end{subfigure}
+	\caption{Geometry of the uncovered area.}
+	\label{fig:area_error}
+\end{figure}
+
+Note from Figure~\ref{fig:area_error}(b), a region of interest is a trapezoid with two parallel sides $a$ and $b$, and the side $2r$. It is the difference between covered and uncovered areas here that will determine the difference between covered and actual area.
+
+Recall an area of a trapezoid:
 \begin{equation}
 	A=\frac{a+b}{2}h
 \end{equation}
-where $a$ and $b$ are the length of two parallel sides of the trapezoid, and $h$ is the height of  the trapezoid. An expression as a function of $r$ and $\theta$ was derived to be:
+where $a$ and $b$ are the length of two parallel sides of the trapezoid, and $h$ is the height of the trapezoid. In this case, $r$ and $\theta$ are determined by the width of the coverage footprint and properties of the workspace respectively. In this case, $a$ and $b$ are derived in terms of $r$ and $\theta$ as follows:
 \begin{equation}
-	A=2r^2\csc\theta
+	\begin{aligned}
+		&a=r\tan{\frac{\theta}{2}},\\
+		&b=r\tan{(90^o-\frac{\theta}{2}})
+	\end{aligned}
 \end{equation}
 
+The area of a trapezoid as a function of $r$ and $\theta$ is:
+\begin{equation}
+	A=2r^2\csc{\theta}
+\end{equation}
 The area of a half circle is $\frac{\pi r^2}{2}$.
 
-The uncovered area is:
+Therefore, the amount of area that is left uncovered from one strip is:
 \begin{equation}
 	A_{\text{uncovered}}=2r^2\csc\theta-\frac{\pi r^2}{2}=\frac{r^2}{2}(4\csc\theta-\pi).
 \end{equation}
-This amount is clearly determined by the angle between the sweeping lines orientation and an edge of the exterior of the polygonal workspace. We are interested in finding $\theta$ that maximizes this value since we are interested in a lower bound. However, clearly when $\theta$ tends to infinity, this area tends to infinity as well. Fortunately, thanks to the result from Huang, there are only a finite number of possible $\theta$s that needs to be checked. 
 
-\simpleplot{img/chapter_4/area_error}{test}{fig:error_derivation}%
-\simpleplot{img/chapter_4/area_error_i}{test}{fig:error_derivation_i}%
-\simpleplot{img/chapter_4/area_error_ii}{test}{fig:error_derivation_ii}%
-
-There is one more issue that needs to be addressed and that is how do we extend this to many lines. Well this value basically scales with the number of lines. Moreover, if one takes the worst case $\theta$ then we get a conservative upper bound on the possible missed area. Hence, the lower bound on the area covered would be:
+This value is a function of $\theta$, where $\theta$ is an angle between the sweeping lines orientation and an edge of the exterior of the polygonal workspace. This angle varies from one edge of a polygon to the next. Suppose we compute the following $\theta_{\max}$.
 \begin{equation}
-	A_{\text{actual}}-\frac{r^2}{2}(4\csc\theta_{\max}-\pi).
+	\theta_{\max}=\arg\max_{\theta\in\Theta}(\frac{r^2}{2}(4\csc\theta-\pi)).
+\end{equation}%
+where $\Theta$ is a set of all possible $\theta$'s that a set of lines can have with the respect to any edge of a polygon. Fortunately, by the result from Huang~\cite{Huang2001optimal}, the optimal orientation of a set of lines is orthogonal to one of the edges of a polygon. Hence, if there are $n$ edges in a polygon, then $|\Theta|=n^2$.
+
+Hence, the uncovered area can then be approximated as follows:
+\begin{equation}
+	A_{\text{uncovered}}^{\max}=2|S|\frac{r^2}{2}(4\csc\theta_{\max}-\pi).
+\end{equation}%
+where $|S|$ is the number of straight line segments in a workspace scaled by a factor to account for both ends of a line.
+
+With this result, we can state a lower bound on the total length of all straight line segments combined as a function of the workspace. Let $\mathcal{F}_2(w_i)$ denote the lower bound on this amount then:
+\begin{equation}
+	\mathcal{F}_2(w_i)=\frac{A_{\text{actual}}-A_{\text{uncovered}}^{\max}}{r}
 \end{equation}
 
-From this, one can get an estimate of the sum of lengths of straight segments.
+Moreover, because we took the maximum uncovered area, the following is true is well:
 \begin{equation}
-	\sum_{i=1}^nl_i=\frac{A_{\text{actual}}-\frac{r^2}{2}(4\csc\theta_{\max}-\pi)}{r}.
+	\mathcal{F}_2(w_i)\leq\sum_{i=1}^Nl_i
 \end{equation}
-which is guaranteed to be smaller than the actual sum of lengths.
 
 
-\subsection{Coverage Angle}
+\subsection{Angular Component}
+\label{subsection:angular_component}
 
 So far, we have looked at two terms of the metrics. Recalling the cost structure of the path, it includes two components: linear and angular. The first two terms described so far contribute to the linear component. However, there is still a part of a coverage path that we have no accounted for. And that is the transitions between straight line segments. In my opinion, it is one of the more important aspects of the path.
 
