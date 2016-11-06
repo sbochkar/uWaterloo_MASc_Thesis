@@ -158,7 +158,7 @@ The benefits of this metric includes its simplicity and ease of computation. How
 
 
 \subsection{Length of Straight Line Segments}
-\label{section:sum_straight_segments}
+\label{subsection:sum_straight_segments}
 
 Once the robot reaches the assigned workspace, it has to complete the coverage task. As mentioned in Section~\ref{section:decomposition_metric}, the second part of a coverage path is a set of straight line segments. Recall that the coverage in Chapter~\ref{chapter:single_agent_coverage} is performed via a Boustrophedon type path or a set of Boustrophedon type paths. Recall that the structure of a Boustrophedon path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have demonstrated a relation between an area of the workspace and the total length of all parallel line segments combined. In other words, the area of a workspace can be used to estimate a linear component of the path cost. In this section, we show that with some modifications to the area, a lower bound estimate for the length of straight line segments can be computed cheaply.
 
@@ -245,29 +245,53 @@ Moreover, because we took the maximum uncovered area, the following is true is w
 \subsection{Angular Component}
 \label{subsection:angular_component}
 
-So far, we have looked at two terms of the metrics. Recalling the cost structure of the path, it includes two components: linear and angular. The first two terms described so far contribute to the linear component. However, there is still a part of a coverage path that we have no accounted for. And that is the transitions between straight line segments. In my opinion, it is one of the more important aspects of the path.
 
-When we have derived the length of the straight line segments, it turns out that it is only determined by the area of the polygon and the angle. However, no other information is captured. The amount of work required for coverage depends on the area of the workspace and its complexity. We have accounted for the area of the workspace in the previous section. In this section, we will find a relation between polygons of equal area but varying complexity as shown in Figure~\ref{fig:area_complexity}.
+According to the cost metric introduced in Section~\ref{section:single_problem_statement}, there are two components in the cost of a coverage path: linear and angular. The term of the approximated cost developed in Section~\ref{subsection:init_ret_distance} and Section~\ref{subsection:sum_straight_segments} both serve as approximations to the linear component. In this section, an approximation for the angular component is designed.
 
-\begin{figure}
-	\centering
-	\begin{subfigure}{0.5\linewidth}
-		\centering
-		\subfile{img/chapter_4/area_complexity}%
-		\caption{\label{fig:area_complexity_i}}
-	\end{subfigure}%
-	\begin{subfigure}{0.5\linewidth}
-		\centering
-		\subfile{img/chapter_4/area_complexity_b}
-		\caption{\label{fig:area_complexity_ii}}
-	\end{subfigure}
-	\caption{An example of polygons with same area but various complexity.}
-	\label{fig:area_complexity}
-\end{figure}
+The angular components of a coverage path depends on the type of path itself. Some paths have a particular structure, which makes them suitable for theoretical analysis. For instance, a typical Boustrophedon path contains a set of parallel line segments connected together by transition segments. Since these parallel segments are oriented in the same direction, the transition segments must traverse at least 180$^o$ angular distance. Hence, just by knowing the number of parallel segments allows for computation of the angular distance in the whole path. As a reminder, this could be achieved by computing the altitude as demonstrated in Chapter~\ref{chapter:single_agent_coverage}. However, as shown in Chapter~\ref{chapter:single_agent_coverage}, the Boustrophedon path is not optimal for general polygons. Hence, we deviate from the altitude decomposition technique and instead focus on the shape of the polygon itself. The goal being to compute an approximation of the angular components as a function of the shape of the polygon.
 
-The difference between the two polygons in Figure~\ref{fig:area_complexity} is the complexity. Even though they have equal areas, they have different structure.
+For that purpose, our approach is inspired by concepts such as the medial axis of a workspace and the straight skeleton graphs as reviewed in Chapter~\ref{chapter:background}. Recall that one way to compute a straight skeleton graph is by iteratively computing \emph{contours} of a polygon. Suppose a set of contours, $\mathcal{T}$ is computed by iteratively \emph{shrinking} the boundary of the polygon by distance $r$ inwards. Then the following proposition is made.
 
-For convex polygons, there is a solution to computing a minimum coverage angle for a Boustrophedon type path and this method relies on the notion of an altitude. This is because every parallel line segments has a 180$^o$ turn associated with it. Hence, for convex polygons, one only has to find the minimum altitude in order to compute the coverage angle. However, how does one compute the coverage angle for the general polygon. The answer is not trivial short of computing a path. However, in this section, we develop an approximation and more specifically a lower bound on the coverage angle as a function of the shape of a polygon. This approximation deals a lot with the concepts of medial-axis or straight skeletons. We start by introducing the concept of encirclements for convex polygons.
+\begin{proposition}
+	Given a polygonal convex workspace $W$, suppose that the coverage angle by a Boustrophedon path is $\theta$. Then $360^o|\mathcal{T}|\leq\theta$.
+\end{proposition}
+\begin{proof}
+
+The proof of this proposition starts with convex polygons. Recall the center contour introduced in Chapter~\ref{chapter:background}. The distance from any edge of the convex polygon to the center contour is $\beta$. Suppose that the minimum altitude of the convex polygon under study is $\alpha$. By construction of the center contour and the minimum altitude, the following holds, as shown in Figure~\ref{fig:skeleton_altitude}.
+\begin{equation}
+	\beta\leq 0.5\alpha.
+\end{equation}
+\simpleplot{img/chapter_4/skeleton_altitude}{Minimum altitude of a convex polygon, $\alpha$. Distance to the center contour, $\beta$.}{fig:skeleton_altitude}
+
+However, $|\mathcal{T}|=\ceil{\frac{\beta}{r}}$ and $\theta=180^o\ceil{\frac{\alpha}{r}}$. Hence, assuming that $\frac{\alpha}{r}$ is exact then
+\begin{equation}
+ 360^o|\mathcal{T}|\leq180^o\frac{\alpha}{r}
+ \end{equation}
+
+To complete the proof, concave polygons need to be considered. Recall that any concave polygon can be decomposed into a set of convex cells. We have also demonstrated that a decomposition can be constructed that minimizes the sum of minimum altitudes over all convex cells. The sum of all minimum altitudes is related to the number of parallel line segments required for coverage. Hence, a coverage angle can also be computed. Also note that every convex cell has its own center contour. However, it was shown that $360^o\frac{\beta}{r}\leq\theta$ for convex polygons. Hence, the summation over all cells will hold as well.
+\end{proof}
+
+
+%When we have derived the length of the straight line segments, it turns out that it is only determined by the area of the polygon and the angle. However, no other information is captured. The amount of work required for coverage depends on the area of the workspace and its complexity. We have accounted for the area of the workspace in the previous section. In this section, we will find a relation between polygons of equal area but varying complexity as shown in Figure~\ref{fig:area_complexity}.
+
+%\begin{figure}
+%	\centering
+%	\begin{subfigure}{0.5\linewidth}
+%		\centering
+%		\subfile{img/chapter_4/area_complexity}%
+%		\caption{\label{fig:area_complexity_i}}
+%	\end{subfigure}%
+%	\begin{subfigure}{0.5\linewidth}
+%		\centering
+%		\subfile{img/chapter_4/area_complexity_b}
+%		\caption{\label{fig:area_complexity_ii}}
+%	\end{subfigure}
+%	\caption{An example of polygons with same area but various complexity.}
+%	\label{fig:area_complexity}
+%\end{figure}
+
+%The difference between the two polygons in Figure~\ref{fig:area_complexity} is the complexity. Even though they have equal areas, they have different structure.
+
 
 
 %This quantity is computed by computing the contours of the polygon. These contours are related to the notion of straight skeletons and medial axis[CITE]. An example of the type of algorithm for computing these contours is shown in Algorithm~\ref{alg:compute_contours}.
@@ -277,30 +301,6 @@ For convex polygons, there is a solution to computing a minimum coverage angle f
 %The lower bound on the number of turns for coverage of polygon $W$ is $|\mathcal{E}|$.
 %\end{property}
 %To prove this property, we begin by establishing this result in convex polygons.
-
-An encirclement of a polygon is a inner contour of a polygon's formed by shifting polygon's exterior inwards by a fixed distance. In our case, this distance is going to be a multiple of $r$. The process of generating contours is outlined in Algorithm. In the process, a set of contours are generated until no more can be generated. The following proposition states an important result of these encirclements.
-\begin{proposition}
-	Given a polygonal convex workspace $W$, suppose that the coverage angle by a Boustrophedon path is $\theta$. Then $360^o|\mathcal{E}|\leq\theta$.
-\end{proposition}
-\begin{proof}
-
-The proof of this proposition relies on some properties of straight skeleton graphs. Suppose the distance from any edge of the convex polygonal workspace to the straight skeleton is $\beta$. Suppose that the minimum altitude is $\alpha$. By construction of the straight skeleton and the altitude, refer to Figure~\ref{fig:skeleton_altitude}.
-\begin{equation}
-	\beta\leq 0.5\alpha.
-\end{equation}
-\simpleplot{img/chapter_4/skeleton_altitude}{Test}{fig:skeleton_altitude}
-
-However, $|\mathcal{E}|=\ceil{\frac{\beta}{r}}$ and $\theta=180^o\ceil{\frac{\alpha}{r}}$. Hence, assuming that $\frac{\alpha}{r}$ is exact then
-\begin{equation}
- 360^o|\mathcal{E}|\leq180^o\frac{\alpha}{r}
- \end{equation}
-\end{proof}
-
-To show the usefulness of this result, this result needs to be extended to concave polygons. Similar argument can be made for non-convex shapes. With concave polygons, the distance from an edge to the straight skeleton may not necessarily be the same. A shown in Figure~\ref{fig:concave_skeleton}.
-
-\simpleplot{img/chapter_4/concave_skeleton}{test}{fig:concave_skeleton}
-
-Recall that any concave polygon can be decomposed into a set of convex sets. We have demonstrated that any convex polygon has a minimum altitude. The overall altitude of the concave polygon will then be the sum of all altitude of convex polygons. Also note that every cell will have its own straight skeleton as well. However, we have shown previously that for convex polygons, the property holds for convex polygon. If the property holds for one convex cell then this property is satisfied for the sum of these altitude.
 
 %In Figure~\ref{fig:concave_skeleton}, $\beta_2>\beta_1$. Hence, the number of encirclements will be determined by $\beta_2$.
 
