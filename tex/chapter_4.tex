@@ -6,7 +6,7 @@
 \chapter{Multi-agent Coverage}
 \label{chapter:multi_agent_coverage}
 
-In this chapter, the problem of coverage with multiple robots is introduced. The problem statement is derived and the algorithm is proposed in Section. One of the most important aspects of the algorithm is the metric used during the search algorithm. This metric is designed and analyzed in Section. Section presents the computational complexity analysis of the algorithm. Lastly, Section presents simulations and discussed the results.
+In this chapter, the problem of coverage with multiple robots is introduced. The problem statement is derived in Section~\ref{section:multi_agent_problem_statement}. One of the most important aspects of the algorithm is the metric used during the search algorithm. This metric is designed and analyzed in Section~\ref{section:multi_decomposition_metric}. The algorithm is proposed in Section~\ref{section:multi_algorithm}. Section~\ref{section:multi_comp_analysis} presents the computational complexity analysis of the algorithm. Lastly, Section~\ref{section:multi_simulations} presents simulations and discusses the results.
 
 
 \section{Problem Statement}
@@ -108,10 +108,10 @@ This suggests that Problem~\ref{problem:multi_cpp_with_lines} could be solved vi
 	\end{aligned}
 	\end{equation}
 \end{problem}
-In Problem~\ref{problem:workspace_decomposition}, a metric $\chi$ is used in one of the conditions for optimality. This metric is designed as an approximation of the cost of the path without having to explicitly compute the path itself. This metric is an important aspect of the solution and Section~\ref{section:decomposition_metric} covers the design and analysis.
+In Problem~\ref{problem:workspace_decomposition}, a metric $\chi$ is used in one of the conditions for optimality. This metric is designed as an approximation of the cost of the path without having to explicitly compute the path itself. This metric is an important aspect of the solution and Section~\ref{section:multi_decomposition_metric} covers the design and analysis.
 
 \section{Decomposition Metric}
-\label{section:decomposition_metric}
+\label{section:multi_decomposition_metric}
 
 In this section, the design of  the metric used in the Algorithm~\ref{alg:optimization_procedure} is presented. The metric consists of three terms, which are derived and analyzed in the following subsections.
 
@@ -160,7 +160,7 @@ The benefits of this metric includes its simplicity and ease of computation. How
 \subsection{Length of Straight Line Segments}
 \label{subsection:sum_straight_segments}
 
-Once the robot reaches the assigned workspace, it has to complete the coverage task. As mentioned in Section~\ref{section:decomposition_metric}, the second part of a coverage path is a set of straight line segments. Recall that the coverage in Chapter~\ref{chapter:single_agent_coverage} is performed via a Boustrophedon type path or a set of Boustrophedon type paths. Recall that the structure of a Boustrophedon path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have demonstrated a relation between an area of the workspace and the total length of all parallel line segments combined. In other words, the area of a workspace can be used to estimate a linear component of the path cost. In this section, we show that with some modifications to the area, a lower bound estimate for the length of straight line segments can be computed cheaply.
+Once the robot reaches the assigned workspace, it has to complete the coverage task. As mentioned in Section~\ref{section:multi_decomposition_metric}, the second part of a coverage path is a set of straight line segments. Recall that the coverage in Chapter~\ref{chapter:single_agent_coverage} is performed via a Boustrophedon type path or a set of Boustrophedon type paths. Recall that the structure of a Boustrophedon path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have demonstrated a relation between an area of the workspace and the total length of all parallel line segments combined. In other words, the area of a workspace can be used to estimate a linear component of the path cost. In this section, we show that with some modifications to the area, a lower bound estimate for the length of straight line segments can be computed cheaply.
 
 Suppose a workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure~\ref{fig:line_footprint}. Assuming that the coverage footprint has a width of $r$, then the area covered by a robot traversing a line $l_i$ is $rl_i+k$. Here, $k$ is the amount of area covered beyond the starting and stopping points of a line. These areas are associated with footprint such as a circle. The total area covered in this way is then:
 \begin{equation}
@@ -229,7 +229,7 @@ Hence, the uncovered area can then be approximated as follows:
 \begin{equation}
 	A_{\text{uncovered}}^{\max}=2|S|\frac{r^2}{2}(4\csc\theta_{\max}-\pi).
 \end{equation}%
-where $|S|$ is the number of straight line segments in a workspace scaled by a factor to account for both ends of a line.
+where $|S|$ is the number of straight line segments in a workspace scaled by a factor of two to account for both ends of a line.
 
 With this result, we can state a lower bound on the total length of all straight line segments combined as a function of the workspace. Let $\mathcal{F}_2(w_i)$ denote the lower bound on this amount then:
 \begin{equation}
@@ -305,51 +305,35 @@ To complete the proof, concave polygons need to be considered. Recall that any c
 %In Figure~\ref{fig:concave_skeleton}, $\beta_2>\beta_1$. Hence, the number of encirclements will be determined by $\beta_2$.
 
 
-\begin{algorithm}
-	\small
-	\caption{$\operatorname{recalc\_encirclements}$}
-	\label{alg:update_contours}
-	\begin{algorithmic}[1]
-		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$, Set of contours $\mathbb{E}$, cut $c$
-		\STATE $\mathcal{C}\gets\emptyset$ 
-		\REPEAT
-			\STATE $E\gets$ \textit{parallel\_offset\_inwards}$(P)$
-			\STATE $\mathcal{C}\gets\{\mathcal{C},E\}$
-		\UNTIL{Shrinking results in a point or line}
-		\RETURN $\mathcal{C}$
-	\end{algorithmic}
-\end{algorithm}
-
-
 \section{Area Allocation Algorithm}
-\label{sec:area_allocation_algo}
+\label{section:multi_algorithm}
 \textbf{UNDER DEVELOPMENT}
 
-In this section, we introduce our solution to Problem~\ref{problem:workspace_decomposition} introduced in the previous section. We begin with a brief overview of the algorithm.
+In this section, the algorithm is shown as a solution to Problem~\ref{problem:workspace_decomposition}. The core of the algorithm is described first followed by the description of smaller sub-procedures.
 
-The main idea behind the algorithm is to converge to a suboptimal solution greedily. An initial solution to act as a starting point for the optimization is fed to the algorithm. The algorithm then performs an iterative pair-wise re-optimization procedure until the cost of the solution converges. The result is a partition with minimized maximum cost. 
+The main algorithm proposed in this section is a greedy algorithm designed to converge to a local pair-wise minimal solution. The optimization process is initialized with a starting solution. The optimization algorithm performs an iterative pair-wise re-optimization procedure until the cost of the solution converges. The result is a partition with the maximum solution converging to some local minimum.
 
-As an input, $\mathbb{C}$ is provided with the assumption that it is polygonal. A set of $n$ initial positions of $n$ robots is also provided as one of the inputs. As an initialization step, the polygon $\mathbb{C}$ is partitioned into $n$ subregions of equal area by the anchored area partitioning algorithm. This step is designed to provide our algorithm  with a starting point to be used in the iterative re-optimization procedure. This initial partition acts as a good approximation of an optimal solution. In fact, many existing works model the area as being directly proportional to the work that a robot has to do.
+As an input, $\mathbb{C}$ is provided with the assumption that it is polygonal. A set of $n$ initial positions of $n$ robots is also provided as one of the inputs in the form of $(x,y)$ coordinates. As an initialization step, the polygon $\mathbb{C}$ is partitioned into $n$ subregions of equal area by the anchored area partitioning algorithm. This step is designed to provide the algorithm  with a starting point to be used in the iterative re-optimization procedure. This initial partition acts as a good approximation of an optimal solution. In fact, many existing works model the area as being directly proportional to the work that a robot has to do.
 
-An adjacency graph is computed on the resultant partition. For every cell in the partition, the cost of complete coverage is computed using our metric. For every cell with the highest cost, we perform the following re-optimization steps. First, some adjacent cell is picked[MAYBE CELLWITH LOWEST COST]. This pair of adjacent cells is recombined resulting in one region. A procedure is performed that greedily computes an optimal cut that generates two cells and that minimizes the maximum cost of coverage of two cells. The cost and the partition are modified accordingly. The loop is repeated for the next cell with the highest cost in the decomposition. The termination condition for this loops is when the maximum cost over all cells in the decomposition stops decreasing. Algorithm~\ref{alg:optimization_procedure} demonstrates the described procedure.
+An adjacency graph is computed on the resultant partition. For every cell in the partition, an approximation of the coverage cost is computed using metric $\chi$. For every cell with the highest cost, we perform the following re-optimization steps. First, some adjacent cell is picked[MAYBE CELLWITH LOWEST COST]. This pair of adjacent cells is recombined resulting in one region. A procedure is performed that greedily computes an optimal cut that generates two cells and that minimizes the maximum cost of coverage of two cells. The cost and the partition are modified accordingly. The loop is repeated for the next cell with the highest cost in the decomposition. The termination condition for this loops is when the maximum cost over all cells in the decomposition stops decreasing. Algorithm~\ref{alg:optimization_procedure} demonstrates the described procedure.
 
 \begin{algorithm}
 	%\small
-	\caption{$\operatorname{optimization\_procedure}(P, S)$}
+	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
 	\label{alg:optimization_procedure}
 	\begin{algorithmic}[1]
-		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$, Set of starting locations $S=\{s_1,\ldots,s_n\}$
+		\REQUIRE Polygon $\mathbb{C}=\{Z_0,Z_1,\ldots\}$, Set of starting locations $\{q^0_i\}$
 			%\STATE $V\gets n$ virtual starting locations placed randomly on the boundary of $P$ \label{line:1_start_locs}
-			\STATE $D\gets$ anchored\_area\_partition$(P,S,\frac{1}{n})$ \label{line:area_part}
-			\STATE $M\gets$ compute $\chi(s_i,p_i), \forall p_i\in D$ 
-			%\STATE Add all cells in $D$ to the queue $Q$
+			\STATE $D\gets$ anchored\_area\_partition$(\mathbb{C},\{q^0_i\},\frac{1}{n})$ \label{line:area_part}
 			\STATE $\mathcal{G}\gets$ adjacency graph of $D$
+			\STATE $M\gets\chi(q^0_i,w_i), \forall w_i\in D$ 
+			%\STATE Add all cells in $D$ to the queue $Q$
 			\REPEAT
-				\STATE Pop $p_i$ from $D$ with highest $\chi(s_i,p_i)$
-				\STATE Pick some adjacent $p_j$
-				\STATE $p_{\operatorname{temp}}\gets p_i\cup p_j$
+				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$
+				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$
+				\STATE $w_{\text{temp}}\gets w_a\cup b_j$
+				\STATE $w_i,w_j\gets$ anchored\_area\_partition($w_{\text{temp}},(q^0_i,q^0_j),\frac{\chi(q^0_i,w_i)+\chi(q^0_j,w_j)}{2}$) \label{line:distr_opt_cut}
 				%\STATE $\mathbb{E}\gets$ \text{compute\_encirclements}$(p_{\operatorname{temp}})$ \label{line:compute_encirlment}
-				\STATE $p'_i,p'_j\gets$ anchored\_area\_partition($p_{\text{temp}},s_i,\chi$) \label{line:distr_opt_cut}
 				%\STATE $\sigma_{\ell}\gets$ compute\_encirclements($p_{\ell}$) \label{line:recalc_encirclemnts_1}
 				%\STATE $\sigma_r\gets$ compute\_encirclements($p_r$) \label{line:recalc_encirclemnts_2}
 				%\STATE $\sigma_{\ell}\gets$ recalc\_encirclements($p_{\ell},\mathbb{E}, c$) \label{line:recalc_encirclemnts_1}
@@ -357,22 +341,51 @@ An adjacency graph is computed on the resultant partition. For every cell in the
 				%\STATE Cost $\gets\chi(s_i,p_{\ell},\sigma_{\ell})+\phi(s_j,p_r,\sigma_r$) 
 				%\STATE Cost $\gets\max\{\chi(s_i,p_{\ell}),\chi(s_j,p_r)\}$ 
 				%\STATE Implement $c$ that resulted in lowest cost, modify $D$.
-				\STATE Modify $\chi(s_j,p_j)$ and $\chi(s_i,p_i)$ accordingly
-				\STATE Modify $D$ with $p_i,p_j$
-			\UNTIL{Maximum $\chi(s_j,p_j)$ stops decreasing}
+				\STATE Modify $\chi(q^0_j,w_j)$ and $\chi(q^0_i,w_i)$ accordingly
+				\STATE Modify $D$ with $w_i,w_j$
+			\UNTIL{Maximum $\chi(q^0_j,w_j)\forall w_j\in D$ stops decreasing}
 			\RETURN $D$
 	\end{algorithmic}
 \end{algorithm}
 
-Throughout the algorithm, many references are made for the metric. This metric is introduces in the next section. Algorithm~\ref{alg:optimization_procedure} makes use of several procedures that will be explained next. On Line~\ref{line:area_part},\ref{line:distr_opt_cut}, a procedure called anchored area partition is called. This procedure is based on the work by Hert~\cite{hert1998polygon} and his approach to area partitioning problem. The procedure is summarizes in Algorithm~\ref{alg:anchored_area_partition}. This algorithm allows for making cuts without having to discretized the coverable area. Moreover, a series of cuts are made to form $n$ cells with area specified by the area vector $A$. This algorithm is particularly useful since it can be modified to make cuts such that the end polygons have certain cost instead of specified area. For brevity, we only show the algorithm for convex polygons. However, Hert~\cite{hert1998polygon} does introduce an extended version of the algorithm that works on concave polygons as well.
+Throughout the algorithm, the metric $\chi$ is computed several times. The metric is analyzed in Section~\ref{section:multi_decomposition_metric}. Algorithm~\ref{alg:metric_algorithm} demonstrates the procedure for computing the metric. The values used in the computation of this metric are described in more details in Section~\ref{section:multi_decomposition_metric}. In this algorithm, values $\mathcal{F}_1,\mathcal{F}_2$, and $\mathcal{F}_3$ are computed. 
 
 \begin{algorithm}
-	\caption{$\operatorname{anchored\_area\_partition}(P, S, A)$}
+	\caption{$\text{compute\_}\chi(q^0, w)$}
+	\label{alg:metric_algorithm}
+	\begin{algorithmic}[1]
+		\REQUIRE Initial position $q^0$, Polygon $w=\{Z_0,Z_1,\ldots\}$ 
+		\STATE $\mathcal{F}_1\gets2\min_{x\in\partial w}||q^0-x||_2$
+		\STATE $A_\text{actual}\gets$ area of $w$
+		\STATE $\Theta\gets$ angles of all edges w.r.t. the $x$-axis.
+		\STATE $\theta_{\max}\gets$ largest difference between any two pairs of elements of $\Theta$
+		\STATE $A^{\max}_{\text{uncovered}}\gets\alpha_{\min}r(4\csc{\theta_{\max}}-\pi)$
+		\STATE $\mathcal{F}_2\gets\frac{A_\text{actual}-A^{\max}_{\text{uncovered}}}{r}$
+		\STATE $\mathcal{T}\gets$ compute\_contours of $w$
+		\STATE $\mathcal{F}_3\gets360^o|\mathcal{T}|$
+		\RETURN $c_1(\mathcal{F}_1+\mathcal{F}_2)+c_2\mathcal{F}_3$
+	\end{algorithmic}
+\end{algorithm}
+
+Another important sub-procedure is the call to anchored area partition procedure. This procedure is based on the work by Hert~\cite{hert1998polygon} and his approach to area partitioning problem. The procedure is summarized in Algorithm~\ref{alg:anchored_area_partition}. This algorithm allows for making cuts without having to discretized the coverable area. Moreover, a series of cuts are made to form $n$ cells with area specified as an input to the algorithm. For brevity, we only show the algorithm for convex polygons here. The full algorithm will be available in the Appendix.
+
+\begin{algorithm}
+	\caption{$\text{anchored\_area\_partition}(w, (q^0_i,q^0_j), A_1,A_2)$}
 	\label{alg:anchored_area_partition}
 	\begin{algorithmic}[1]
-		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$, Set of starting locations $S=\{s_1,\ldots,s_n\}$, Vector of Areas $A$
-		\STATE do area partition from Hert
-		\RETURN $D$
+		\REQUIRE Polygon $w=\{Z_0,Z_1,\ldots\}$, Tuple of starting locations $(q_i,q_j)$, tuple of required areas
+		\STATE $V(w)\gets$ list of vertices in CCW order
+		\STATE Order $q^0_i,q^0_j$ according to this order as well
+		\STATE Initialize the cut $L=(L_s,L_e)$ as an edge $(v_0,q^0_1)$
+		\WHILE{$\text{Area}(w_j)<A_2$ or $L_e!=q^0_2$}
+			\STATE Move $L_e$ CCW
+		\ENDWHILE
+		\IF{$\text{Area}(w_j)<A_2$}
+			\WHILE{$\text{Area}(w_j)<A_2$}
+				\STATE Move $L_s$ CW
+			\ENDWHILE
+		\ENDIF
+		\RETURN $w_i,w_j$
 	\end{algorithmic}
 \end{algorithm}
 
@@ -415,9 +428,10 @@ It should be noted that once Algorithm~\ref{alg:optimization_procedure} is finis
 
 
 \section{Computational Complexity}
+\label{section:multi_comp_analysis}
 
 \section{Simulations}
-
+\label{section:multi_simulations}
 
 
 \end{document}
