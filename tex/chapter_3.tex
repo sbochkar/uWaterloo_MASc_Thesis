@@ -169,7 +169,7 @@ The following sections will introduce our approach to these problems.
 
 This section covers our solution to Problem~\ref{prob:min_alt_decomp}. Section~\ref{chapter:background} introduces decomposition related terminology that is needed to present our decomposition method.
 
-\subsubsection{Min Altitude Decomposition}
+\subsection{Min Altitude Decomposition}
 This section outlines the approach to Problem~\ref{prob:min_alt_decomp}. The overall steps of the process are described in Algorithm~\ref{alg:min_alt_decomposition}.
 \begin{algorithm}
 	\caption{$\operatorname{min\_alt\_decomposition}(P)$}
@@ -437,19 +437,25 @@ Our method was compared to two other approaches. In the first method we use an a
 	\begin{tabular}{@{} l rrrr l rrrr l rrrr l@{}}
 		\toprule
 		%\cline{2-7}		
-		& \multicolumn{4}{c}{Point Decomposition} & \phantom{a} & \multicolumn{4}{c}{Greedy Decomposition} & \phantom{a} & \multicolumn{4}{c}{Min Alt Decomposition}\\
-		\cmidrule{2-5} 		\cmidrule{7-10}  \cmidrule{12-15} 
-		& Size & Time & Length & Area & & Size & Time & Length & Area & & Size & Time & Length & Area \\
+		%& \multicolumn{4}{c}{Point Decomposition} & \phantom{a} & \multicolumn{4}{c}{Greedy Decomposition} & \phantom{a} & \multicolumn{4}{c}{Min Alt Decomposition}\\
+%		\cmidrule{2-5}% 		\cmidrule{7-10}  \cmidrule{12-15} 
+		&& Size & Time & Length & Area \\
+		\cmidrule{3-6}
+		\multirow{4}{*}{Point Decomposition} & Shape 1 & 7144 & 2h & 312.6 & 87.8\%\\
+		& Shape 2 & 7288  & 2h & 306.3 & 86.9\%\\
+		& Shape 3 & 7464 & 2h & 349.3 & 88.3\%\\
+		& Shape 4 & 6736 & 2h & 312.2 & 85.1\%\\
 		\midrule
-		Shape 1 & 7144 & 2h & 312.6 & 87.8\% & & 96 & \bf{2s} & \bf{231.0} & 91.6\% & & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
-		%\hline
-		Shape 2 & 7288  & 2h & 306.3 & 86.9\% & & 86 & \bf{2s} & \bf{216.8} & 84.6\% & & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
-		%\hline 
-		Shape 3 & 7464 & 2h & 349.3 & 88.3\% & & 136 & \bf{6s} & \bf{226.9} & 79.8\% & & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
-		Shape 4 & 6736 & 2h & 312.2 & 85.1\% & & 116 & \bf{3s} & \bf{226.5} & 88.1\% & & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
-
+		\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
+		& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
+		& Shape 3 & 136 & \bf{6s} & \bf{226.9} & 79.8\%\\
+		& Shape 4 & 116 & \bf{3s} & \bf{226.5} & 88.1\%\\
+		\midrule
+		\multirow{4}{*}{Min Alt Decomposition} & Shape 1 & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
+		& Shape 2 & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
+		& Shape 3 & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
+		& Shape 4 & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
 		\bottomrule
-		%\hline
 
 	\end{tabular}
 	\caption{Decomposition methods comparison for multiple test shapes.}

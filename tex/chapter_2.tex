@@ -11,17 +11,12 @@ This chapter reviews some of the concepts required to understand the proposed so
 
 Outstanding terms:
 connected
-minkowski sum
-
-\begin{definition}[Minkowski Sum]
-Given two sets $A$ and $B$, a Minkowski sum is a set $C=\{a+b\ |\ a\in A, b\in B\}$.
-\end{definition}
 
 
 \section{Robot Dynamics}
-\label{section:robot_dynamics}
+\label{section:background_robot_dynamics}
 
-Throughout the thesis, we make multiple references to the coverage environment of the robot. In fact, the coverage environment serves as an input to the problem under study in this thesis. The environment refers to the space where the robot will operate. For example, the room or the hallway of the building is an environment. It is important to consider the environment from the dynamics point of view since the features of the environment will determine the configuration space of the robot. The environment is denoted as $E\subset\mathbb{R}^3$. We further differentiate between the coverage environment and the coverage workspace. The coverage workspace refers to the region, typically a surface, in the environment that is required to be covered. The workspace is denoted by $W\subset\mathbb{R}^2$. For the purpose of this thesis, we assume that $W$ is connected. An example of a workspace is demonstrated in Figure~\ref{fig:workspace_and_system}.
+Throughout the thesis, we make multiple references to the coverage workspace of a robot. The coverage workspace refers to the region in the environment, such as a room in a house, that is required to be covered. The workspace is denoted by $W\subset\mathbb{R}^2$. For the purpose of this thesis, we assume that $W$ is connected. An example of a workspace is demonstrated in Figure~\ref{fig:workspace_and_system}.
 
 \begin{figure}
 	\centering
@@ -40,19 +35,28 @@ Throughout the thesis, we make multiple references to the coverage environment o
 %	\end{equation}
 %\end{definition}
 
-Another important set to consider is the configuration space of the robot denoted as $Q$.
-\begin{definition}[Robot Configuration Space and Map]
-\label{definition:c_space_and_map}
-Given a robot with dynamics, the configuration space of the robot is $Q$. A configuration map $\mathcal{B}:Q\to O\subseteq W$ is a function mapping the configuration $q\in Q$ of the robot to a set of points in $W$ located under the robot's \emph{footprint}. For example, in Figure~\ref{fig:configuration_space}, the footprint is the orange disk centered at $(x,y)$ and the set $O$ is all points under the orange disk.
-\end{definition}
+The robot that is to be used for coverage has some dynamics. These dynamics give rise to the configuration space of a robot. The configuration space is denoted by $Q$. For the purposes of this work, the configuration space can be thought of as a plane in $\mathbb{R}^2$. In the path planning works, an important subset of the configuration space is the free configuration space. That is, $Q_{\text{free}}\subseteq Q$ is a configuration space of a robot that is free from any collisions. Figure~\ref{fig:configuration_space} demonstrates the free configuration space for a point robot with a circular base. It is important to note that some areas are not accessible such as the corners of the workspace. Hence, these areas are not in the free configuration space since if a robot would attempt to reach these points, it would collide with the workspace boundary. Therefore, a feasible path is called a continuous path that is entirely in the free configuration space:
+\begin{equation}
+	p=\bigcup q_i, q_i\in Q_{\text{free}}.
+\end{equation}
+A set of all feasible paths is denoted by $P$:
+\begin{equation}
+	P=\{p_i\ |\ p_i\subseteq Q_{\text{free}}\}.
+\end{equation}
 
 \begin{figure}
 	\centering
 	\subfile{img/chapter_2/configuration_space}
-	\caption{An example of a configuration space for a point robot.}
+	\caption{An example of a free configuration space shown in orange for a point robot.}
 	\label{fig:configuration_space}
 \end{figure}
 
+We now shift our focus to the paths that these robots traverse. Throughout the thesis, we make numerous references to straight line segments and transition segments. Straight line segments are paths that consists of a straight line. In other words, a robot traversing a straight line segments will never change its heading. This means that a straight line segment only has a linear component. On the other hand, a transition segment is a path where the robot does change its heading. In other words, the angular component of such a path is non zero.
+
+Any coverage robot is equipped with a coverage tool. When this tool is operational, there is an associated coverage footprint with it. The location of this footprint and the exact region covered by this footprint depend on the physical location of this footprint in the robot. To formalize this relation, a function is introduced called the coverage map, $\mathcal{M}:Q\to \mathbb{R}^2$. The coverage map function maps the configuration $q$ of a robot to a set of points in $\mathbb{R}^2$ that are located under the footprint. Since the location of the coverage footprint is determined by the configuration of the robot, it is naturally to ask what areas can be covered given the free configuration space. A set of points that can be covered given a free configuration space is called the coverable space and is denoted by $\mathbb{C}$. An example of a coverable space determined by the configuration space for a disk robot is shown in Figure~\ref{fig:coverable_space}. Formally, the coverage space is defined as follows:
+\begin{equation}
+	\mathbb{C}=\bigcup_{q\in Q_{\text{free}}}\mathcal{M}(q).
+\end{equation}
 \begin{figure}
 	\centering
 	\subfile{img/chapter_2/coverable_space}
@@ -65,133 +69,48 @@ Given a robot with dynamics, the configuration space of the robot is $Q$. A conf
 
 
 
-\begin{definition}[Robot Location Map]
-\label{definition:location_map}
-Given a robot with dynamics, the configuration space of the robot is $Q$. A location map $\mathcal{L}:Q\to W$ is a function mapping the configuration $q\in Q$ of the robot to a \emph{center} point of the robot. For example, in Figure~\ref{fig:configuration_space}, the location of the center of the robot is $(x,y)$.
-\end{definition}
+%\begin{definition}[Robot Location Map]
+%\label{definition:location_map}
+%Given a robot with dynamics, the configuration space of the robot is $Q$. A location map $\mathcal{L}:Q\to W$ is a function mapping the configuration $q\in Q$ of the robot to a \emph{center} point of the robot. For example, in Figure~\ref{fig:configuration_space}, the location of the center of the robot is $(x,y)$.
+%\end{definition}
 
 
-\begin{definition}[Free Configuration Space]
-\label{definition:free_c_space}
-The free configuration space is defined as:
-	\begin{equation}
-	\begin{aligned}
-		Q_{\text{free}}=\{q\in Q\ |\ \mathcal{B}(q)\ \text{is inside}\ W_{\text{free}}\}.
-	\end{aligned}
-	\end{equation}
-\end{definition}
+%\begin{definition}[Free Configuration Space]
+%\label{definition:free_c_space}
+%The free configuration space is defined as:
+%	\begin{equation}
+%	\begin{aligned}
+%		Q_{\text{free}}=\{q\in Q\ |\ \mathcal{B}(q)\ \text{is inside}\ W_{\text{free}}\}.
+%	\end{aligned}
+%	\end{equation}
+%\end{definition}
 
-\begin{definition}[Coverage Map]
-A coverage map is a function $\mathcal{M}:Q\to F\subseteq W$ mapping the configuration $q\in Q$ of the robot to a set of points in $W$ located under the robot's \emph{coverage footprint}. For example, in Figure~\ref{fig:workspace_and_system}, the coverage footprint is the green disk centered at $(x,y)$ and the set $F$ is all points under the green disk.
-\end{definition}
 
-\begin{definition}[Coverable Space]
-The coverable space $\mathcal{C}$ is a set of points in the free workspace reachable by the coverage footprint as shown in Figure~\ref{fig:coverable_space}. Formally,
-	\begin{equation}
-	\begin{aligned}
-		\mathcal{C}=\bigcup_{q\in Q_{\text{free}}}\mathcal{M}(q).
-	\end{aligned}
-	\end{equation}
-\end{definition}
+%\begin{definition}[Path Metric]
+%A path metric is a function $\mathcal{E}:P\to\mathbb{R}$ that assign a cost to a feasible path. This cost is usually determined by the application.
+%\end{definition}
 
-\begin{definition}[Set of Feasible Paths]
-A set of feasible paths is defined as
-	\begin{equation}
-	\begin{aligned}
-		P=\{p_i\ |\ p_i\subseteq Q_{\text{free}}\}.
-	\end{aligned}
-	\end{equation}
-\end{definition}
 
-\begin{definition}[Path Metric]
-A path metric is a function $\mathcal{E}:P\to\mathbb{R}$ that assign a cost to a feasible path. This cost is usually determined by the application.
-\end{definition}
+\section{Geometric Preliminaries}
+\label{section:background_geometry}
 
-\begin{definition}[Straight Line Segment]
-A straight line segment, $s$, is a path consisting of points in a straight line. A robot travelling in a straight segment will not change its heading. i.e.
-	\begin{equation}
-		s=\{\theta x+(1-\theta)y\in W\ |\ \theta\in[0,1],\ x,y\in W\}.
-	\end{equation}
-A set of straight line segments in path is $S$.
-\end{definition}
+In this section, a review of some of the concepts in geometry is reviewed.
 
-\begin{definition}[Transition Segment]
-A transition segment, $t$, is a path connecting two straight line segments and a robot traversing a transition segment must have a rate of change of the heading greater than zero. A set of transition segments in a path is $T$.
-\end{definition}
+A \emph{simple polygon} is a non-intersecting chain of straight line segments forming a closed loop and specified as a set of points, i.e., $Z=\{v_i\in\mathbb{R}^2|i=1,\ldots,n\}$. Note that since the chain is a circuit, any $v_i\in Z$ has two adjacent line segments. A \emph{boundary of a simple polygon} is a set of points, $\partial Z$, along a line connecting any two adjacent vertices of a chain. A \emph{clockwise simple polygon} is a simple polygon where vertices are specified in a clockwise order. We associate these types of simple polygons with holes in the workspace. A \emph{counter-clockwise simple polygon} is a simple polygon where vertices are specified in a counter-clockwise order. This type of simple polygons are associated with the external boundary of the workspace. Finally, a \emph{polygon} is a set of clockwise and counter-clockwise simple polygons. For clarity, we will refer to simple polygons as chains and reserve the term polygon for a set of chains, i.e., $P=\{Z_0,\ldots,Z_m\}$. $Z_0$ is a counter-clockwise chain (i.e., the boundary) and all subsequent $Z_i$ are clockwise chains (i.e., holes). A \emph{boundary of a polygon} is the set of points defined as $\partial P=\bigcup^M_{i=1}\partial Z_i$ where $Z_i\in P$.
 
-Riemann sum
+A \emph{reflex vertex} is a vertex in one of the chains of $P$ that has an internal angle of more than $\pi$. As such, a polygon is \emph{convex} if and only if there are no reflex vertices. Conversely, a polygon is non-convex if and only if it contains at least one reflex vertex. Note that the presence of a hole guarantees at least one reflex vertex.
 
-\subsection{Geometric Preliminaries}
-\begin{definition}[Simple Polygon]
-A \emph{simple polygon} is a non-intersecting chain of straight line segments forming a closed loop and specified as a set of points, i.e.
-	\begin{equation}
-	\begin{aligned}
-		Z=\{v_i\in\mathbb{R}^2|i=1,\ldots,n\}.
-	\end{aligned}
-	\end{equation}
-Note that since the chain is a circuit, any $v_i\in Z$ has two adjacent line segments. 
-\end{definition}
+\section{Generalized Traveling Salesman Problem Preliminaries}
+\label{section:GTSP}
 
-\begin{definition}[Simple Polygon Boundary]
-A \emph{boundary of a simple polygon} is a set of points, $\partial Z$, along a line connecting any two adjacent vertices of a chain. 
-\end{definition}
-
-\begin{definition}[Clockwise Simple Polygon]
-A \emph{clockwise simple polygon} is a simple polygon where vertices are specified in a clockwise order. We associate these types of simple polygons with holes in the workspace. 
-\end{definition}
-
-\begin{definition}[Counter-clockwise Simple Polygon]
-A \emph{counter-clockwise simple polygon} is a simple polygon where vertices are specified in a counter-clockwise order. This type of simple polygons are associated with the external boundary of the workspace.
-\end{definition}
-
-\begin{definition}[Polygon]
-A \emph{polygon} is a set of clockwise and counter-clockwise simple polygons. For clarity, we will refer to simple polygons as chains and reserve the term polygon for a set of chains, i.e., $P=\{Z_0,\ldots,Z_m\}$. $Z_0$ is a counter-clockwise chain (i.e., the boundary) and all subsequent $Z_i$ are clockwise chains (i.e., holes). 
-\end{definition}
-
-\begin{definition}[Polygon Boundary]
-A \emph{boundary of a polygon} is the set of points defined as
-	\begin{equation}
-	\begin{aligned}
- 		\partial P=\bigcup^M_{i=1}\partial Z_i
-	\end{aligned}
-	\end{equation}
-where $Z_i\in P$.
-\end{definition}
-
-\begin{definition}[Reflex Vertex]
-A \emph{reflex vertex} is a vertex in one of the chains of $P$ that has an internal angle of more than $\pi$.
-\end{definition}
-
-\begin{definition}[Polygon Convexity]
-A polygon is \emph{convex} if and only if there are no reflex vertices. Conversely, a polygon is non-convex if and only if it contains at least one reflex vertex. Note that the presence of a hole guarantees at least one reflex vertex.
-\end{definition}
-
-\subsection{Generalized Traveling Salesman Problem Preliminaries}
 Suppose a complete graph $G=(V,E,w)$ is given where $V$ is a set of vertices, $E$ is a set of edges, and $w$ is a set of edge weights. Suppose $V$ is partitioned into pairwise disjoint sets $\{V_1,\ldots,V_p\}$ where $V_i\subset V$. The Generalized Traveling Salesman Problem (GTSP) is the problem of computing a tour that visits exactly one vertex from each $V_i$ such that the length of the tour is minimized. The TSP is a special case of the GTSP where $|V_i|=1$ for each $i$ and is NP-hard.
 
-\begin{definition}[Altitude]
+\section{Contours Introduction}
+\label{section:background_contours}
 
-\end{definition}
+In this section, the concept of contours is introduced and some of the related material in medial axis is reviewed.
 
-\begin{definition}[Cone of bisection]
-\label{def:cone_of_bisection}
-Suppose a non-convex polygon $P$ containing a reflex vertex $v$ is given. Let $d_1=\{v_k, v\}$ and $d_2=\{v, v_l\}$ be the two adjacent edges of $v$. The \emph{cone of bisection} at $v$ is defined by two line segments, $e_1=\{v, w_1\}$ and $e_2=\{v, w_2\}$ that are parallel to $d_1$ and $d_2$ respectively with $w_1, w_2\in{\partial P\setminus\{v\}}$. See Figure%~\ref{fig:cut}.
-\end{definition}
-
-\begin{definition}[Cut space]
-\label{def:cut_space}
-Consider a non-convex polygon $P$ with reflex vertex $v$, along with the cone of bisection. The cut space is a set $S\subset\partial P$ of all points on $\partial P$ between $w_1$ and $w_2$ visible from $v$.
-\end{definition}
-
-\begin{definition}[Decomposing Cut]
-\label{def:decomposing_cut}
-Given a non-convex polygon $P$ with a reflex vertex $v$, a decomposing cut is a straight line segment $e=\{v,w\}$ within the cone of bisection of $v$ where $v,w$ belong to the same chain. See Figure~%\ref{fig:cut}.
-\end{definition}
 
 Medial axis
 Contours
-%\onlyinsubfile{
-	%\bibliographystyle{IEEEtran}
-	%\bibliography{../main}
-%}
 \end{document}

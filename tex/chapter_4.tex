@@ -330,7 +330,7 @@ An adjacency graph is computed on the resultant partition. For every cell in the
 			%\STATE Add all cells in $D$ to the queue $Q$
 			\REPEAT
 				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$
-				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$
+				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$ with lowest $\chi(q^0_j,w_j)$
 				\STATE $w_{\text{temp}}\gets w_a\cup b_j$
 				\STATE $w_i,w_j\gets$ anchored\_area\_partition($w_{\text{temp}},(q^0_i,q^0_j),\frac{\chi(q^0_i,w_i)+\chi(q^0_j,w_j)}{2}$) \label{line:distr_opt_cut}
 				%\STATE $\mathbb{E}\gets$ \text{compute\_encirclements}$(p_{\operatorname{temp}})$ \label{line:compute_encirlment}
