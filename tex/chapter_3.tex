@@ -331,7 +331,8 @@ By Lemma \ref{lemma:min_at_trans_pts}, it is enough to compute the cost of each 
 
 \section{Computational Complexity}
 \label{section:single_agent_complexity}
-Algorithm~\ref{alg:find_candidate} is $\mathbb{O}(1)$. Algorithm~\ref{alg:optimal_cut} is more complicated. The inner most loop is $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. So is the second inner most loop. Hence, the run time of two inner loops is $\mathbb{O}(n^2)$ where $n$ is the number of edges in the polygon. The first for loop runs in $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. Hence, the overall polygon runs in $\mathbb{O}(n^3)$ where $n$ is the number of edges in a polygon.
+
+Algorithm~\ref{alg:find_candidate} is $\mathbb{O}(1)$ since there are no iterations. Algorithm~\ref{alg:optimal_cut} is the core of the algorithm and there are a lot more computation invovled. Finding the cutspace is ....  The inner most loop is $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. So is the second inner most loop. Hence, the run time of two inner loops is $\mathbb{O}(n^2)$ where $n$ is the number of edges in the polygon. The first for loop runs in $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. Hence, the overall polygon runs in $\mathbb{O}(n^3)$ where $n$ is the number of edges in a polygon.
 
 \begin{figure}
 	\centering
