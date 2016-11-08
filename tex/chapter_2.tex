@@ -103,12 +103,26 @@ A \emph{reflex vertex} is a vertex in one of the chains of $P$ that has an inter
 \section{Generalized Traveling Salesman Problem Preliminaries}
 \label{section:GTSP}
 
+The Travelling Salesman Problem is one of the famous computational problem and is widely known. The crux of the problem is given 
+
+
 Suppose a complete graph $G=(V,E,w)$ is given where $V$ is a set of vertices, $E$ is a set of edges, and $w$ is a set of edge weights. Suppose $V$ is partitioned into pairwise disjoint sets $\{V_1,\ldots,V_p\}$ where $V_i\subset V$. The Generalized Traveling Salesman Problem (GTSP) is the problem of computing a tour that visits exactly one vertex from each $V_i$ such that the length of the tour is minimized. The TSP is a special case of the GTSP where $|V_i|=1$ for each $i$ and is NP-hard.
 
 \section{Contours Introduction}
 \label{section:background_contours}
 
-In this section, the concept of contours is introduced and some of the related material in medial axis is reviewed.
+In this section, the concept of contours is introduced and some of the related material in medial axis and straight skeletons is reviewed.
+
+Blum~\cite{blum1967transformation} in 1967 have proposed a notion of medial axis as a shape description. The motivation behind this was generation of ways to represent a shape. The medial axis is defined as follows.
+\begin{definition}
+Suppose a simple polygon $G$ is given then the medial axis $M(G)$ is a set of points $\{q\}$ in the interior of $G$ such that there are at least two points on the object's boundary that are equidistant from $\{q\}$ and are closest to $\{q\}$.
+\end{definition}
+There is an associated radius function that maps every points on $M(G)$ to a radius. This radius specifies the distance of each points on the axis to the boundary. This allows for reconstruction of the original shape by looking at the union of circles centered at each point of $M(G)$ with the corresponding radius. Lee~\cite{lee1982medial} have proposed a $\mathbb{O}(b\log n)$ algorithm for computing medial axis where $n$ is the number of edges.
+
+Related to medial axis is the concept of straight skeletons introduced by Aichholzer~\cite{aichholzer1996novel}. Because of its structure, it can be misconstrued to be equivalent to medial axis. However, even though, for convex polygons they are identical, the difference arise at the reflex vertices of a polygon. The straight skeleton are defined in terms of a shrinking process where all points on the boundary of a polygon are moving inwards with the same speed. In the process there are two events that can happen. The first event is the edge event. This is where an edge is reduced to zero length in the process of shrinking resulting in its two adjacent edges be adjacent to each other instead. The second event is a split event where the polygon is split into two. Reflex vertices result in this type of event. 
+During the shrinking process, a set of nested polygons is generated. These are of particular interest with respect to this work.
+
+The straight skeleton is defined as the union of the pieces of angular bisectors traced out by polygon vectices as they are shrinked.
 
 
 Medial axis
