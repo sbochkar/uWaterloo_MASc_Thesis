@@ -5,7 +5,7 @@
 *.fls
 *.log
 *.pdf
-!img/*.pdf
+!img/**/*.pdf
 !figs/*.pdf
 *.gz
 *.toc

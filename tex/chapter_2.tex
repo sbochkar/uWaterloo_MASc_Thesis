@@ -1,130 +1,83 @@
 %!TEX root = ../main.tex
 
 \documentclass[../main.tex]{subfiles}
-
 \begin{document}
 
-\chapter{Background}
-\label{chapter:background}
 
-This chapter reviews some of the concepts required to understand the proposed solution in this thesis. This chapter is organized as follows. Section~ reviews some aspects of geometry related to polygons, Section~ reviews representation of robot dynamics. 
+\chapter{Literature Review}
+\label{chapter:literature_review}
 
-Outstanding terms:
-connected
+The problem of coverage path planning sees many applications across numerous fields. The list includes applications like material polishing~\cite{rososhansky2010coverage}, autonomous farming~\cite{ollis1997vision}, demining~\cite{acar2003path}, floor cleaning~\cite{yasutomi1988cleaning}, and many others. The roots of this problem could be traced to CNC trajectory planning where operators rely on their experience and intuition to plan an optimal trajectory for a tool to cut out different shapes out of a slab of metal. Perhaps one of the earliest works in literature is the work by Cao~\cite{cao1988region} where the authors outline the requirements for a coverage path. These conditions state that all points in the workspace must be covered, there should be no footprint overlap, all obstacles are to be avoided, and optimality is desired. These conditions are strict in that it is not always possible to fully satisfy them. However, this work has set the stage for the future research.
 
+One of the key contributions to the field of coverage is the work by Arkin~\cite{arkin2000approximation}. The authors have studied two variations of the coverage problem: lawn mowing and milling. The difference is that milling problem does not allow the robot to cross the boundary of its workspace. The authors were able to show that these problems are in fact NP-hard, which means the computational time to solve it increases dramatically with the size of the input. Some of the other problems related to coverage are the Travelling Salesman Problem, art gallery problem, and a watchman route problem.
 
-\section{Robot Dynamics}
-\label{section:background_robot_dynamics}
+There are various classifications used when talking about coverage problems. Choset~\cite{choset2000coverage} have classified majority of the approaches by the methods used to discretized the environment. He summarized these to be either exact or approximate. However, since his survey, numerous new works have been published that do not strictly fall into these two categories. The new categories would include random and pseudo-random approaches, 3D coverage, coverage under uncertainty, persistent coverage, cooperative coverage, and others. In this section, we aim to review some of the important works involving exact and approximate decompositions as well as works that deal with the cooperative coverage.
 
-Throughout the thesis, we make multiple references to the coverage workspace of a robot. The coverage workspace refers to the region in the environment, such as a room in a house, that is required to be covered. The workspace is denoted by $W\subset\mathbb{R}^2$. For the purpose of this thesis, we assume that $W$ is connected. An example of a workspace is demonstrated in Figure~\ref{fig:workspace_and_system}.
+\section{Exact Cellular Decomposition}
+\label{section:exact_cellular_decomposition}
 
-\begin{figure}
-	\centering
-	\subfile{img/chapter_2/workspace_and_system}
-	\caption{The workspace polygon and a point model of the robot.}
-	\label{fig:workspace_and_system}
-\end{figure}
+Typically, approaches that rely on exact cellular decomposition compute a solution in two steps. The first step involves performing some sort of decomposition on the workspace resulting in a set of cells that together make up the original workspace. The second step involves computing a path for each region separately. One of the classic examples of this is in the work by Latombe~\cite{latombe1991exact} where a trapezoidal decomposition is performed on a polygonal planar workspace. The resulting decomposition consists of trapezoidal cells. An adjacency graph can be computed for these cells where an edge between two vertices exists if two cells are adjacent. A tour of this graph is computed where each cell is visited once. The coverage of each cell is by a \emph{zig-zag} like path.  In practice, this method was used on an agricultural field by Oksanen~\cite{Oksanen2009coverage}. Despite the simplicity of its computation, there are numerous drawbacks to this method. One of them is the excess of cells generated, which leads to a significant overhead associated with transitioning between cells. Another problem is the direction of these zig-zag paths. This direction is determined by the decomposition. However, this direction could lead to a non optimal result. Another problem is the generality of this method with respect to the shape of the footprint. For example, a circular footprint would not be able to cover areas near the corners. As such, the path generated by this method would not be able to achieve complete coverage.
 
-%Since our assumption for the workspace is only that it is connected, the workspace may contain $k$ obstacles. These obstacles are denoted by $O_1,\ldots,O_k$. The obstacles are subsets of $W$ are subregions contained entirely in the workspace that are not reachable by the robot. 
+Another classical approach that follows the same structure is based on the Boustrophedon decomposition from the works by Choset~\cite{choset2000coverage}. The approach in this method is nearly identical with the exception that instead of trapezoidal decomposition, which results in excessive number of cells, a Boustrophedon decomposition is proposed. With this decomposition, fewer cells are produced through a \emph{smarter} even detection. The path planning component is identical to the previous approach and therefore, suffers the same drawbacks mentioned before.
 
+Akar~\cite{Acar2002morse} have proposed a more general decomposition technique that work on non-polygonal workspaces and could generate cells of various shapes to accommodate any coverage requirements. This decomposition is based on finding critical points of a Morse function. Boustrophedon decomposition is a specific case of a Morse decomposition where the Morse function is a straight line. Moreover the search for these critical points can be performed online leading to a number of online coverage proposed algorithms~\cite{acar2002sensor}. The main drawback of this approach is that rectilinear workspace cannot be used with this approach. 
 
-%\begin{definition}[Free Workspace]
-%A free workspace is defined as a subset of $W$ that is free of obstacles:
-%	\begin{equation}
-%		W_{\text{free}}=W\setminus(O_1\cup\dots O_n).
-%	\end{equation}
-%\end{definition}
+Another approach by Wong~\cite{wong2004complete} also relies on a landmark decomposition approach where a decomposition is computing online as the robot encouters lankdmarks in the workspace. Again a decomposition is computed, which seems to reduce the number of cells. However, the individual cells are covered via the same zig-zag type paths.
 
-The robot that is to be used for coverage has some dynamics. These dynamics give rise to the configuration space of a robot. The configuration space is denoted by $Q$. For the purposes of this work, the configuration space can be thought of as a plane in $\mathbb{R}^2$. In the path planning works, an important subset of the configuration space is the free configuration space. That is, $Q_{\text{free}}\subseteq Q$ is a configuration space of a robot that is free from any collisions. Figure~\ref{fig:configuration_space} demonstrates the free configuration space for a point robot with a circular base. It is important to note that some areas are not accessible such as the corners of the workspace. Hence, these areas are not in the free configuration space since if a robot would attempt to reach these points, it would collide with the workspace boundary. Therefore, a feasible path is called a continuous path that is entirely in the free configuration space:
-\begin{equation}
-	p=\bigcup q_i, q_i\in Q_{\text{free}}.
-\end{equation}
-A set of all feasible paths is denoted by $P$:
-\begin{equation}
-	P=\{p_i\ |\ p_i\subseteq Q_{\text{free}}\}.
-\end{equation}
+Recently, in the work by Das at el.~\cite{das2014mapping}, a greedy decomposition of a polygonal environment was proposed that seems to result in fewer convex cells for a typical workspace polygons. As with other approaches, a tour of the graph is computed. However, the inter-coverage of each individual cell is computed based on the entrance and exit points of the path. THis was determined by the graph tour. This was aimed to reducing overhead associated with the transition between cells.
 
-\begin{figure}
-	\centering
-	\subfile{img/chapter_2/configuration_space}
-	\caption{An example of a free configuration space shown in orange for a point robot.}
-	\label{fig:configuration_space}
-\end{figure}
+Lastly, Huang~\cite{Huang2001optimal} have also studied a new decomposition approach. In his work, he proposed a dynamic programming approach to computing a convex decomposition with the additional requirement that the cells have optimal zig-zag path. However, the transitions cost between cells are completely ignored.
 
-We now shift our focus to the paths that these robots traverse. Throughout the thesis, we make numerous references to straight line segments and transition segments. Straight line segments are paths that consists of a straight line. In other words, a robot traversing a straight line segments will never change its heading. This means that a straight line segment only has a linear component. On the other hand, a transition segment is a path where the robot does change its heading. In other words, the angular component of such a path is non zero.
+\section{Grid Based Approaches}
+\label{section:grid_based_approaches}
 
-Any coverage robot is equipped with a coverage tool. When this tool is operational, there is an associated coverage footprint with it. The location of this footprint and the exact region covered by this footprint depend on the physical location of this footprint in the robot. To formalize this relation, a function is introduced called the coverage map, $\mathcal{M}:Q\to \mathbb{R}^2$. The coverage map function maps the configuration $q$ of a robot to a set of points in $\mathbb{R}^2$ that are located under the footprint. Since the location of the coverage footprint is determined by the configuration of the robot, it is naturally to ask what areas can be covered given the free configuration space. A set of points that can be covered given a free configuration space is called the coverable space and is denoted by $\mathbb{C}$. An example of a coverable space determined by the configuration space for a disk robot is shown in Figure~\ref{fig:coverable_space}. Formally, the coverage space is defined as follows:
-\begin{equation}
-	\mathbb{C}=\bigcup_{q\in Q_{\text{free}}}\mathcal{M}(q).
-\end{equation}
-\begin{figure}
-	\centering
-	\subfile{img/chapter_2/coverable_space}
-	\caption{An example of a coverable space.}
-	\label{fig:coverable_space}
-\end{figure}
+All of the method listed here rely on the concept of exact cellular decomposition follwoed by inter-cell coverage path planning. There are several issues with this approach. It should be noted that the objective seems to produce as few cells in the decomposition as possible. However, this problem is known to be NP-hard for general polygons as outlines in a survey by Keil~\cite{keil2000polygon}. Hence, the profileration of heurstic methods liek trapezoidal decomposition. Decomposition proposeed by Huang are on the right track however, it is very computationally expensive for any more than simple polygons. Moreover, for trully optimal solutions, it seems that one cannot ignore the interdependcy between local path planning and the decomposition. In other words, a decomposition has to be computed with the following in mind: 1) Optimal local coverage 2)Optimal transitions between cells. The approaches listed so far have been reliying on either heurstic ased approaches or address one of theese but not both.
+
+However, exact cellular decompositions is not the only avaiable class of solutions. The other prominent area are grid-based methods or (approximate decomposition methods). With this method, the workspace is modelled as a grid of uniform cells. The benefits of this is that a grid representation of the workspace is exceptioanlly easy to compute. The downside is the exponential gworth of memoery requirements with the size ofhte workspace.
+
+Some of the prominant solutions are by Zelinsky~\cite{Zelinsky1993planning} with his wave propagation grid based coverage algorithm. With this method a start and goal cells are given. A wave front is computated by coputing the distance from start cell to goal cell. The robot then traverses the front leading to complete coverage. On-line generalization is avialable by Shrivashakar et al.~\cite{shivashankar2011real}.
+
+Another classic approach is the one based on a spanning trees of the workspace by Gabriely and Rimon~\cite{Gabriely2001spanning}. By considering the sprannign tree generation through the environment one can populate the environmen with s panning tree through the grid which is a graph. The spanning tree is consdtruvted ona partial grid graph. The coverage is ensured by robot traversing the edges of the spanning tree. 
+
+SOme of the appeoximate solutiosn proposed by Arin~\cite{arkin2000approximation} also fall under this category. In this work, the grid representation of the workspace is turned into a graph, which is then fed into the Travelling Saelsman Problem solver to find a shortest path that visits all cells. 
+
+The problem with these approaches is that the representation of the workspace with a grid is approximate. The points near corners or the boundary may prove to be coverable at all. Furthermore, for large environment, these methods becomes computationally intractable. Furthermore, these methods do not translate to optimal path in real life even if a shortest tour of a grid is found. This is evident when one looks at the grid shape and the coverage footprint shape. For instance, if a coverage footprint is in shape of a circle then things becomes problamtice. For one, the cell shape if circle is not complete. Furthermore, other cells shape would require some sort of overlap between footprints. This leads to large overlap in the final path which reduced the efficeincy of the path. Hence, there are difficulties.
+
+So far, all the works listed here did not consider any dynamics of the robot in its path planning procedure. However, it is an impotant aspect to good solution. Many of the proposed solutions in literature produce paths that may not be feasible for the type of robots that perofrm coverage. As outlined before, applications determine the exact quality that are desriable from the coverage path. However, at is core, a coverage path should take dynamics of the robot into account. One way to do is by recongnizing that turns play an important part in the cost of a path. There are some works that tryied to tackle this issue.
+
+The work by Huang~\cite{Huang2001optimal} attempted to solve this by proposing a decomposition scheme via dynamics programming. Arkin~\cite{arkin2005optimal} have studied a TSP like solution with turning cost embedded into the cost and proposing an appeoximation algorithm along with Wagner~\cite{wagner2001approximation}. However, these two present solutions where the paths can take only rectillinear orientation, which is restrictive in the real world environment.
 
 
+\section{Multi-agent Coverage}
+\label{section:multi_agent_coverage_lit_review}
+
+With proliferation of robotics, the cost of robots has gone down to the point where it makes sense to usem ulitple robots to achieve the goal faster. A lot of works in literature, extend the single agent coverage results by performing what's called as the work division whereby after each robot has its own area ssigned to it.
+
+The work by Durham~\cite{durham2012discrete} outlines a solution to the  multi-agent coverage under unreliable communication network. The environment is modeled as a grid with obstacles where the robots can move from one cell to another in the grid. The objective is to compute a partition that minimizes the coverage cost function. The computation of this function shares some similarities to Voronoi partitioning. The partitioning algorithm relies in pair-wise partitioning and reaches pair-wise optimality. The problem with this approach is that the environment as modeled as an occupancy grid. Also, this approach differs from ours as the robots is not requires to visit all cells; therfore, the cost function used in the optimization of the partition reflects that.
+
+The work by Maza~\cite{maza2007multiple} proposed a solution to multi-agent coverage. Given $n$ robots, they partition the polygonal environment into $n$ regions. The partition is performed by anchored area partitioning algorithm. The area amount is reflective of the abilities of the robot. Once, the partition is formed, each robot cover their regions in an optimal sweeping fashion. The problems with the proposed approach is that the work only considered convex polygons. Furthermore, the assumption that the area alone reflects the abilities of the robot is too restrictive.
+
+The work in \cite{barrientos2011aerial} have considered a similar problem with aerial drones. The divide the problem into three sections. First is the task allocation and the second is the path planning for each individual drone. The subregions are represented as a grid. This work shares a lot of similarities to the previous author but with extensive test trials.
+
+Hokeyam~\cite{hokayem2007dynamic} worked on an algorithmic approach to coverage by robots following inner level sets of the polygonal workspace. Any collisions between robots are resolved by sporadic communications. The problem with using inner level sets of a polygon is that they make sense for convex polygons. However, for nonconvex polygons, some of these level sets become complicated. 
+
+In another work~\cite{atincc2013supervised}, a control law for sensor coverage is developed for a team of robots that is based on gradient representation of coverage with the addition of the transition control law that helps the robots avoid local minima of gradients.
+
+Another multi-robot visual coverage method developed by Valente~\cite{valente2011multi} where the approach is similar to our and that of Barrientos~\cite{barrientos2011aerial} where the robot divide the area via communications and plan the path accordingly. The assumption made here is that of convex polygon. One of the metric is the number of turns.
+
+There are a number of works that study the coverage in a sense of sensor coverage. That is the problem becomes that of designing a control law that guides the robot to a location in the environment that maximizes some utility function
+
+
+%The generation of an optimal coverage path for convex work spaces is tractable and can be solved efficiently using sweeping or spiralling motions. Minimum turn coverage for convex polygons has been considered in~\cite{maza2007multiple}. For general workspaces, the coverage problem is NP-hard~\cite{arkin2000approximation}. However, there are many approximate and heuristic approaches to coverage. One class of approaches is an \emph{exact} convex decomposition on the workspace in which the workspace is partitioned into convex regions. A coverage path consists of a tour of each region, with local coverage of a convex region performed with either sweeping or spiralling motion. Commonly-used methods for decomposition include Boustrophedon decomposition~\cite{Choset1998coverage}, its more general form, Morse-based decomposition~\cite{Acar2002morse}, and trapezoidal decomposition~\cite{Oksanen2009coverage}. Huang~\cite{Huang2001optimal} proposed a dynamic programming approach for generating a set of regions that minimize the number of turns in the overall coverage path. However, the runtime is exponential, and the cost associated with transitions between these regions is assumed to be negligible. Das~\cite{das2014mapping} used a greedy cut method for convex decomposition and computed a tour of the regions using a Traveling Salesman Problem (TSP) solver.
+
+%With exact decomposition, the quality of the coverage path is highly-dependent on the convex decomposition. For polygons without holes (obstacles), there are several suboptimal and optimal decomposition algorithms available~\cite{keil2000polygon}. Convex decomposition for polygons with holes is NP-hard~\cite{lingas1982power}. A drawback of exact decomposition is that for complex workspaces, the decomposition may contain many regions, resulting in large total transition costs between regions.
 
 
 
+%Another class of approaches is \emph{approximate} convex decomposition~\cite{Galceran2013surveycpp}, in which convex regions may overlap, and the union of regions approximates the workspace (points left uncovered are typically handled in a second pass). In the most common approach, each of the overlapping region is a coverage footprint, as shown in Figure~\ref{fig:footprints}(a). Local coverage of each region is ensured by visiting the region's center. Complete coverage becomes the problem of planning a tour that visits each center with minimum cost~\cite{arkin2000approximation}. A drawback of this method is that the overlap between regions reduces the efficiency of the overall coverage path. Also, the number of regions grows with the area of the workspace, making the problem of computing tours of the centers intractable for large spaces.
 
-%\begin{definition}[Robot Location Map]
-%\label{definition:location_map}
-%Given a robot with dynamics, the configuration space of the robot is $Q$. A location map $\mathcal{L}:Q\to W$ is a function mapping the configuration $q\in Q$ of the robot to a \emph{center} point of the robot. For example, in Figure~\ref{fig:configuration_space}, the location of the center of the robot is $(x,y)$.
-%\end{definition}
+%There are many works that deal with multi-agent coverage. The concept of area coverage could be divided into classes. One has to be careful navigating the literature to pick the right class of coverage.
 
 
-%\begin{definition}[Free Configuration Space]
-%\label{definition:free_c_space}
-%The free configuration space is defined as:
-%	\begin{equation}
-%	\begin{aligned}
-%		Q_{\text{free}}=\{q\in Q\ |\ \mathcal{B}(q)\ \text{is inside}\ W_{\text{free}}\}.
-%	\end{aligned}
-%	\end{equation}
-%\end{definition}
 
-
-%\begin{definition}[Path Metric]
-%A path metric is a function $\mathcal{E}:P\to\mathbb{R}$ that assign a cost to a feasible path. This cost is usually determined by the application.
-%\end{definition}
-
-
-\section{Geometric Preliminaries}
-\label{section:background_geometry}
-
-In this section, a review of some of the concepts in geometry is reviewed.
-
-A \emph{simple polygon} is a non-intersecting chain of straight line segments forming a closed loop and specified as a set of points, i.e., $Z=\{v_i\in\mathbb{R}^2|i=1,\ldots,n\}$. Note that since the chain is a circuit, any $v_i\in Z$ has two adjacent line segments. A \emph{boundary of a simple polygon} is a set of points, $\partial Z$, along a line connecting any two adjacent vertices of a chain. A \emph{clockwise simple polygon} is a simple polygon where vertices are specified in a clockwise order. We associate these types of simple polygons with holes in the workspace. A \emph{counter-clockwise simple polygon} is a simple polygon where vertices are specified in a counter-clockwise order. This type of simple polygons are associated with the external boundary of the workspace. Finally, a \emph{polygon} is a set of clockwise and counter-clockwise simple polygons. For clarity, we will refer to simple polygons as chains and reserve the term polygon for a set of chains, i.e., $P=\{Z_0,\ldots,Z_m\}$. $Z_0$ is a counter-clockwise chain (i.e., the boundary) and all subsequent $Z_i$ are clockwise chains (i.e., holes). A \emph{boundary of a polygon} is the set of points defined as $\partial P=\bigcup^M_{i=1}\partial Z_i$ where $Z_i\in P$.
-
-A \emph{reflex vertex} is a vertex in one of the chains of $P$ that has an internal angle of more than $\pi$. As such, a polygon is \emph{convex} if and only if there are no reflex vertices. Conversely, a polygon is non-convex if and only if it contains at least one reflex vertex. Note that the presence of a hole guarantees at least one reflex vertex.
-
-\section{Generalized Traveling Salesman Problem Preliminaries}
-\label{section:GTSP}
-
-The Travelling Salesman Problem is one of the famous computational problem and is widely known. The crux of the problem is given 
-
-
-Suppose a complete graph $G=(V,E,w)$ is given where $V$ is a set of vertices, $E$ is a set of edges, and $w$ is a set of edge weights. Suppose $V$ is partitioned into pairwise disjoint sets $\{V_1,\ldots,V_p\}$ where $V_i\subset V$. The Generalized Traveling Salesman Problem (GTSP) is the problem of computing a tour that visits exactly one vertex from each $V_i$ such that the length of the tour is minimized. The TSP is a special case of the GTSP where $|V_i|=1$ for each $i$ and is NP-hard.
-
-\section{Contours Introduction}
-\label{section:background_contours}
-
-In this section, the concept of contours is introduced and some of the related material in medial axis and straight skeletons is reviewed.
-
-Blum~\cite{blum1967transformation} in 1967 have proposed a notion of medial axis as a shape description. The motivation behind this was generation of ways to represent a shape. The medial axis is defined as follows.
-\begin{definition}
-Suppose a simple polygon $G$ is given then the medial axis $M(G)$ is a set of points $\{q\}$ in the interior of $G$ such that there are at least two points on the object's boundary that are equidistant from $\{q\}$ and are closest to $\{q\}$.
-\end{definition}
-There is an associated radius function that maps every points on $M(G)$ to a radius. This radius specifies the distance of each points on the axis to the boundary. This allows for reconstruction of the original shape by looking at the union of circles centered at each point of $M(G)$ with the corresponding radius. Lee~\cite{lee1982medial} have proposed a $\mathbb{O}(b\log n)$ algorithm for computing medial axis where $n$ is the number of edges.
-
-Related to medial axis is the concept of straight skeletons introduced by Aichholzer~\cite{aichholzer1996novel}. Because of its structure, it can be misconstrued to be equivalent to medial axis. However, even though, for convex polygons they are identical, the difference arise at the reflex vertices of a polygon. The straight skeleton are defined in terms of a shrinking process where all points on the boundary of a polygon are moving inwards with the same speed. In the process there are two events that can happen. The first event is the edge event. This is where an edge is reduced to zero length in the process of shrinking resulting in its two adjacent edges be adjacent to each other instead. The second event is a split event where the polygon is split into two. Reflex vertices result in this type of event. 
-During the shrinking process, a set of nested polygons is generated. These are of particular interest with respect to this work.
-
-The straight skeleton is defined as the union of the pieces of angular bisectors traced out by polygon vectices as they are shrinked.
-
-
-Medial axis
-Contours
 \end{document}

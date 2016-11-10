@@ -3,444 +3,468 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\chapter{Multi-agent Coverage}
-\label{chapter:multi_agent_coverage}
+\chapter{Single Agent Coverage}
+\label{chapter:single_agent_coverage}
 
-In this chapter, the problem of coverage with multiple robots is introduced. The problem statement is derived in Section~\ref{section:multi_agent_problem_statement}. One of the most important aspects of the algorithm is the metric used during the search algorithm. This metric is designed and analyzed in Section~\ref{section:multi_decomposition_metric}. The algorithm is proposed in Section~\ref{section:multi_algorithm}. Section~\ref{section:multi_comp_analysis} presents the computational complexity analysis of the algorithm. Lastly, Section~\ref{section:multi_simulations} presents simulations and discusses the results.
-
+In this chapter, we formulate the problem of single agent coverage and propose a solution. The chapter is organized into six sections. Section~\ref{section:single_problem_statement} goes through the formulation of the problem into its final form. Section~\ref{section:min_alt_decomposition} proposes a solution to the problem. Section~\ref{section:single_agent_complexity} offers the computational complexity analysis of the proposed algorithm. Section~\ref{section:single_agent_improvment} offers suggestions for improvements of the algorithm. Section~\ref{section:single_agent_gtsp_tour} describes the Generalized Traveling Salesman Problem. Lastly, Section~\ref{section:single_agent_simulation} presents the results of the algorithm in the form of simulations.
 
 \section{Problem Statement}
-\label{section:multi_agent_problem_statement}
+\label{section:single_problem_statement}
 
-First, we develop the general multi-agent coverage problem statement. Observe that a team of robots that is tasked with coverage may contain robots with different dynamics and coverage footprints. As a result, for every robot $i$ on the team, there is a corresponding set of feasible paths $P_i$. Similarly, each robot in the team has its own coverage map $\mathcal{M}_i(q)$. The coverage space for each robot could then be stated as:
-\begin{equation}
-	\mathcal{C}_i=\bigcup_{q\in Q_{i,\text{free}}}\mathcal{M}_i(q).
-\end{equation}
+In this section, the problem statement is developed. We start with the statement of the general problem. We then describe a set of assumptions being made with justifications. The final problem statement is then stated.
 
-Amongst $n$ robots in the team, these sets, $\mathcal{C}_1, \mathcal{C}_2,\ldots,\mathcal{C}_n$, may not necessarily be the same. Because of this, there are some regions in the workspace that may be accessible only by certain robots. This complicates the path planning process as the ability of a robot to cover a certain section of the workspace is conditional on the robot's dynamics. In this work, we make a simplifying assumption that if a point on the workspace is coverable by robot $i$, it is coverable by all other robots on the team. In other words, we assume that all robots have the same coverable space. That is:
-\begin{equation}
-	\mathcal{C}_1=\mathcal{C}_2=\ldots=\mathcal{C}_n=\mathbb{C}.
-\end{equation}
-
-%\begin{equation}
-%	\mathbb{C}=\bigcap_{i=1,\ldots,n}\mathcal{C}_i.
-%\end{equation}
-
-The general problem is now introduced in Problem~\ref{problem:multi_cpp}.
-\begin{problem}[Multi-agent Coverage Path Planning]
-\label{problem:multi_cpp}
-	Given a workspace $W$, $n$ robots with equal dynamics and corresponding coverage maps $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
+The general coverage problem is defined as follows.
+\begin{problem}[Minimum Cost Coverage Path Planning]
+\label{problem:min_cost_cpp}
+	Given a workspace $W$, a robot with dynamics, and a coverage footprint map $\mathcal{M}(q)$, compute a path $p_i\in P$ such that
 	\begin{equation}
+	\label{condition:full_coverage}
 	\begin{aligned}
-		& p_i\in P_{i},\ i=1,\dots,n,\\
-		& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\\
-		%& \bigcup_{i=1,\dots,n}(p_i\oplus\mathcal{M}_i)=\mathbb{C},\\
-		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
-		& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized.}
+		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathcal{C},\\
+		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P.
 	\end{aligned}
 	\end{equation}
 \end{problem}
 
-Problem~\ref{problem:multi_cpp} shares some similarities with the single agent coverage problem introduced in Chapter~\ref{chapter:single_agent_coverage}. However, there are several noticeable differences. One of the conditions now requires that the union of $n$ path footprints covers the entire coverable area. Another important difference in the conditions is the condition of optimality. While with the single agent coverage case, an optimal solution is a path with the minimum cost, in multi-agent coverage case, the optimal solution is the one where the cost of the path with the maximum cost amongst $n$ robots is minimum. Here, the cost $\mathcal{E}(p_i)$ is the same cost described in Section~\ref{section:single_problem_statement}.
+In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint map are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the whole path is equal to the coverable space and the cost of the path is minimized. A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $P$ contains infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}). As such, we rely on a number of assumptions and heuristics to aid us with the analysis of the problem.
 
-This objective is motivated by the following. When a team of robots performs a task, it is often undesirable when one robot finishes its assigned task much later than the other robots. This means that the rest of the team is idle while the single robot is performing its task. This results in unnecessarily long duration for the whole coverage task. It is more desirable to redistribute the work of the robot with the longest duration path amongst the team of robots such that the duration of the whole coverage task is reduced. In other words, amongst the team of robots, one would like to minimize the task with the longest duration.
+From the literature and our collaborations with companies that deal with coverage, we have observed that the most desirable path for numerous types of robots is a straight line segment. Human path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robot often cannot maintain the same linear speed when executing turn maneuvers. As a result, it needs to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in an other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
 
-However, while the problem as stated in Problem~\ref{problem:multi_cpp} is general, it does not point to a solution. Hence, we take some of steps taken in Section~\ref{section:single_problem_statement} to alleviate that. As a first step, the set of feasible paths is replaced with a set of segmented feasible paths. The problem statement is modified accordingly as shown in Problem~\ref{problem:multi_cpp_with_lines}.
-\begin{problem}[Multi-agent Coverage Path Planning with Straight Line Segments]
-\label{problem:multi_cpp_with_lines}
-	Given a workspace $W$, $n$ robots with same dynamics and corresponding coverage maps $\mathcal{M}_i$, compute a set of $n$ paths with the following conditions
-	\begin{equation}
-	\begin{aligned}
-		& p_i\in P_{\text{segmented},i},\ i=1,\dots,n,\\
-		& \bigcup_{i=1,\dots,n}(\bigcup_{q\in p_i}\mathcal{M}_i(q))=\mathbb{C},\\
-		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
-		& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized.}
-	\end{aligned}
-	\end{equation}
-\end{problem}
-
-Observe that a robot $i$ traversing a path $p_i$ covers the following region $w_i$:
+Note that any path $p_i$ has two components: linear and angular. A function to evaluate the cost of a path is designed accordingly to reflect the differences in the cost of a straight path versus a curved path. The cost function for path $p_i$ is denoted by $\mathcal{E}(p_i)$ and is proportional to these components.
 \begin{equation}
-	w_i=\bigcup_{q\in p_i}\mathcal{M}(q).
+	\mathcal{E}(p_i)=c_1\ell(p_i)+c_2a(p_i)
 \end{equation}
-By conditions stated in Problem~\ref{problem:multi_cpp_with_lines}, a team of robots has to entirely cover the coverable space. As a result, a solution to the problem has to satisfy the following:
+where $\ell(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment has only the linear component, i.e,
 \begin{equation}
-	\label{eq:partition_condition}
-	\bigcup_{i=1,\ldots,n}w_i=\mathbb{C}
+	\mathcal{E}(s_i)=c_1\ell(s_i),
+\end{equation}
+whereas the cost of a transition segment typically has both linear and angular components, i.e,
+\begin{equation}
+	\mathcal{E}(t_i)=c_1\ell(t_i)+c_2a(t_i).
 \end{equation}
 
-Notice that equation~(\ref{eq:partition_condition}) suggests some sort of decomposition of $\mathbb{C}$. Suppose a decomposition of $\mathbb{C}$ is given with a guarantee that $\max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}$ is minimized provided that all $p_i$ have the lowest possible cost. The decomposition is a set of cells $\{w_i\}$ where $\cup_{i=1}^nw_i=\mathbb{C}$. Provided with this set, one has to compute a lowest cost path $p_i$ for each $w_i$ in the decomposition for a solution to Problem~\ref{problem:multi_cpp_with_lines}.
-
-This suggests that Problem~\ref{problem:multi_cpp_with_lines} could be solved via a decoupled approach involving two subproblems. The first subproblem involves computing a partition of $\mathbb{C}$. The second subproblem involves computing a minimum cost path for each cell in the decomposition.  We note that the second subproblem is the problem solved in Chapter~\ref{chapter:single_agent_coverage} and will not be covered in this section. The rest of this chapter focuses on the first subproblem, which is stated in Problem~\ref{problem:workspace_decomposition}.
-
-% As such, the following problem and Problem~\ref{problem:multi_cpp_with_lines} are equivalent.
-%\begin{problem}[]
-%\label{problem:multi_cpp_with_lines_ii}
-%	Given a workspace $W$, $n$ robots with dynamics and corresponding coverage map $\mathcal{M}_i$, compute
-%	\begin{equation}
-%	\begin{aligned}
-%		&\{w_1,w_2,\ldots,w_n\},\\
-%		&\{p_1,p_2,\ldots,p_n\}
-%	\end{aligned}
-%	\end{equation}
-%	such that
-%	\begin{equation}
-%	\begin{aligned}
-%		&i)& \bigcup_{i=1,\dots,n}(w_i)=\mathbb{C},\\
-%		&iii) &\{p_i\in P_{\text{segmented},i}\ |\ i=1,\dots,n\},\\
-%		&ii)&p_i\in w_i,\\
-%		&ii)& \max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}\text{ is minimized,}\\
-%		%& \sum_{i=1.\dots,n}\mathcal{E}_i(p_i)\text{ is minimized}.
-%		&iv)&\mathcal{E}_i(p_i)\leq\mathcal{E}_i(p_j), \forall p_j\in P_{\text{segmented},i}\\
-%	\end{aligned}
-%	\end{equation}
-%\end{problem}
-%However, Problem~\ref{problem:multi_cpp_with_lines_ii} can be solved via a decoupled approach by solving two separate problems. The first problem deals with an optimal decomposition of the workspace. The second problem deals with computing the lowest cost paths for each cell in the decomposition. The first problem is shown in Problem~\ref{problem:workspace_decomposition} while the second problem is just an invocation of Problem~\ref{problem:min_cost_cpp_with_lines} $n$ times. The solution to that problem is covered in Chapter~\ref{chapter:single_agent_coverage}.
-
-\begin{problem}[Workspace Decomposition based on Robot Capabilities]
-\label{problem:workspace_decomposition}
-	Given a workspace $W$ and $n$ robots with equal dynamics, compute a decomposition of $\mathbb{C}$ into $\{w_1,w_2,\dots,w_n\}$ such that
-	\begin{equation}
-	\begin{aligned}
-		& \bigcup_{i=1,\dots,n}w_i=\mathbb{C}\text{ and}\\
-		& \max_{i=1,\ldots,n}\{\chi_i(w_i)\}\text{ is minimized.}
-		%& \sum_{i=1,\dots,n}\chi(w_i,q_i)\text{ is minimized}.
-	\end{aligned}
-	\end{equation}
-\end{problem}
-In Problem~\ref{problem:workspace_decomposition}, a metric $\chi$ is used in one of the conditions for optimality. This metric is designed as an approximation of the cost of the path without having to explicitly compute the path itself. This metric is an important aspect of the solution and Section~\ref{section:multi_decomposition_metric} covers the design and analysis.
-
-\section{Decomposition Metric}
-\label{section:multi_decomposition_metric}
-
-In this section, the design of  the metric used in the Algorithm~\ref{alg:optimization_procedure} is presented. The metric consists of three terms, which are derived and analyzed in the following subsections.
-
-The solution to Problem~\ref{problem:multi_cpp_with_lines} is a set of cells forming a decomposition of the coverable space. This decomposition is computed by using a metric $\chi$ to evaluate a decomposition. Ideally, this metric would be the real cost of a coverage path for a given cell. However, as we have shown in the previous chapter, such metric would be computationally expensive. In this chapter, we aim to develop an approximation of such cost that is easy to compute. 
-
-The main motivation for the design of the metric $\chi$ is the structure of a coverage path. Recall the cost of a path, as mentioned in Section~\ref{section:single_problem_statement}, consists of two components:
+Here, the first assumption is made with regards to the dynamics of the coverage robot. We assume that the robot has particular dynamics that results in
 \begin{equation}
-	\mathcal{E}(p_i)=c_1\ell(p_i)+c_2a(p_i).
+	c_2 \gg c_1.
 \end{equation}
-These two components are the linear and angular components of the path $p_i$. Hence, the metric $\chi$ needs to have similar structure if it were to be a good approximation. To that end, the following observation about a structure of a coverage path is important. A coverage path $p_i$ for a robot $i$ can be divided into three parts. The first part is the distance from a starting location of the robot to its assigned region. The second part consisting of all straight line segments used in the segmented path. The last part includes all the transition segments connecting the straight segments together as shown in Figure~\ref{fig:path_parts}. Note that the first and the second parts contribute to the linear components of the cost and the third part contribute to the angular component. The following subsections discuss all three components in detail.
+In other words, for such a robot, the best path between any two points is a straight line segment if it is feasible.
 
-\simpleplot{img/chapter_4/path_parts}{Demonstration of the structure of a coverage path. Orange: Path portion where the robot travels to its assigned region shown in blue. Red: Path segments that are straight line segments. Yellow: path segments that are transition segments.}{fig:path_parts}
-
-\begin{definition}[Decomposition Metric]
-Given a polygonal workspace $W$ and a robot with dynamics, the partition metric $\chi:W,Q\to\mathbb{R}$ maps the workspace properties and the robot dynamics to an approximation of a coverage path cost in the following way:
+Our second assumption places a restriction on the feasible set of paths. This is done to ensure that all paths under study have a certain structure. The new set of called a set of feasible segmented paths and it is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:segmented}.
+\begin{definition}[Set of Feasible Segmented Paths]
+\label{definition:segmented_feasible_paths}
+A set of feasible segmented paths is defined as:
 	\begin{equation}
-		%\chi(w_j,q_j^0)=c_1(\text{dist}(q^0_j,w_j)+K\text{Area}(w_j))+c_2360^o\text{Turns}(w_j).
-		\chi(w_j,q_j^0)=c_1[\mathcal{F}_1(q^0_j,w_j)+\mathcal{F}_2(w_j)]+c_2\mathcal{F}_3(w_j).
+		P_{\text{segmented}}=\{p_i\ |\ p_i\subseteq Q_{\text{free}},\  p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}\}
 	\end{equation}
+	where $s_i$ refers to $i$th straight line segment and $t_i$ refers to $i$th transition segment.
 \end{definition}
 
+Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified search space of feasible paths.
+\begin{problem}[Minimum Cost Coverage Path Planning with Straight Line Segments]
+\label{problem:min_cost_cpp_with_lines}
+	Given a workspace $W$, a robot with dynamics, and a coverage footprint map $\mathcal{M}(q)$, compute a path $p_i\in P_{\text{segmented}}$ such that
+	\begin{equation}
+	\label{condition:full_coverage_2}
+	\begin{aligned}
+		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathcal{C},\\
+		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P_{\text{segmented}}.
+	\end{aligned}
+	\end{equation}
+\end{problem}
 
-\subsection{Initialization and Return Distance}
-\label{subsection:init_ret_distance}
-
-A team of $n$ robots have $n$ starting locations, $q^0_1,q^0_2,\ldots,q^0_n$. Depending on the decomposition technique, the starting location of a robot may be some distance away from its assigned cell. Since this travel distance may be significant, it cannot be ignored when computing the cost of the path. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
-
-Let us refer to the distance from the starting location of the robot $i$, $q^0_i$, to the begging of the coverage path in $w_i$ and from the end of the path to $q^0_i$ as:
+Note that the cost for a segmented path has the following structure:
 \begin{equation}
-	\text{dist}(q^0_i,w_i).
+	\label{eq:segmented_cost}
+	\mathcal{E}(p_i)=\sum_{i=1}^n(\mathcal{E}(s_i)+\mathcal{E}(t_i))=\sum_{i=1}^n(c_1\ell(p_i)+c_1\ell(t_i)+c_2a(t_i)).
 \end{equation}
 
-This quantity cannot be computed as such because it requires the information about where the coverage path starts and ends. This is not known prior to computing the actual path. The only information available is $q^0_i$ and $w_i$. However, we can compute an approximation of this quantity, $\mathcal{F}_1(q^0_i,w_i)$, that is going to be a lower bound on the actual value. In this work, this is accomplished via twice the shortest Euclidean distance to $w_j$. More formally, 
+\simpleplot{img/chapter_4/segmented_path}{An example of a segmented path.}{fig:segmented}
+Based on such cost function, a solution should aim to perform most of the coverage via straight line segments and use turns only when absolutely necessary.
+
+Suppose a coverage robot is traversing a straight line segment of length $\ell_i$. Suppose the width of robot's coverage footprint is $\delta x$. The area covered after the robot finishes traversing the line is $\ell_i\delta x+k$ where $k$ is to account for various shapes of coverage footprints. Suppose there are $n$ such lines with no overlap between their line footprints. For this exercise, assume the robot is able to teleport from one line to another. Hence, the total area covered by the robot is
 \begin{equation}
-	\mathcal{F}_1(q^0_i,w_i)=2\min_{x\in\partial w_i}||q^0_i-x||_2.
+	A_{\text{covered}}=\sum_{i=1}^n\ell_i\delta x + k.
 \end{equation}
+Intuitively, a solution should aim to arrange the straight line segments in a way that makes $A_{\text{covered}}$ as close to the actual area of the workspace as possible. One possible arrangement consists of a series of parallel straight line segments stacked on top of each other. An example is shown in Figure~\ref{fig:riemann_sum}. In fact, this arrangement is commonly used in the coverage literature and is commonly referred to by Boustrophedon path~\cite{Choset1998coverage}. The nice properties of such an arrangement includes no overlap between straight line segments. Most of the interior of the workspace is covered by straight line segments. Robot only has to perform turns near the borders of the workspace. In fact, this arrangement holds some similarities to Riemann sums. As such, as $\delta x$ gets smaller, which happens when a small robot is covering a huge workspace, $A_{\text{covered}}$ tends to the actual area of the workspace. And lastly, all transition segments in such an arrangement have nearly fixed cost. This is because every transition segment is a transition from the end of one line to the start of the next line. Such a transition has approximately 180$^o$ angular component associated with it.
 
-However, it is clearly a lower bound on the cost of the actual path to get to the assigned region $w_i$ because of the triangular inequality. Hence,
-\begin{equation}
-	\mathcal{F}_1(q^0_i,w_i)\leq\text{dist}(q^0_i,w_i).
-\end{equation}
+\simpleplot{img/chapter_4/riemann_sum}{Parallel line arrangement.}{fig:riemann_sum}
 
-The benefits of this metric includes its simplicity and ease of computation. However, it is important to note that a straight path from the starting location to the closest point on the boundary of $w_i$ may not be always feasible as it may intersect an obstacle. Therefore, a situation is possible where the distance from the starting location to the assigned region is close but in reality, requires extensive navigation through obstacles. A way to mitigate this situation is by computing the distance of a shortest feasible path to $w_i$. However, this requires computation of a visibility graph.
-
-
-\subsection{Length of Straight Line Segments}
-\label{subsection:sum_straight_segments}
-
-Once the robot reaches the assigned workspace, it has to complete the coverage task. As mentioned in Section~\ref{section:multi_decomposition_metric}, the second part of a coverage path is a set of straight line segments. Recall that the coverage in Chapter~\ref{chapter:single_agent_coverage} is performed via a Boustrophedon type path or a set of Boustrophedon type paths. Recall that the structure of a Boustrophedon path consists of a series of parallel straight line segments connected together via transition segments. In Section~\ref{section:single_problem_statement}, we have demonstrated a relation between an area of the workspace and the total length of all parallel line segments combined. In other words, the area of a workspace can be used to estimate a linear component of the path cost. In this section, we show that with some modifications to the area, a lower bound estimate for the length of straight line segments can be computed cheaply.
-
-Suppose a workspace $w_i$ is filled with non-overlapping parallel straight line segments as shown in Figure~\ref{fig:line_footprint}. Assuming that the coverage footprint has a width of $r$, then the area covered by a robot traversing a line $l_i$ is $rl_i+k$. Here, $k$ is the amount of area covered beyond the starting and stopping points of a line. These areas are associated with footprint such as a circle. The total area covered in this way is then:
-\begin{equation}
-	\label{eq:covered_area}
-	\sum_{i=1}^n(rl_i+k)=A_{\text{covered}}.%\leq A_{\text{actual}}
-\end{equation}
-
-\simpleplot{img/chapter_4/area_discrepancy}{Coverage footprint over a line.}{fig:line_footprint}
-
-Equation~\ref{eq:covered_area} suggests that it is possible to compute the total length of all straight line segments combined from the covered area. However, note that to compute the covered area, one would need to know the placement of parallel line segments. This is not know prior to path planning. The only information available is the workspace and the required spacing between the parallel line segments.
-
-Also note that $A_{\text{covered}}\leq A_{\text{actual}}$. This is because of area near the borders of the workspace remain uncovered. An example is shown in Figure~\ref{fig:line_footprint}. We shall now derive an expression for the difference.
-
-Suppose a workspace is to be covered and is populated with some parallel line segments as shown in Figure~\ref{fig:sample_area}. Note the white uncovered areas near the borders of the polygon. First, look at the uncovered area one line segments at a time. Observe Figure~\ref{fig:area_error}(a), which demonstrates the top half of a straight segment.
-
-\simpleplot{img/chapter_4/sample_area}{Sample workspace with parallel line segments.}{fig:sample_area}%
+However, there are a couple of issues with this method. The first issue is related to the coverage near the borders of the workspace. Some areas cannot be covered by this path alone and usually requires a wall following path. Second issue is with choosing the orientation of these parallel line segments. Some orientations are more optimal than others. And lastly, for concave workspaces, this type of coverage is highly non-optimal. See Figure~\ref{fig:reorder_regions} for an example.
 
 \begin{figure}
 	\centering
 	\begin{subfigure}{0.5\linewidth}
 		\centering
-		\subfile{img/chapter_4/area_error}%
-		\caption{\label{fig:area_error_i}}
+		\subfile{img/chapter_4/reorient_solution_1}
 	\end{subfigure}%
 	\begin{subfigure}{0.5\linewidth}
 		\centering
-		\subfile{img/chapter_4/area_error_i}
-		\caption{\label{fig:area_error_i}}
+		\subfile{img/chapter_4/reorient_solution_2}
 	\end{subfigure}
-	\caption{Geometry of the uncovered area.}
-	\label{fig:area_error}
+	\caption{Polygon regions where lines can be reoriented.}
+	\label{fig:reorder_regions}
 \end{figure}
 
-Note from Figure~\ref{fig:area_error}(b), a region of interest is a trapezoid with two parallel sides $a$ and $b$, and the side $2r$. It is the difference between covered and uncovered areas here that will determine the difference between covered and actual area.
+Recall the structure of the cost function of a segmented path from equation(\ref{eq:segmented_cost}) and the property of Boustrophedon paths where transition segments have a roughly fixed cost. The problem becomes one of minimizing the number of straight line segments, $n$, to achieve complete coverage. The solution to this problem is proposed by Huang~\cite{Huang2001optimal}. This solution relies on a notion of altitude.
 
-Recall an area of a trapezoid:
+\textbf{Minimum Altitude:} For convex polygons, the altitude in direction $\theta$ is defined as the minimum distance between two parallel lines angled at $\theta+\frac{\pi}{2}$ with respect to the $x$-axis such that all vertices of the convex polygon are contained between these two lines~\cite{Huang2001optimal}. The altitude of the polygon in Figure~\ref{fig:transition_point} is the distance between lines $e_i$ and $h_i$. This notion can be extended to general polygons. The method of obtaining $\theta$ altitude for a general polygon is shown in Algorithm~\ref{alg:altitude}. Figure \ref{fig:altitude} provides an example of this procedure. In the example, the altitude is $x_1 + 2x_2 + 3x_3 + 2x_4 + x_5$. Note that if $r$ is the radius of the footprint of the robot and $\alpha$ is the altitude of a polygon along $\theta$ then the total number of lines required for complete coverage in direction $\theta$ is
 \begin{equation}
-	A=\frac{a+b}{2}h
-\end{equation}
-where $a$ and $b$ are the length of two parallel sides of the trapezoid, and $h$ is the height of the trapezoid. In this case, $r$ and $\theta$ are determined by the width of the coverage footprint and properties of the workspace respectively. In this case, $a$ and $b$ are derived in terms of $r$ and $\theta$ as follows:
-\begin{equation}
-	\begin{aligned}
-		&a=r\tan{\frac{\theta}{2}},\\
-		&b=r\tan{(90^o-\frac{\theta}{2}})
-	\end{aligned}
+	n=\ceil*{\frac{\alpha}{2r}}.
 \end{equation}
 
-The area of a trapezoid as a function of $r$ and $\theta$ is:
+Moreover, because of the structure of the Boustrophedon paths, the altitude also provides the angular component of the whole path. Specifically, 
 \begin{equation}
-	A=2r^2\csc{\theta}
-\end{equation}
-The area of a half circle is $\frac{\pi r^2}{2}$.
-
-Therefore, the amount of area that is left uncovered from one strip is:
-\begin{equation}
-	A_{\text{uncovered}}=2r^2\csc\theta-\frac{\pi r^2}{2}=\frac{r^2}{2}(4\csc\theta-\pi).
+	a(p_i)=180^o\ceil*{\frac{\alpha}{2r}}.
 \end{equation}
 
-This value is a function of $\theta$, where $\theta$ is an angle between the sweeping lines orientation and an edge of the exterior of the polygonal workspace. This angle varies from one edge of a polygon to the next. Suppose we compute the following $\theta_{\max}$.
-\begin{equation}
-	\theta_{\max}=\arg\max_{\theta\in\Theta}(\frac{r^2}{2}(4\csc\theta-\pi)).
-\end{equation}%
-where $\Theta$ is a set of all possible $\theta$'s that a set of lines can have with the respect to any edge of a polygon. Fortunately, by the result from Huang~\cite{Huang2001optimal}, the optimal orientation of a set of lines is orthogonal to one of the edges of a polygon. Hence, if there are $n$ edges in a polygon, then $|\Theta|=n^2$.
-
-Hence, the uncovered area can then be approximated as follows:
-\begin{equation}
-	A_{\text{uncovered}}^{\max}=2|S|\frac{r^2}{2}(4\csc\theta_{\max}-\pi).
-\end{equation}%
-where $|S|$ is the number of straight line segments in a workspace scaled by a factor of two to account for both ends of a line.
-
-The term $|S|$ is problematic because the number of lines is not known prior to computing the actual path. However, based on the result from Chapter~\ref{chapter:single_agent_coverage}, there is an approximation available in the form of the minimum altitude. This approximation is exact for convex polygons and is an over approximation for general polygons. Therefore, the term is modified as follows.
-\begin{equation}
-	A_{\text{uncovered}}^{\max}=\ceil{\frac{\alpha_{\min}}{r}}r^2(4\csc\theta_{\max}-\pi).
-\end{equation}%
-
-
-
-With this result, we can state a lower bound on the total length of all straight line segments combined as a function of the workspace. Let $\mathcal{F}_2(w_i)$ denote the lower bound on this amount then:
-\begin{equation}
-	\mathcal{F}_2(w_i)=\frac{A_{\text{actual}}-A_{\text{uncovered}}^{\max}}{r}
-\end{equation}
-
-Moreover, because we took the maximum uncovered area, the following is true is well:
-\begin{equation}
-	\mathcal{F}_2(w_i)\leq\sum_{i=1}^Nl_i
-\end{equation}
-
-
-\subsection{Angular Component}
-\label{subsection:angular_component}
-
-
-According to the cost metric introduced in Section~\ref{section:single_problem_statement}, there are two components in the cost of a coverage path: linear and angular. The term of the approximated cost developed in Section~\ref{subsection:init_ret_distance} and Section~\ref{subsection:sum_straight_segments} both serve as approximations to the linear component. In this section, an approximation for the angular component is designed.
-
-The angular components of a coverage path depends on the type of path itself. Some paths have a particular structure, which makes them suitable for theoretical analysis. For instance, a typical Boustrophedon path contains a set of parallel line segments connected together by transition segments. Since these parallel segments are oriented in the same direction, the transition segments must traverse at least 180$^o$ angular distance. Hence, just by knowing the number of parallel segments allows for computation of the angular distance in the whole path. As a reminder, this could be achieved by computing the altitude as demonstrated in Chapter~\ref{chapter:single_agent_coverage}. However, as shown in Chapter~\ref{chapter:single_agent_coverage}, the Boustrophedon path is not optimal for general polygons. Hence, we deviate from the altitude decomposition technique and instead focus on the shape of the polygon itself. The goal being to compute an approximation of the angular components as a function of the shape of the polygon.
-
-For that purpose, our approach is inspired by concepts such as the medial axis of a workspace and the straight skeleton graphs as reviewed in Chapter~\ref{chapter:background}. Recall that one way to compute a straight skeleton graph is by iteratively computing \emph{contours} of a polygon. Suppose a set of contours, $\mathcal{T}$ is computed by iteratively \emph{shrinking} the boundary of the polygon by distance $r$ inwards. Then the following proposition is made.
-
-\begin{proposition}
-	Given a polygonal convex workspace $W$, suppose that the coverage angle by a Boustrophedon path is $\theta$. Then $360^o|\mathcal{T}|\leq\theta$.
+Given a polygon $P$, we are interested in finding the minimum altitude $\alpha^*(P)$.  Note, however, that the altitude can be measured with respect to an infinite number of directions $\theta$. The following result addresses this issue.
+\begin{proposition}[Minimum Altitude Directions,~\cite{Huang2001optimal}]
+\label{prop:min_alt_dirs_convex}
+Given a polygon $P$, the direction of minimum altitude is orthogonal to one of the edges of the polygon. 
 \end{proposition}
+By Proposition~\ref{prop:min_alt_dirs_convex}, minimum altitude can be computed by performing Algorithm~\ref{alg:altitude} on each direction associated with the edge of the polygon. The runtime of this approach is $O(n^2\log n)$ in number of vertices of a polygon.
+
+\begin{algorithm}
+	\caption{$\operatorname{get\_general\_altitude}(P, \theta)$}
+	\label{alg:altitude}
+	\begin{algorithmic}[1]
+		\REQUIRE Polygon $P=\{Z_0, Z_1,\ldots\}$, direction $\theta$.
+			\STATE $\operatorname{counter}\gets 0$, $\alpha\gets 0$
+			\STATE Rotate $P$ by $-\theta$ to align direction with $x$-axis.
+			\STATE Sort all vertices in $P$ by their  $x$-coordinates
+			\FOR{each $v_i$ in the sorted list}
+				\STATE $\alpha\gets \alpha+\operatorname{counter}\times(x_{v_{i}}-x_{v_{i-1}})$ 
+				\IF{both vertices adjacent to $v_i$ are on right}
+					\STATE Increment $\operatorname{counter}$ by 1
+				\ELSIF{both vertices adjacent to $v_i$ are on left}
+					\STATE Decrement $\operatorname{counter}$ by 1
+				\ENDIF
+			\ENDFOR
+			\RETURN $\alpha$
+		%\ENDPROCEDURE 
+	\end{algorithmic}
+\end{algorithm}
+
+\simpleplot{img/chapter_4/altitude}{Process of measuring altitude with $\theta$ equal to 0.}{fig:altitude}
+
+As stated before, one possible solution is to arrange all lines to be parallel to each other throughout the entire polygon. This solution is not necessarily optimal but can act as a starting point in an optimization. A more sophisticated approach is to decompose $W$ into polygons $w_0,w_1,\ldots,w_k$, where for each $w_i$, the associated set of lines consists of parallel segments. The segments in each set should be oriented to minimize the number of lines. For example, the polygon in Figure~\ref{fig:reorder_regions} is decomposed into four regions. Lines in the two regions on the sides of the polygon are reoriented to reduce the number of lines in those regions. For the optimal orientation, we define the $\theta$ altitude of a polygon.
+
+With the notion of altitude for general polygons, the problem statement becomes as follows.
+\begin{problem}[Min Altitude Decomposition]
+\label{prob:min_alt_decomp}
+Given a polygon $W$, find $k$ and $w_1,w_2,\ldots,w_k$ such that $\sum^k_{i=1}\alpha^*(w_i)$ is minimized where $\bigcup^k_{i=1}w_i=P$.
+\end{problem}
+
+For each $w_i$, a number of parallel lines is generated in an orientation that minimizes the altitude. The result is a set of lines, $\Gamma$. Now the problem becomes that of choosing an order and direction to traverse each line with, i.e., a tour of $\Gamma$. Observe that each line can be traversed with two directions. Hence, the second subproblem can be defined as follows:
+
+\begin{problem}[Minimum Cost Tour]
+\label{prob:min_tour}
+Given a polygon $P$ and a set of lines $\Gamma$, generate a matrix $M$ of transition costs between any pair of elements of $\Gamma$. Find a tour of $\Gamma$ such that cost of the tour is minimized.
+\end{problem}
+
+The following sections will introduce our approach to these problems.
+
+\section{Min Altitude Polygon Decomposition for Coverage Planning}
+\label{section:min_alt_decomposition}
+
+This section covers our solution to Problem~\ref{prob:min_alt_decomp}. Section~\ref{chapter:background} introduces decomposition related terminology that is needed to present our decomposition method.
+
+\subsection{Min Altitude Decomposition}
+This section outlines the approach to Problem~\ref{prob:min_alt_decomp}. The overall steps of the process are described in Algorithm~\ref{alg:min_alt_decomposition}.
+\begin{algorithm}
+	\caption{$\operatorname{min\_alt\_decomposition}(P)$}
+	\label{alg:min_alt_decomposition}
+	\begin{algorithmic}[1]
+		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$
+			\STATE $D\gets$ any convex decomposition of $P$	\label{line:cvx_decomp}
+			\REPEAT
+				\STATE Re-optimize a cut from $D$ \label{line:opt_cut_2}
+				\STATE Update cost of the decomposition \label{line:update_cost}
+			\UNTIL{stopping criteria is met}
+	\end{algorithmic}
+\end{algorithm}
+
+Algorithm~\ref{alg:min_alt_decomposition} accepts a polygon as the input. On Line~\ref{line:cvx_decomp}, initial decomposition is generated using any convex decomposition technique. The rest of the algorithm attempts to re-optimize this decomposition in order to decrease the overall altitude. Re-optimization steps on Lines~\ref{line:opt_cut_2} and \ref{line:update_cost} are performed until the cost of the decomposition no longer decreases. The core of Algorithm~\ref{alg:min_alt_decomposition} is the procedure for making optimal decomposing cuts shown in Line~\ref{line:opt_cut_2}. The procedure for making optimal decomposing cuts is introduced in Section~\ref{sec:alt_cut_decomposition}.
+
+\subsection{Optimal Decomposing Cut}
+\label{sec:alt_cut_decomposition}
+The re-optimization step operates on a polygon with a reflex vertex. This polygon is formed by removing the previous cut that was made by a convex decomposition. Our algorithm will either generate a new cut or no cut depending on what is optimal with respect to the altitude of the polygon. We do this by searching for optimal decomposing cuts. The algorithm for doing that is shown in Algorithm~\ref{alg:optimal_cut}. The procedure operates on a single chain and a specified reflex vertex in that chain. On Line~\ref{line:cut_cut_space}, a cut space is generated for the reflex vertex, which provides a set of potential cuts. Two polygons, $P_{\ell}$ and $P_r$ are formed by initializing the cut at the first point of the cut space on Line~\ref{line:cut_two_polygons}. Two sets of altitude directions are generated on Lines~\ref{line:cut_two_sets}-\ref{line:cut_two_sets_2} based on the two polygons. On Lines~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for}, candidates for a cut are found for each combination of directions and each straight segment of the cut space. Before moving on to the next straight segment of the cut space, $P_l$ is modified to include $S_i$ in its boundary. $P_r$ is modified to exclude $S_i$ from its boundary. The checked straight segment may also add a new altitude direction which has to be accounted for. These operations are carried out on Lines~\ref{line:cut_modify_1}-\ref{line:opt_cut_end_for}. The algorithm returns the cut that has the lowest cost.
+
+\begin{algorithm}
+	\caption{$\operatorname{find\_optimal\_cut}(P, v)$}
+	\label{alg:optimal_cut}
+	\begin{algorithmic}[1]
+		\REQUIRE Polygon $P=\{Z_0\}$, reflex vertex $v$
+			\STATE $A_{\ell}\gets\emptyset,\;A_r\gets\emptyset$, $U\gets\emptyset$
+			\STATE Find cut space $S$ for $v$	\label{line:cut_cut_space}
+			\STATE $P_{\ell},P_r\gets$ polygons after cut at first endpoint of $S$ \label{line:cut_two_polygons}
+			\STATE $\Theta_{\ell}\gets$set of directions $\theta$ orthogonal to edges of $P_{\ell}$ \label{line:cut_two_sets}
+			\STATE $\Theta_r\gets$set of directions $\theta$ orthogonal to edges of $P_r$ \label{line:cut_two_sets_2}
+			\FOR{each $S_i\in S$} \label{line:opt_cut_for}
+				\FOR{each $\operatorname{dir}_{\ell}\in \Theta_{\ell}$}
+					\FOR{each $\operatorname{dir}_r\in \Theta_r$}
+						\STATE $u\gets\operatorname{get\_cands}(P_{\ell}$, $P_r$, $S_i$, $\operatorname{dir}_{\ell}$, $\operatorname{dir}_r)$ \label{line:get_cands}
+						\STATE Add tuple $(u, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$ to $U$
+					\ENDFOR
+				\ENDFOR
+				\STATE Modify $P_{\ell}$ by adding $S_i$ to its boundary \label{line:cut_modify_1}
+				\STATE Modify $P_r$ by removing $S_i$ from its boundary
+				\STATE Modify $\Theta_{\ell},\Theta_r$ if new $\theta$ was introduced by $S_i$ \label{line:opt_cut_end_for}
+			\ENDFOR 
+			\STATE Compute costs for all tuples $(u, \operatorname{dir}_{\ell}, \operatorname{dir}_r)\in U$
+			\RETURN Lowest cost element from $U$
+		%\ENDPROCEDURE 
+	\end{algorithmic}
+\end{algorithm}
+The important step in Algorithm~\ref{alg:optimal_cut} is the function $\operatorname{get\_cands}$ on Line~\ref{line:get_cands}. This function finds candidates for a cut. The procedure is described in Algorithm \ref{alg:find_candidate}.
+Lines~\ref{line:cand_trans_pt}-\ref{line:cand_trans_pt_2} of Algorithm~\ref{alg:find_candidate} obtain special points on $S_i$ called transition points for each polygon and altitude direction. These points are associated with the point on $S_i$ that minimize the sum of altitudes. Transition points are formally introduced in Section~\ref{sec:proof_of_correctness}. On Line~\ref{line:cand_if}, both transition points result in equal value, so one of them is returned. Otherwise, a transition point is chosen based on the direction which has the most significant increase in altitude. This is determined by the altitude direction and the orientation of the cut space segment.
+\begin{algorithm}
+	\caption{$\operatorname{get\_cands}(P_{\ell}, P_r, S_i, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$}
+	\label{alg:find_candidate}
+	\begin{algorithmic}[1]
+		\REQUIRE Two polygons, edge on cut space, two directions
+			\STATE $t_1\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_{\ell}$	\label{line:cand_trans_pt}
+			\STATE $t_2\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_r$ \label{line:cand_trans_pt_2}
+			\IF{$t_1$ is further along cut space then $t_2$}\label{line:cand_if}
+				\STATE $U\gets(t_1, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
+			\ELSE \label{line:cand_else}
+				\STATE $\delta\alpha_{\ell}\gets |\operatorname{proj}_{\operatorname{dir}_{\ell}}S_i|$
+				\STATE $\delta\alpha_r\gets |\operatorname{proj}_{\operatorname{dir}_r}S_i|$
+
+				\IF{$\delta\alpha_{\ell}>\delta\alpha_r$}
+					\STATE $U\gets(t_1, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
+				\ELSE
+					\STATE $U\gets(t_2, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
+				\ENDIF
+			\ENDIF
+	\end{algorithmic}
+\end{algorithm}
+
+\subsection{Proof of Correctness}
+\label{sec:proof_of_correctness}
+
+Algorithm~\ref{alg:optimal_cut} provides an optimal decomposing cut. This section proves optimality of this claim.
+
+\begin{claim}
+Given a polygon $P$ and a reflex vertex $v$, Algorithm~\ref{alg:optimal_cut} returns a decomposing cut forming two new polygons that minimize $\alpha^*(P_{\ell})+\alpha^*(P_r)$.
+\end{claim}
+
+The rest of this section will provide proof for this claim. Suppose a polygon $P$ is given with a reflex vertex $v$. By Definition~\ref{def:decomposing_cut}, a decomposing cut generates two new polygons, $P_{\ell}$ and $P_r$. The sets of all edges of $P_{\ell}$ and $P_r$ are $E_{\ell}$ and $E_r$ respectively. We are interested in studying how a choice of a cut affects the altitudes of $P_{\ell}$ and $P_r$. Let us parameterize the orientation of a cut with respect to $t$. There is a function $f:\mathbb{R}\to\mathbb{R}^2$ which maps a parameter $t\in[0,1]$ to a point $x\in\mathbb{R}^2$ on the cut space. Let $w_1$ be a point on cut space when $t=0$ corresponding to a cut on edge $e_1$. See Figure~%\ref{fig:cut}. Define $\alpha_i(t)$ as a function that measures altitude orthogonal to edge $e_i$.
+
+Define the two sets of altitudes as follows:
+\begin{equation}
+\begin{aligned}
+\label{eq:set_of_altitudes}
+&A_{\ell}=\{\alpha_{\ell,i}(t)\ |\ i\in\{1,\ldots,|E_{\ell}|\},\\
+&A_{r}=\{\alpha_{r,i}(t)\ |\ i\in\{1,\ldots,|E_r|\}.
+\end{aligned}
+\end{equation}
+
+
+Note, each element $\alpha_{\ell,i}(t)\in A_{\ell}$ and $\alpha_{r,i}(t)\in A_r$ is a semi-continuous function of $t$, with discontinuities occurring only when the cut sweeps past a pinch vertex in the cut space as shown in Figure~\ref{fig:pinch_vertex}.
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_4/pinch_vertex}
+	\caption{An example of a pinch vertex at $v_p$.}
+	\label{fig:pinch_vertex}
+\end{figure}
+
+\begin{lemma}
+There exists a $t\in[0,1]$ that minimizes $\alpha_{\ell,i}(t)+\alpha_{r,j}(t)$.
+\end{lemma}
 \begin{proof}
-
-The proof of this proposition starts with convex polygons. Recall the center contour introduced in Chapter~\ref{chapter:background}. The distance from any edge of the convex polygon to the center contour is $\beta$. Suppose that the minimum altitude of the convex polygon under study is $\alpha$. By construction of the center contour and the minimum altitude, the following holds, as shown in Figure~\ref{fig:skeleton_altitude}.
+For $P_{\ell}$ and $P_r$, the minimum altitudes are
 \begin{equation}
-	\beta\leq 0.5\alpha.
-\end{equation}
-\simpleplot{img/chapter_4/skeleton_altitude}{Minimum altitude of a convex polygon, $\alpha$. Distance to the center contour, $\beta$.}{fig:skeleton_altitude}
-
-However, $|\mathcal{T}|=\ceil{\frac{\beta}{r}}$ and $\theta=180^o\ceil{\frac{\alpha}{r}}$. Hence, assuming that $\frac{\alpha}{r}$ is exact then
-\begin{equation}
-	360^o|\mathcal{T}|\leq180^o\frac{\alpha}{r}
+\begin{aligned}
+\alpha_{1,\min}(t)=\min(\alpha_{1,1}(t),\ldots,\alpha_{1,n}(t)),\\
+\alpha_{2,\min}(t)=\min(\alpha_{2,1}(t),\ldots,\alpha_{2,m}(t)).
+\end{aligned}
 \end{equation}
 
-To complete the proof, concave polygons need to be considered. Recall that any concave polygon can be decomposed into a set of convex cells. We have also demonstrated that a decomposition can be constructed that minimizes the sum of minimum altitudes over all convex cells. The sum of all minimum altitudes is related to the number of parallel line segments required for coverage. Hence, a coverage angle can also be computed. Also note that every convex cell has its own center contour. However, it was shown that $360^o\frac{\beta}{r}\leq\theta$ for convex polygons. Hence, the summation over all cells will hold as well.
+
+These functions are semi-continuous. Furthermore, the objective of the optimization is the sum of two minimum altitudes of the two polygons,
+\begin{equation}
+\begin{aligned}
+\label{eq:sum_min}
+\alpha_{1,\min}(t)+\alpha_{2,\min}(t).
+\end{aligned}
+\end{equation}
+
+The quantity in Equation~\ref{eq:sum_min} is also semi-continuous. Furthermore, since $t\in[0,1]$ is in a compact set, the minimum of Equation \ref{eq:sum_min} exists by the extension of the extreme value theorem.
 \end{proof}
 
+Fix $S_i\in S$ and let $f(a)$ and $f(b)$ correspond to end points of $S_i$ as shown in Figure~\ref{fig:transition_point}. Consider $\alpha_{1,i}(t)\in A_{\ell}$ which is measured with respect to $e_i$. Construct a line $h_{i}$ that is parallel to $e_i$ that passes through $v$. Denote $f(t_{1,\operatorname{trans}})$ as the point on $S_i$ that intersects $h_i$. Let us refer to this point as a transition point. There are three possibilities:
+\begin{enumerate}
+	\item $t_{1,\operatorname{trans}}\geq b$,
+	\item $t_{1,\operatorname{trans}}\leq a$,
+	\item $t_{1,\operatorname{trans}}\in(a,b)$.
+\end{enumerate} 
+These cases are shown in Figure~\ref{fig:altitude_cases_pl}. In the first case, $\alpha_{1,i}(t)$ remains constant for all $t\in[a,b]$. In the second case, $\alpha_{1,i}(t)$ is an increasing linear function for all $t\in[a,b]$. In the third case, $\alpha_{1,i}(t)$ remains constant for all $t\in[a,t_{1,\operatorname{trans}}]$ and becomes an increasing linear function for all $t\in[t_{1,\operatorname{trans}},b]$.
 
-%When we have derived the length of the straight line segments, it turns out that it is only determined by the area of the polygon and the angle. However, no other information is captured. The amount of work required for coverage depends on the area of the workspace and its complexity. We have accounted for the area of the workspace in the previous section. In this section, we will find a relation between polygons of equal area but varying complexity as shown in Figure~\ref{fig:area_complexity}.
+%\begin{definition}[Transition points]
+%Define $t_{\operatorname{trans}}$ to be the transition points of $\alpha_{1,i}(t)$. In other words, transition point is $t$ after which $\alpha_{1,i}(t)$ start increasing.
+%\end{definition}
 
-%\begin{figure}
-%	\centering
-%	\begin{subfigure}{0.5\linewidth}
-%		\centering
-%		\subfile{img/chapter_4/area_complexity}%
-%		\caption{\label{fig:area_complexity_i}}
-%	\end{subfigure}%
-%	\begin{subfigure}{0.5\linewidth}
-%		\centering
-%		\subfile{img/chapter_4/area_complexity_b}
-%		\caption{\label{fig:area_complexity_ii}}
-%	\end{subfigure}
-%	\caption{An example of polygons with same area but various complexity.}
-%	\label{fig:area_complexity}
-%\end{figure}
-
-%The difference between the two polygons in Figure~\ref{fig:area_complexity} is the complexity. Even though they have equal areas, they have different structure.
+\begin{figure}
+	\centering
+	\subfile{img/chapter_4/transition_point}
+	\caption{An example of a transition point.}
+	\label{fig:transition_point}
+\end{figure}
 
 
+Now, we perform similar analysis for the same $S_i$ but for the right polygon $P_r$. The results are almost identical where the only difference is the behavior of $\alpha_{2,i}(t)$ in three cases outlined above. Figure~\ref{fig:altitude_cases_pr} demonstrates these cases. In the first case, $\alpha_{2,i}(t)$ is a decreasing linear function for all $t\in[a,b]$. In the second case, $\alpha_{2,i}(t)$ remains constant for all $t\in[a,b]$. In the third case, $\alpha_{2,i}(t)$ is a decreasing linear function for all $t\in[a,t_{2,\operatorname{trans}}]$ and remains constant for all $t\in[t_{2,\operatorname{trans}},b]$. Hence, for each $S_i$ and a combination of altitudes, $\alpha_{1,i}(t)$ and $\alpha_{2,j}(t)$, we have two transition points, $\{t_{1,\operatorname{trans}}, t_{2,\operatorname{trans}}\}$.
+\begin{lemma}
+\label{lemma:min_at_trans_pts}
+For a given $S_i$, altitudes $\alpha_{1,i}(t)$ and $\alpha_{2,j}(t)$, a minimizer of $\alpha_{1,i}(t)+\alpha_{2,j}(t)$ is $t\in\{t_{1,\operatorname{trans}}, t_{2,\operatorname{trans}}\}$.
+\end{lemma}
+\begin{proof}
+Observe that $\alpha_{1,i}(t)+\alpha_{2,j}(t)$ is a sum of piece-wise linear functions.  For any combination of two cases depicted in Figure~\ref{fig:altitude_cases_pl} and Figure~\ref{fig:altitude_cases_pr}, there are two cases to consider when looking for the minimizer of the sum.
 
-%This quantity is computed by computing the contours of the polygon. These contours are related to the notion of straight skeletons and medial axis[CITE]. An example of the type of algorithm for computing these contours is shown in Algorithm~\ref{alg:compute_contours}.
+If $t_{1,\operatorname{trans}}\geq t_{2,\operatorname{trans}}$ then the optimal happens at $t_{2,\operatorname{trans}}$. If $t_{1,\operatorname{trans}}<t_{2,\operatorname{trans}}$ then the optimal depends on the slopes of the linear functions. Let $\delta\alpha_{\ell}$ and $\delta\alpha_r$ be the slopes of the left and right altitudes respectively. If $\delta\alpha_{\ell}>\delta\alpha_r$ then the optimum point is at $t_{1,\operatorname{trans}}$. Otherwise, it is at $t_{2,\operatorname{trans}}$.
 
-%Suppose we run Algorithm~\ref{alg:compute_contours} and we get a set of contours, $\mathcal{E}$.
-%\begin{property}[Lower Bound on Turns]
-%The lower bound on the number of turns for coverage of polygon $W$ is $|\mathcal{E}|$.
-%\end{property}
-%To prove this property, we begin by establishing this result in convex polygons.
+There is an altitude associated with the cut itself in $A_{\ell}$ and in $A_r$ that does not exhibit the same properties that were discussed previously. However, by the properties shown by Huang\cite{Huang2001optimal}, this altitude varies as a piece-wise continuous sinusoidal function of $\phi$ where $\phi$ is the angle of a cut with respect to $e_1$. This means the altitude for $P_{\ell}$ is minimized when either the cut is parallel to one of the edges of $P_{\ell}$ or when $t\in\{a,b\}$. Likewise for $P_r$. However, when the cut is parallel to one of the edges of $P_{\ell}$ or $P_r$, this means that the altitude is identical to another altitude in the set $A_{\ell}$ or $A_r$. Since these altitudes are checked first, we only have to check both transition points at $f(a)$ and $f(b)$.
+\end{proof}
 
-%In Figure~\ref{fig:concave_skeleton}, $\beta_2>\beta_1$. Hence, the number of encirclements will be determined by $\beta_2$.
-
-
-\section{Area Allocation Algorithm}
-\label{section:multi_algorithm}
-\textbf{UNDER DEVELOPMENT}
-
-In this section, the algorithm is shown as a solution to Problem~\ref{problem:workspace_decomposition}. The core of the algorithm is described first followed by the description of smaller sub-procedures.
-
-The main algorithm proposed in this section is a greedy algorithm designed to converge to a local pair-wise minimal solution. The optimization process is initialized with a starting solution. The optimization algorithm performs an iterative pair-wise re-optimization procedure until the cost of the solution converges. The result is a partition with the maximum solution converging to some local minimum.
-
-As an input, $\mathbb{C}$ is provided with the assumption that it is polygonal. A set of $n$ initial positions of $n$ robots is also provided as one of the inputs in the form of $(x,y)$ coordinates. As an initialization step, the polygon $\mathbb{C}$ is partitioned into $n$ subregions of equal area by the anchored area partitioning algorithm. This step is designed to provide the algorithm  with a starting point to be used in the iterative re-optimization procedure. This initial partition acts as a good approximation of an optimal solution. In fact, many existing works model the area as being directly proportional to the work that a robot has to do.
-
-An adjacency graph is computed on the resultant partition. For every cell in the partition, an approximation of the coverage cost is computed using metric $\chi$. For every cell with the highest cost, we perform the following re-optimization steps. First, some adjacent cell is picked[MAYBE CELLWITH LOWEST COST]. This pair of adjacent cells is recombined resulting in one region. A procedure is performed that greedily computes an optimal cut that generates two cells and that minimizes the maximum cost of coverage of two cells. The cost and the partition are modified accordingly. The loop is repeated for the next cell with the highest cost in the decomposition. The termination condition for this loops is when the maximum cost over all cells in the decomposition stops decreasing. Algorithm~\ref{alg:optimization_procedure} demonstrates the described procedure.
-
-\begin{algorithm}
-	%\small
-	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
-	\label{alg:optimization_procedure}
-	\begin{algorithmic}[1]
-		\REQUIRE Polygon $\mathbb{C}=\{Z_0,Z_1,\ldots\}$, Set of starting locations $\{q^0_i\}$
-			%\STATE $V\gets n$ virtual starting locations placed randomly on the boundary of $P$ \label{line:1_start_locs}
-			\STATE $D\gets$ anchored\_area\_partition$(\mathbb{C},\{q^0_i\},\frac{1}{n})$ \label{line:area_part}
-			\STATE $\mathcal{G}\gets$ adjacency graph of $D$
-			\STATE $M\gets\chi(q^0_i,w_i), \forall w_i\in D$ 
-			%\STATE Add all cells in $D$ to the queue $Q$
-			\REPEAT
-				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$
-				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$ with lowest $\chi(q^0_j,w_j)$
-				\STATE $w_{\text{temp}}\gets w_a\cup b_j$
-				\STATE $\Delta\chi\gets\frac{|\chi_2-\chi_1|}{\chi_2+\chi_1}$
-				\STATE $A_t\gets$ Half of area of $w_{\text{temp}}$
-				\STATE $w_i,w_j\gets$ anchored\_area\_partition($w_{\text{temp}},(q^0_i,q^0_j),(A_t+\Delta\chi,A_t-\Delta\chi)$\label{line:distr_opt_cut}
-				%\STATE $\mathbb{E}\gets$ \text{compute\_encirclements}$(p_{\operatorname{temp}})$ \label{line:compute_encirlment}
-				%\STATE $\sigma_{\ell}\gets$ compute\_encirclements($p_{\ell}$) \label{line:recalc_encirclemnts_1}
-				%\STATE $\sigma_r\gets$ compute\_encirclements($p_r$) \label{line:recalc_encirclemnts_2}
-				%\STATE $\sigma_{\ell}\gets$ recalc\_encirclements($p_{\ell},\mathbb{E}, c$) \label{line:recalc_encirclemnts_1}
-				%\STATE $\sigma_r\gets$ recalc\_encirclements($p_r, \mathbb{E}, c$) \label{line:recalc_encirclemnts_2}
-				%\STATE Cost $\gets\chi(s_i,p_{\ell},\sigma_{\ell})+\phi(s_j,p_r,\sigma_r$) 
-				%\STATE Cost $\gets\max\{\chi(s_i,p_{\ell}),\chi(s_j,p_r)\}$ 
-				%\STATE Implement $c$ that resulted in lowest cost, modify $D$.
-				\STATE Modify $\chi(q^0_j,w_j)$ and $\chi(q^0_i,w_i)$ accordingly
-				\STATE Modify $D$ with $w_i,w_j$
-			\UNTIL{Maximum $\chi(q^0_j,w_j)\forall w_j\in D$ stops decreasing}
-			\RETURN $D$
-	\end{algorithmic}
-\end{algorithm}
-
-Throughout the algorithm, the metric $\chi$ is computed several times. The metric is analyzed in Section~\ref{section:multi_decomposition_metric}. Algorithm~\ref{alg:metric_algorithm} demonstrates the procedure for computing the metric. The values used in the computation of this metric are described in more details in Section~\ref{section:multi_decomposition_metric}. In this algorithm, values $\mathcal{F}_1,\mathcal{F}_2$, and $\mathcal{F}_3$ are computed. 
-
-\begin{algorithm}
-	\caption{$\text{compute\_}\chi(q^0, w)$}
-	\label{alg:metric_algorithm}
-	\begin{algorithmic}[1]
-		\REQUIRE Initial position $q^0$, Polygon $w=\{Z_0,Z_1,\ldots\}$ 
-		\STATE $\mathcal{F}_1\gets2\min_{x\in\partial w}||q^0-x||_2$
-		\STATE $A_\text{actual}\gets$ area of $w$
-		\STATE $\Theta\gets$ angles of all edges w.r.t. the $x$-axis.
-		\STATE $\theta_{\max}\gets$ largest difference between any two pairs of elements of $\Theta$
-		\STATE $A^{\max}_{\text{uncovered}}\gets\alpha_{\min}r(4\csc{\theta_{\max}}-\pi)$
-		\STATE $\mathcal{F}_2\gets\frac{A_\text{actual}-A^{\max}_{\text{uncovered}}}{r}$
-		\STATE $\mathcal{T}\gets$ compute\_contours of $w$
-		\STATE $\mathcal{F}_3\gets360^o|\mathcal{T}|$
-		\RETURN $c_1(\mathcal{F}_1+\mathcal{F}_2)+c_2\mathcal{F}_3$
-	\end{algorithmic}
-\end{algorithm}
-
-Another important sub-procedure is the call to anchored area partition procedure. This procedure is based on the work by Hert~\cite{hert1998polygon} and his approach to area partitioning problem. The procedure is summarized in Algorithm~\ref{alg:anchored_area_partition}. This algorithm allows for making cuts without having to discretized the coverable area. Moreover, a series of cuts are made to form $n$ cells with area specified as an input to the algorithm. For brevity, we only show the algorithm for convex polygons here. The full algorithm will be available in the Appendix.
-
-\begin{algorithm}
-	\caption{$\text{anchored\_area\_partition}(w, (q^0_i,q^0_j), A_1,A_2)$}
-	\label{alg:anchored_area_partition}
-	\begin{algorithmic}[1]
-		\REQUIRE Polygon $w=\{Z_0,Z_1,\ldots\}$, Tuple of starting locations $(q_i,q_j)$, tuple of required areas
-		\STATE $V(w)\gets$ list of vertices in CCW order
-		\STATE Order $q^0_i,q^0_j$ according to this order as well
-		\STATE Initialize the cut $L=(L_s,L_e)$ as an edge $(v_0,q^0_1)$
-		\WHILE{$\text{Area}(w_j)<A_2$ or $L_e!=q^0_2$}
-			\STATE Move $L_e$ CCW
-		\ENDWHILE
-		\IF{$\text{Area}(w_j)<A_2$}
-			\WHILE{$\text{Area}(w_j)<A_2$}
-				\STATE Move $L_s$ CW
-			\ENDWHILE
-		\ENDIF
-		\RETURN $w_i,w_j$
-	\end{algorithmic}
-\end{algorithm}
-
-%In Algorithm~\ref{alg:optimization_procedure}, in Line~\ref{line:compute_encirlment}, a procedure is called to compute \emph{encirclements}. The procedure for computing them is shown in Algorithm~\ref{alg:compute_contours}.
-%\begin{algorithm}
-%	\small
-%	\caption{$\operatorname{compute\_encirclements}$}
-%	\label{alg:compute_contours}
-%	\begin{algorithmic}[1]
-%		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$
-%		\STATE $\mathcal{C}\gets\emptyset$ 
-%		\REPEAT
-%			\STATE $C\gets$ \textit{parallel\_offset\_inwards}$(P)$
-%			\STATE $\mathcal{C}\gets C$
-%		\UNTIL{No further shrinking possible}
-%		\RETURN $\mathcal{C}$
-%	\end{algorithmic}
-%\end{algorithm}
-%
-%The Algorithm~\ref{alg:update_contours} shows a procedure for recalculating the number of encirclements to avoid constant re-computation of contours. This increases the efficiency of the algorithm.
-%\begin{algorithm}
-%	\small
-%	\caption{$\operatorname{recalc\_encirclements}$}
-%	\label{alg:update_contours}
-%	\begin{algorithmic}[1]
-%		\REQUIRE Polygon $P=\{Z_0,Z_1,\ldots\}$, Set of contours $\mathbb{E}$, cut $c$
-%		\STATE $\mathcal{C}\gets\emptyset$ 
-%		\REPEAT
-%			\STATE $C\gets$ \textit{parallel\_offset\_inwards}$(P)$
-%			\STATE $\mathcal{C}\gets C$
-%		\UNTIL{Shrinking results in a point or line}
-%		\RETURN $\mathcal{C}$
-%	\end{algorithmic}
-%\end{algorithm}
-
-
-\section{Path Planning Algorithm}
-It should be noted that once Algorithm~\ref{alg:optimization_procedure} is finished and a partition is generated, then each robot has been assigned a task in a suboptimal way. Then it becomes a problem of planning a coverage path for single robot. For this, it is sufficient to run the algorithm introduces in previous section $n$ times for $n$ robots for achieve the final coverage paths.
-
-
+By Lemma \ref{lemma:min_at_trans_pts}, it is enough to compute the cost of each transition point for each $S_i\in S$ and all combinations of elements from $A_{\ell}$ and $A_r$ and pick one point with lowest cost. This is the procedure described in Algorithm~\ref{alg:optimal_cut}.
 
 \section{Computational Complexity}
-\label{section:multi_comp_analysis}
+\label{section:single_agent_complexity}
+
+Algorithm~\ref{alg:find_candidate} is $\mathbb{O}(1)$ since there are no iterations. Algorithm~\ref{alg:optimal_cut} is the core of the algorithm and there are a lot more computation invovled. Finding the cutspace is ....  The inner most loop is $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. So is the second inner most loop. Hence, the run time of two inner loops is $\mathbb{O}(n^2)$ where $n$ is the number of edges in the polygon. The first for loop runs in $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. Hence, the overall polygon runs in $\mathbb{O}(n^3)$ where $n$ is the number of edges in a polygon.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_4/altitude_func_pl_1}
+		\caption{\label{fig:altitude_case_i}}
+	\end{subfigure}%
+	\quad
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_4/altitude_func_pl_2}
+		\caption{\label{fig:altitude_case_ii}}
+	\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_4/altitude_func_pl_2}
+		\caption{\label{fig:altitude_case_iii}}
+	\end{subfigure}
+	\caption{Three cases of altitude behavior for $P_{\ell}$.}
+	\label{fig:altitude_cases_pl}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_4/altitude_func_pr_1}
+		\caption{\label{fig:altitude_case_pr_i}}
+	\end{subfigure}%
+	\quad
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_4/altitude_func_pr_2}
+		\caption{\label{fig:altitude_case_pr_ii}}
+	\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}
+		\centering
+		\subfile{img/chapter_4/altitude_func_pr_3}
+		\caption{\label{fig:altitude_case_pr_iii}}
+	\end{subfigure}
+	\caption{Three cases of altitude behavior for $P_r$.}
+	\label{fig:altitude_cases_pr}
+\end{figure}
+
+
+\section{Improvements to Decomposition}
+\label{section:single_agent_improvment}
+The most computational intensive task in Algorithm~\ref{alg:optimal_cut}  is computing cut candidates for each pair of altitude directions (Line~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for}). The computation load can be reduced by only evaluating a subset of direction pairs as follows.
+
+Define $\underline{P}_{\ell}$ and $\underline{P}_{r}$ to be the polygons on either side of the cone of bisection. It is important to note that the cone of bisection is not a part of these polygons. We compute look-up tables of altitudes for every direction for $\underline{P}_{\ell}$ and $\underline{P}_{r}$ separately such that $\alpha(\underline{P}_{\ell},\text{dir}_1)$ returns the altitude of $\underline{P}_{\ell}$ in direction $\text{dir}_1$. These look-up tables represent the best case scenario for a pair of directions. In the main loop of Algorithm~\ref{alg:optimal_cut}, we keep track of the best altitude so far. A check is added to the main loop such that for a pair of directions, $\text{dir}_1$ and $\text{dir}_2$, if $\alpha(\underline{P}_{\ell},\operatorname{dir}_1)+\alpha(\underline{P}_{r},\operatorname{dir}_2)$ is larger than the best altitude so far, then this pair of directions cannot be optimal, and no further computation is needed.
+
+\section{GTSP Tour Generation}
+\label{section:single_agent_gtsp_tour}
+
+Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$, resulting in a set $D$ of polygons. For each $P_i\in D$, we generate the minimum set $\Gamma_i$ of straight segment footprints. Note, each $\gamma_j\in\Gamma_i$ has two possible traversal directions. We refer to the choice of this direction as $\gamma_j^1$ or $\gamma_j^2$  as shown in Figure~\ref{fig:traversal_directions}. Define $\operatorname{cost}(\gamma_i^m, \gamma_j^l)$ as the robot transition cost from region $\gamma_i$ in $m$ direction to region $\gamma_j$ in $l$ direction where $m,l\in\{1,2\}$ and $i,j\in\{1,\ldots,k\},i\neq j$. This transition cost takes the dynamics of the robot into account. Computing this cost for each pair $\gamma_i^m, \gamma_j^l$, a complete graph $G=(V,E,w)$ is constructed where each vertex $v\in V$ represents $\gamma^m_i$ for some $m\in\{1,2\}$ and $i=\{1,\ldots,k\}$, each edge $e=\{v,z\}$ in $E$ represents transition between vertices $v$ and $z$, and weights represent robot transition costs between vertices. Furthermore, $V$ is partitioned into sets $\{\gamma_i^1,\gamma_i^2\}$ for $i=\{1,\ldots,k\}$. The graph $G$ and the partition define the GTSP instance, and a GTSP tour on this graph gives a coverage path for the robot. 
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_4/gtsp_i}
+	\caption{Two possible traversal directions for line $\gamma_j$.}
+	\label{fig:traversal_directions}
+\end{figure}
+\begin{figure}
+	\centering
+	\subfile{img/chapter_4/gtsp_ii}
+	\caption{Two possible traversal directions for line $\gamma_j$.}
+	\label{fig:cost}
+\end{figure}
 
 \section{Simulations}
-\label{section:multi_simulations}
+\label{section:single_agent_simulation}
+Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely\footnote{The Shapely library is available at \url{https://github.com/Toblerity/Shapely}} and Visilibity%\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model.
 
+Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.
+
+
+\begin{table}
+	\centering
+	\caption{Decomposition methods comparison for multiple test shapes.}
+	\label{table:performance}
+	\begin{tabular}{@{} l rrrr l rrrr l rrrr l@{}}
+		\toprule
+		&& Size & Time & Length & Area \\
+		\cmidrule{3-6}
+		\multirow{4}{*}{Point Decomposition} & Shape 1 & 7144 & 2h & 312.6 & 87.8\%\\
+		& Shape 2 & 7288  & 2h & 306.3 & 86.9\%\\
+		& Shape 3 & 7464 & 2h & 349.3 & 88.3\%\\
+		& Shape 4 & 6736 & 2h & 312.2 & 85.1\%\\
+		\midrule
+		\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
+		& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
+		& Shape 3 & 136 & \bf{6s} & \bf{226.9} & 79.8\%\\
+		& Shape 4 & 116 & \bf{3s} & \bf{226.5} & 88.1\%\\
+		\midrule
+		\multirow{4}{*}{Min Alt Decomposition} & Shape 1 & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
+		& Shape 2 & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
+		& Shape 3 & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
+		& Shape 4 & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
+		\bottomrule
+
+	\end{tabular}
+\end{table}
+
+
+Performance figures of all three methods are shown in Table~\ref{table:performance}. We compare four characteristics of the three approaches: 1) the size of the GTSP instance, 2) the execution time from start to finish, 3) the total length of the tour, and 4) the area covered by the coverage path as percentage of the total area of the polygon. We note that in all four test shapes, our method reduced the number of turns in the final coverage path. This is shown in the reduction in GTSP size, which is equivalent to the reduction in number of straight line segments. Naturally, since our method uses greedy decomposition as a starting point, it runs more slowly then the pure greedy approach. On average, out method is about three times slower than the greedy approach. However, it is faster then the point decomposition by a factor of 100. 
+
+It is worth noting that the overall path lengths are slightly shorter with the greedy decomposition compared to our method. However, this factor is mostly attributed to the fact that greedy decomposition produces many regions whose area is small relative to the size of the footprint. These regions are typically very narrow, which makes it difficult to place lines inside those regions that cover most of the area. Decompositions that produce excessive number of such regions results in a significant portion of the total area of the polygon uncovered. Our method produces fewer regions and leaves less area uncovered. From Table~\ref{table:performance}, the uncovered area left by our method is on average half of the uncovered area left by the greedy approach. It is worth noting that point decomposition in some cases covers less area than the competing algorithms. However, this occurrence is primarily due to our method for generating the approximate decomposition, which does not place any coverage footprints at a distance of less than $r$ from the boundary, leading to uncovered areas near polygon boundaries.
+
+Figure~\ref{fig:coverage_results} shows the resultant paths for three different approaches. The line segments are orange and green segments show Dubins transition costs. Note that green segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. The red lines highlight shared edges of adjacent polygons in the decomposition. The first column of figures show the point decomposition. The second column of figures show the greedy decomposition technique. And the last column shows our re-optimization technique. 
+
+From Figure~\ref{fig:coverage_results} we can see that our method significantly reduces the number of polygons compared to the greedy decomposition. Inefficiencies in the GTSP tour occur due to the very large size of the GTSP instance, which poses a challenge for the heuristic GLKH solver.
+
+\begin{figure*}
+		\centering
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/point_10_coverage.png}% 
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/greedy_10_coverage.pdf}% 
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/min_10_coverage.pdf}
+
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/point_11_coverage.png}% 	
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/greedy_11_coverage.pdf}%
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/min_11_coverage.pdf}
+
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/point_12_coverage.png}%
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/greedy_12_coverage.pdf}%
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/min_12_coverage.pdf}
+
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/point_13_coverage.png}%
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/greedy_13_coverage.pdf}% 
+		\includegraphics[width=0.3\textwidth]{img/chapter_4/min_13_coverage.pdf}
+	\caption{First column: point decomposition. Second columm: greedy decomposition. Third column: min altitude decomposition.}
+	\label{fig:coverage_results}
+\end{figure*}
 
 \end{document}
