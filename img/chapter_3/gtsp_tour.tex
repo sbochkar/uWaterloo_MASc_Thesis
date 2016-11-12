@@ -1,0 +1,41 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (10,0);
+		\coordinate (p3) at (8,4);
+		\coordinate (p4) at (5,6);
+		\coordinate (p5) at (1,5);
+
+		\draw [very thin] (p1)--(p2); 
+		\draw [very thin] (p1)--(p3);
+		\draw [very thin] (p1)--(p4); 
+		\draw [very thin] (p1)--(p5);  
+
+		\draw [very thin] (p2)--(p3);
+		\draw [very thin] (p2)--(p4); 
+		\draw [very thin] (p2)--(p5);  
+
+		\draw [very thin] (p3)--(p4); 
+		\draw [very thin] (p3)--(p5);  
+
+		\draw [very thin] (p4)--(p5);  
+
+		\draw [dashed, rounded corners] (-1,-1) rectangle (2,6);
+		\draw [dashed, rounded corners] (4,5) rectangle (6,7);
+		\draw [dashed, rounded corners] (7,5) rectangle (11,-1);
+
+		\draw [very thick] (p3)--(p4)--(p5)--cycle;
+
+		\foreach \vv [count=\i from 0] in {p1, p2, p3, p4, p5}{
+			\fill [my_orange] (\vv) circle [radius=0.2cm]; 
+			\draw [thick, line width=0.2mm] (\vv) circle [radius=0.205cm]; 
+		}
+
+
+	\end{tikzpicture}
+\end{document}

@@ -7,7 +7,7 @@
 \chapter{Background}
 \label{chapter:background}
 
-This chapter reviews some of the concepts required to understand the proposed solution in this thesis. This chapter is organized as follows. Section~ reviews some aspects of geometry related to polygons, Section~ reviews representation of robot dynamics. 
+This chapter reviews some of the concepts required to understand the proposed solution in this thesis. This chapter is organized as follows. Section~\ref{section:background_robot_dynamics} reviews robot dynamics and representation of a workspace. Section~\ref{section:background_geometry} reviews some concepts from geometry. Section~\ref{section:GTSP} reviews the traveling salesman problem.
 
 \section{Robot Dynamics}
 \label{section:background_robot_dynamics}
@@ -31,7 +31,7 @@ Throughout the thesis, we make multiple references to the coverage workspace of 
 %	\end{equation}
 %\end{definition}
 
-The robot that is to be used for coverage has some dynamics. These dynamics give rise to the configuration space of a robot. The configuration space is denoted by $Q$. For the purposes of this work, the configuration space can be thought of as a plane in $\mathbb{R}^2$. In the path planning works, an important subset of the configuration space is the free configuration space. That is, $Q_{\text{free}}\subseteq Q$ is a configuration space of a robot that is free from any collisions. Figure~\ref{fig:configuration_space} demonstrates the free configuration space for a point robot with a circular base. It is important to note that some areas are not accessible such as the corners of the workspace. Hence, these areas are not in the free configuration space since if a robot would attempt to reach these points, it would collide with the workspace boundary. Therefore, a feasible path is called a continuous path that is entirely in the free configuration space:
+The robot that is to be used for coverage has some dynamics. These dynamics give rise to the configuration space of a robot. The configuration space is denoted by $Q$. In the path planning works, an important subset of the configuration space is the free configuration space. That is, $Q_{\text{free}}\subseteq Q$ is a configuration space of a robot that is free from any collisions. Figure~\ref{fig:configuration_space} demonstrates the free configuration space for a point robot with a circular base. It is important to note that some areas are not accessible such as the corners of the workspace. Hence, these areas are not in the free configuration space since if a robot would attempt to reach these points, it would collide with the workspace boundary. Therefore, a feasible path is called a continuous path that is entirely in the free configuration space:
 \begin{equation}
 	p=\bigcup q_i, q_i\in Q_{\text{free}}.
 \end{equation}
@@ -55,11 +55,11 @@ As an example, in this thesis, a kinematic model of Dubins' car~\cite{dubins1957
 		& \dot{\theta}=u.
 	\end{aligned}
 \end{equation}
-where $(x,y)$ is a position of the robot and $V$ is the linear constant speed of the car, $u$ is the turn rate, which is bounded. The maximum turning rate corresponds to the minimum  turning radius, often refeered to as $r$ in this thesis. In this case, the configuration space of the car is $R^2\times\Theta$
+where $(x,y)$ is a position of the robot and $V$ is the linear constant speed of a car, $u$ is the turn rate, which is bounded. The maximum turning rate corresponds to the minimum turning radius $R_{\min}$. With this model, the configuration space of a car is $R^2\times\Theta$
 
-We now shift our focus to the paths that these robots traverse. Throughout the thesis, we make numerous references to straight line segments and transition segments. Straight line segments are paths that consists of a straight line. In other words, a robot traversing a straight line segments will never change its heading. This means that a straight line segment only has a linear component. On the other hand, a transition segment is a path where the robot does change its heading. In other words, the angular component of such a path is non zero.
+Throughout the thesis, numerous references are made to straight line segments and transition segments. Straight line segment is a path that is a straight line. In other words, a robot traversing a straight line segments will never change its heading. On the other hand, a transition segment is a path where the robot does change its heading. A path $p$ has a linear component, $\ell(p)$ and an angular component, $a(p)$. The linear component is the total distance traveled by a robot traversing $p$. The angular component is an accumulation of heading changes of a robot traversing $p$.
 
-Any coverage robot is equipped with a coverage tool. When this tool is operational, there is an associated coverage footprint with it. The location of this footprint and the exact region covered by this footprint depend on the physical location of this footprint in the robot. To formalize this relation, a function is introduced called the coverage map, $\mathcal{M}:Q\to \mathbb{R}^2$. The coverage map function maps the configuration $q$ of a robot to a set of points in $\mathbb{R}^2$ that are located under the footprint. Since the location of the coverage footprint is determined by the configuration of the robot, it is naturally to ask what areas can be covered given the free configuration space. A set of points that can be covered given a free configuration space is called the coverable space and is denoted by $\mathbb{C}$. An example of a coverable space determined by the configuration space for a disk robot is shown in Figure~\ref{fig:coverable_space}. Formally, the coverage space is defined as follows:
+Any coverage robot is equipped with a coverage tool. When this tool is operational, there is an associated coverage footprint with it. The location of this footprint and the exact region covered by this footprint depend on the physical location of this footprint on the robot. To formalize this relation, a function is introduced called the coverage map, $\mathcal{M}:Q\to \mathbb{R}^2$. The coverage map function maps the configuration $q$ of a robot to a set of points in $\mathbb{R}^2$ that are located under the footprint. A set of points that can be covered given a free configuration space of a robot is called the coverable space and is denoted by $\mathbb{C}$. An example of a coverable space determined by the configuration space for a disk robot is shown in Figure~\ref{fig:coverable_space}. Formally, the coverage space is defined as follows:
 \begin{equation}
 	\mathbb{C}=\bigcup_{q\in Q_{\text{free}}}\mathcal{M}(q).
 \end{equation}
@@ -109,26 +109,37 @@ A \emph{reflex vertex} is a vertex in one of the chains of $P$ that has an inter
 \section{Traveling Salesman Problem Preliminaries}
 \label{section:GTSP}
 
-In this section, we review one of the famous problems in computer science called the Travelling Salesman Problem. The formulation of the problem is introduced. WE then move on to the generalization of TSP called Generalized TRavelling Saelsman Problem.
+In this section, we review one of the famous problems in computer science called the Traveling Salesman Problem. The formulation of the problem is introduced. WE then move on to the generalization of TSP called Generalized TRavelling Salesman Problem.
 
-First we go over the inputs to the problem. The TSP is defined over a complete graph $G=(V,E,w)$. $V$ is a set of vertices in the graph. $E$ is a set of edges in the graph. Since $G$ is complete, there exists an edge between any pair of verticies in $V$. Every edge $e\in E$ has an associated weight $w$ in it. An example of a graph is shown in Figure~\ref{fig:complete_graph}. Here, the vertices are shown as yellow nodes. The edges are shown as black lines connecting the dots. Note that every node has a line connecting it to every other node.
+First we go over the inputs to the problem. The TSP is defined over a complete graph $G=(V,E,w)$. $V$ is a set of vertices in the graph. $E$ is a set of edges in the graph. Since $G$ is complete, there exists an edge between any pair of vertices in $V$. Every edge $e\in E$ has an associated weight $w$ in it. An example of a graph is shown in Figure~\ref{fig:complete_graph}. Here, the vertices are shown as yellow nodes. The edges are shown as black lines connecting the dots. Note that every node has a line connecting it to every other node.
 \begin{figure}
 	\centering
-	\includegraphics[scale=0.5]{chapter_3/Graph_novehicle.pdf}
+	\subfile{img/chapter_3/graph}
 	\caption{An example of a complete graph $G$.}
 	\label{fig:complete_graph}
 \end{figure}
 
+\begin{figure}
+	\centering
+	\subfile{img/chapter_3/tsp_tour}
+	\caption{An example of a TSP tour on a complete graph $G$.}
+	\label{fig:tsp_tour}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_3/gtsp_tour}
+	\caption{An example of a GTSP tour on a complete graph $G$.}
+	\label{fig:gtsp_tour}
+\end{figure}
 
 \begin{problem}
-Given a complete graph $G=(V,E,w)$, comptue a minimum cost tour of $G$ where every vertex is visisted exactly once.
+Given a complete graph $G=(V,E,w)$, compute a minimum cost tour of $G$ where every vertex is visited exactly once.
 \end{problem}
 
-This is problem is knonw to be NP-hard. As such, the search space for the solution \emph{blows up} as the combinatrial size of the input. Nevetherless, there are various solutions available that provide approximate and suboptimal solutions with relativly fast compute time. One of these is an algorithm using a Lin-Kernighan TSP heuristic~\cite{helsgaun2009general}. This work makes use of the solver extensivly.
+This is problem is known to be NP-hard. As such, the search space for the solution \emph{blows up} as the combinatorial size of the input. Nevertheless, there are various solutions available that provide approximate and suboptimal solutions with relatively fast compute time. One of these is an algorithm using a Lin-Kernighan TSP heuristic~\cite{helsgaun2009general}. This work makes use of the solver extensively.
 
-Another side of this problem is a more general form of TSP called the Generalized Travelling Salesman Problem. The inputs to this problem are the same with the exception of the following. A vertex partition $P=\{V1,\ldots,V_{\ell}\}$ is also provided. The vertex partition is a set of subsets of $V$ with no overlapping elements. In other words, 
-
-
+Another side of this problem is a more general form of TSP called the Generalized Traveling Salesman Problem. The inputs to this problem are the same with the exception of the following. A vertex partition $P=\{V1,\ldots,V_{\ell}\}$ is also provided. The vertex partition is a set of subsets of $V$ with no overlapping elements. In other words, 
 
 Suppose a complete graph $G=(V,E,w)$ is given where $V$ is a set of vertices, $E$ is a set of edges, and $w$ is a set of edge weights. Suppose $V$ is partitioned into pairwise disjoint sets $\{V_1,\ldots,V_p\}$ where $V_i\subset V$. The Generalized Traveling Salesman Problem (GTSP) is the problem of computing a tour that visits exactly one vertex from each $V_i$ such that the length of the tour is minimized. The TSP is a special case of the GTSP where $|V_i|=1$ for each $i$ and is NP-hard.
 
