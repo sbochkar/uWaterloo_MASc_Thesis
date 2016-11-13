@@ -5,11 +5,35 @@
 \begin{document}
 	\begin{tikzpicture}[scale=1]
 
-		\draw [very thick] (0,0) -- (5,0) node [right] {$\gamma_j$};
-		\draw [very thick] (0,2) -- (5,2) node [right] {$\gamma_i$};
+		\foreach \x [count=\i from 0] in {0,4,8} {
+			\draw [very thick] (0,2+\x) -- (5,2+\x) node [right] {$\gamma_\i$};
+			\draw [->, dashed] (1,3+\x) -- node [above] {$\gamma^1_\i$}(4,3+\x);
+			\draw [<-, dashed] (1,1+\x) -- node [below] {$\gamma^2_\i$}(4,1+\x);
+		}
 
-		\draw [dashed, ->] plot [smooth] coordinates {(0,0) (-0.5,1) (0,2)}; 
-		\draw [dashed, ->] plot [smooth] coordinates {(0,0) (-0.5,0.5) (5.5,1.5) (5,2)};
+		\draw [->, ultra thick, dashed] (6,6)--(7,6);
+
+		\foreach \x [count=\i from 0] in {0,4,8} {
+			\draw [fill] (8,1.5+\x) circle [radius=0.1cm] node [right] {$\gamma^2_\i$};
+			\draw [fill] (8,2.5+\x) circle [radius=0.1cm] node [right] {$\gamma^1_\i$};
+			\draw [dashed, rounded corners] (7.4,1+\x) rectangle (8.6,3+\x);
+		}
+
+
+		\draw [->, ultra thick, dashed] (9,6)--(10,6);
+
+
+		\foreach \x in {0,4,8} {
+			\draw [fill] (11,1.5+\x) circle [radius=0.1cm];
+			\draw [fill] (11,2.5+\x) circle [radius=0.1cm];
+			\draw [dashed, rounded corners] (10.5,1+\x) rectangle (11.5,3+\x);
+		}
+
+		\draw [] plot [smooth] coordinates {(11,9.5) (10,8) (11,6.5) (12,4) (11,2.5)};
+
+
+%		\draw [dashed, ->] plot [smooth] coordinates {(0,0) (-0.5,1) (0,2)}; 
+%		\draw [dashed, ->] plot [smooth] coordinates {(0,0) (-0.5,0.5) (5.5,1.5) (5,2)};
 		
 	\end{tikzpicture}
 \end{document}	

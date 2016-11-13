@@ -6,21 +6,22 @@
 \chapter{Single Agent Coverage}
 \label{chapter:single_agent_coverage}
 
-In this chapter, we formulate the problem of single agent coverage and propose a solution. The chapter is organized into six sections. Section~\ref{section:single_problem_statement} goes through the formulation of the problem into its final form. Section~\ref{section:min_alt_decomposition} proposes a solution to the problem. Section~\ref{section:single_agent_complexity} offers the computational complexity analysis of the proposed algorithm. Section~\ref{section:single_agent_improvment} offers suggestions for improvements of the algorithm. Section~\ref{section:single_agent_gtsp_tour} describes the Generalized Traveling Salesman Problem. Lastly, Section~\ref{section:single_agent_simulation} presents the results of the algorithm in the form of simulations.
+In this chapter, we formulate the problem of single agent coverage and propose a solution. The chapter is organized into six sections. Section~\ref{section:single_problem_statement} goes through the formulation of the problem. Section~\ref{section:min_alt_decomposition} proposes an algorithm. Section~\ref{section:single_agent_improvment} contains suggestions for improvements of the algorithm. %%Section~\ref{section:single_agent_gtsp_tour} describes the Generalized Traveling Salesman Problem.
+Lastly, Section~\ref{section:single_agent_simulation} presents the results of the algorithm in the form of simulations.
 
 \section{Problem Statement}
 \label{section:single_problem_statement}
 
-In this section, the problem statement is developed. We start with the statement of the general problem. We then describe a set of assumptions being made with justifications. The final problem statement is then stated.
+In this section, the problem statement is developed. We start with the statement of the general problem. We then describe a set of assumptions made during the formulation. The final problem statement is then stated.
 
-The general coverage problem is defined as follows.
+The general coverage problem is defined in Problem~\ref{problem:min_cost_cpp}.
 \begin{problem}[Minimum Cost Coverage Path Planning]
 \label{problem:min_cost_cpp}
 	Given a workspace $W$, a robot with dynamics, and a coverage footprint map $\mathcal{M}(q)$, compute a path $p_i\in P$ such that
 	\begin{equation}
 	\label{condition:full_coverage}
 	\begin{aligned}
-		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathcal{C},\\
+		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathbb{C},\\
 		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P.
 	\end{aligned}
 	\end{equation}
@@ -30,15 +31,15 @@ In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, a
 
 From the literature and our collaborations with companies that deal with coverage, we have observed that the most desirable path for numerous types of robots is a straight line segment. Human path planners generally try to avoid having excessive number of turns in their paths. This is because many types of robotic systems do not handle turns well. For instance, a battery powered differential drive robot often cannot maintain the same linear speed when executing turn maneuvers. As a result, it needs to slow down, turn and speed up afterwards, which penalizes the energy efficiency of the path. Other examples include field scanning via a fixed wing UAV~\cite{frew2004vision}. Such fixed wing UAV systems often have the sensor suite mounted directly on to the chassis of the plane for cost and weight considerations. When the plane is not pitching, the sensors point downwards. During a turn maneuver, the UAV has to pitch, which cause the sensors to point in an other direction. This reduces the quality of the coverage and usually requires a second pass over the uncovered spot. Again, turns reduce the efficiency of coverage paths. Motivated by these observations, we aim to compute coverage paths with minimum turning. %There is a related problem of the minimum bend TSP~\cite{wagner2001approximation}. However, we aim to avoid the issue of discretization that is associated with the TSP approaches as outlined in the previous section.
 
-Note that any path $p_i$ has two components: linear and angular. A function to evaluate the cost of a path is designed accordingly to reflect the differences in the cost of a straight path versus a curved path. The cost function for path $p_i$ is denoted by $\mathcal{E}(p_i)$ and is proportional to these components.
+Note that any path $p_i$ has two components: linear and angular. A function to evaluate the cost of a path is designed accordingly to reflect the differences in the cost of a straight path versus a curved path. The cost function for path $p_i$ is denoted by $\mathcal{E}(p_i)$ and defined as follows:proportional to these components.
 \begin{equation}
-	\mathcal{E}(p_i)=c_1\ell(p_i)+c_2a(p_i)
+	\mathcal{E}(p_i)=c_1\ell(p_i)+c_2a(p_i),
 \end{equation}
-where $\ell(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment has only the linear component, i.e,
+where $\ell(p_i)$ is the length of a path, $a(p_i)$ is the total cumulative angle of the path, $c_1$ and $c_2$ are constants. Observe that the cost of a straight line segment $s_i$ has only the linear component, i.e.
 \begin{equation}
-	\mathcal{E}(s_i)=c_1\ell(s_i),
+	\mathcal{E}(s_i)=c_1\ell(s_i).
 \end{equation}
-whereas the cost of a transition segment typically has both linear and angular components, i.e,
+Whereas the cost of a transition segment $t_i$ typically has both linear and angular components, i.e.
 \begin{equation}
 	\mathcal{E}(t_i)=c_1\ell(t_i)+c_2a(t_i).
 \end{equation}
@@ -49,7 +50,7 @@ Here, the first assumption is made with regards to the dynamics of the coverage 
 \end{equation}
 In other words, for such a robot, the best path between any two points is a straight line segment if it is feasible.
 
-Our second assumption places a restriction on the feasible set of paths. This is done to ensure that all paths under study have a certain structure. The new set of called a set of feasible segmented paths and it is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:segmented}.
+Our second assumption places a restriction on the feasible set of paths. This assumption is to ensure that paths considered here have a certain structure. The new set is called a set of feasible segmented paths and it is defined in Definition~\ref{definition:segmented_feasible_paths} with an example shown in Figure~\ref{fig:segmented}.
 \begin{definition}[Set of Feasible Segmented Paths]
 \label{definition:segmented_feasible_paths}
 A set of feasible segmented paths is defined as:
@@ -66,7 +67,7 @@ Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified searc
 	\begin{equation}
 	\label{condition:full_coverage_2}
 	\begin{aligned}
-		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathcal{C},\\
+		& \bigcup_{q\in p_i}\mathcal{M}(q)=\mathbb{C},\\
 		& \mathcal{E}(p_i)\leq\mathcal{E}(p_j), \forall p_j\in P_{\text{segmented}}.
 	\end{aligned}
 	\end{equation}
@@ -79,17 +80,18 @@ Note that the cost for a segmented path has the following structure:
 \end{equation}
 
 \simpleplot{img/chapter_4/segmented_path}{An example of a segmented path.}{fig:segmented}
-Based on such cost function, a solution should aim to perform most of the coverage via straight line segments and use turns only when absolutely necessary.
+
+Based on this structure of a cost function, a good solution should aim to perform most of the coverage via straight line segments and use turns only when absolutely necessary.
 
 Suppose a coverage robot is traversing a straight line segment of length $\ell_i$. Suppose the width of robot's coverage footprint is $\delta x$. The area covered after the robot finishes traversing the line is $\ell_i\delta x+k$ where $k$ is to account for various shapes of coverage footprints. Suppose there are $n$ such lines with no overlap between their line footprints. For this exercise, assume the robot is able to teleport from one line to another. Hence, the total area covered by the robot is
 \begin{equation}
 	A_{\text{covered}}=\sum_{i=1}^n\ell_i\delta x + k.
 \end{equation}
-Intuitively, a solution should aim to arrange the straight line segments in a way that makes $A_{\text{covered}}$ as close to the actual area of the workspace as possible. One possible arrangement consists of a series of parallel straight line segments stacked on top of each other. An example is shown in Figure~\ref{fig:riemann_sum}. In fact, this arrangement is commonly used in the coverage literature and is commonly referred to by Boustrophedon path~\cite{Choset1998coverage}. The nice properties of such an arrangement includes no overlap between straight line segments. Most of the interior of the workspace is covered by straight line segments. Robot only has to perform turns near the borders of the workspace. In fact, this arrangement holds some similarities to Riemann sums. As such, as $\delta x$ gets smaller, which happens when a small robot is covering a huge workspace, $A_{\text{covered}}$ tends to the actual area of the workspace. And lastly, all transition segments in such an arrangement have nearly fixed cost. This is because every transition segment is a transition from the end of one line to the start of the next line. Such a transition has approximately 180$^o$ angular component associated with it.
+Intuitively, a solution should aim to arrange the straight line segments in a way that makes $A_{\text{covered}}$ as close to the actual area of the workspace as possible. One possible arrangement consists of a series of parallel straight line segments stacked on top of each other. An example is shown in Figure~\ref{fig:riemann_sum}. In fact, this arrangement is commonly used in the coverage literature and is commonly referred to as Boustrophedon paths~\cite{Choset1998coverage}. Such an arrangement has some desirable properties such as having no overlap between straight line segments, having most of the interior of the workspace covered by straight line segments, and transitions are performed near the borders of the workspace. In fact, this arrangement holds some similarities to Riemann sums. As such, as $\delta x$ gets smaller, which happens when a small robot is covering a huge workspace, $A_{\text{covered}}$ tends to the actual area of the workspace. And lastly, all transition segments in such an arrangement have nearly fixed cost. This is because every transition segment is a transition from the end of one line to the start of the next line. Such a transition has an 180$^o$ angular component associated with it.
 
 \simpleplot{img/chapter_4/riemann_sum}{Parallel line arrangement.}{fig:riemann_sum}
 
-However, there are a couple of issues with this method. The first issue is related to the coverage near the borders of the workspace. Some areas cannot be covered by this path alone and usually requires a wall following path. Second issue is with choosing the orientation of these parallel line segments. Some orientations are more optimal than others. And lastly, for concave workspaces, this type of coverage is highly non-optimal. See Figure~\ref{fig:reorder_regions} for an example.
+However, several issues prevent us from using this arraignment. The first issue is related to the coverage near the borders of the workspace. Some areas cannot be covered by this path alone and usually requires a wall following path. Second issue is with choosing the orientation of these parallel line segments. Some orientations are more optimal than others. And lastly, for concave workspaces, this type of coverage is highly non-optimal. See Figure~\ref{fig:reorder_regions} for an example. Nevertheless, this arrangement is a key component of the work in this thesis.
 
 \begin{figure}
 	\centering
@@ -105,9 +107,11 @@ However, there are a couple of issues with this method. The first issue is relat
 	\label{fig:reorder_regions}
 \end{figure}
 
-Recall the structure of the cost function of a segmented path from equation(\ref{eq:segmented_cost}) and the property of Boustrophedon paths where transition segments have a roughly fixed cost. The problem becomes one of minimizing the number of straight line segments, $n$, to achieve complete coverage. The solution to this problem is proposed by Huang~\cite{Huang2001optimal}. This solution relies on a notion of altitude.
+Recall the structure of the cost function of a segmented path from equation(\ref{eq:segmented_cost}) and the property of Boustrophedon paths that state that the transition segments have a fixed cost. Since the number of straight line segments is equal the number of transition segments, the problem becomes one of minimizing the number of straight line segments, $n$, such that complete coverage is achieved.
 
-\textbf{Minimum Altitude:} For convex polygons, the altitude in direction $\theta$ is defined as the minimum distance between two parallel lines angled at $\theta+\frac{\pi}{2}$ with respect to the $x$-axis such that all vertices of the convex polygon are contained between these two lines~\cite{Huang2001optimal}. The altitude of the polygon in Figure~\ref{fig:transition_point} is the distance between lines $e_i$ and $h_i$. This notion can be extended to general polygons. The method of obtaining $\theta$ altitude for a general polygon is shown in Algorithm~\ref{alg:altitude}. Figure \ref{fig:altitude} provides an example of this procedure. In the example, the altitude is $x_1 + 2x_2 + 3x_3 + 2x_4 + x_5$. Note that if $r$ is the radius of the footprint of the robot and $\alpha$ is the altitude of a polygon along $\theta$ then the total number of lines required for complete coverage in direction $\theta$ is
+To this end, we introduce a notion of altitude. The altitude first appeared in the work by Huang~\cite{Huang2001optimal}. For convex polygons, the altitude in direction $\theta$ is defined as the minimum distance between two parallel lines angled at $\theta+\frac{\pi}{2}$ with respect to the $x$-axis such that all vertices of the convex polygon are contained between these two lines~\cite{Huang2001optimal}. This notion can be extended to general polygons. The method of obtaining $\theta$ altitude for a general polygon is shown in Algorithm~\ref{alg:altitude}. Figure \ref{fig:altitude} provides an example of this procedure. In the example, the altitude is $x_1 + 2x_2 + 3x_3 + 2x_4 + x_5$. Note that if $r$ is the radius of the footprint of the robot and $\alpha$ is the altitude of a polygon along $\theta$ then the total number of lines required for complete coverage in direction $\theta$ is
+
+%The altitude of the polygon in Figure~\ref{fig:transition_point} is the distance between lines $e_i$ and $h_i$.
 \begin{equation}
 	n=\ceil*{\frac{\alpha}{2r}}.
 \end{equation}
@@ -167,7 +171,7 @@ The following sections will introduce our approach to these problems.
 \section{Min Altitude Polygon Decomposition for Coverage Planning}
 \label{section:min_alt_decomposition}
 
-This section covers our solution to Problem~\ref{prob:min_alt_decomp}. Section~\ref{chapter:background} introduces decomposition related terminology that is needed to present our decomposition method.
+This section introduces our algorithm to Problem~\ref{prob:min_alt_decomp}.
 
 \subsection{Min Altitude Decomposition}
 This section outlines the approach to Problem~\ref{prob:min_alt_decomp}. The overall steps of the process are described in Algorithm~\ref{alg:min_alt_decomposition}.
@@ -188,7 +192,7 @@ Algorithm~\ref{alg:min_alt_decomposition} accepts a polygon as the input. On Lin
 
 \subsection{Optimal Decomposing Cut}
 \label{sec:alt_cut_decomposition}
-The re-optimization step operates on a polygon with a reflex vertex. This polygon is formed by removing the previous cut that was made by a convex decomposition. Our algorithm will either generate a new cut or no cut depending on what is optimal with respect to the altitude of the polygon. We do this by searching for optimal decomposing cuts. The algorithm for doing that is shown in Algorithm~\ref{alg:optimal_cut}. The procedure operates on a single chain and a specified reflex vertex in that chain. On Line~\ref{line:cut_cut_space}, a cut space is generated for the reflex vertex, which provides a set of potential cuts. Two polygons, $P_{\ell}$ and $P_r$ are formed by initializing the cut at the first point of the cut space on Line~\ref{line:cut_two_polygons}. Two sets of altitude directions are generated on Lines~\ref{line:cut_two_sets}-\ref{line:cut_two_sets_2} based on the two polygons. On Lines~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for}, candidates for a cut are found for each combination of directions and each straight segment of the cut space. Before moving on to the next straight segment of the cut space, $P_l$ is modified to include $S_i$ in its boundary. $P_r$ is modified to exclude $S_i$ from its boundary. The checked straight segment may also add a new altitude direction which has to be accounted for. These operations are carried out on Lines~\ref{line:cut_modify_1}-\ref{line:opt_cut_end_for}. The algorithm returns the cut that has the lowest cost.
+The re-optimization step operates on a polygon with a reflex vertex. This polygon is formed by removing previous cuts that were made by a convex decomposition. Our algorithm will either generate a new cut or no cut depending on what is optimal with respect to the altitude of the polygon. We do this by searching for optimal decomposing cuts. The algorithm for doing that is shown in Algorithm~\ref{alg:optimal_cut}. The procedure operates on a single chain and a specified reflex vertex in that chain. On Line~\ref{line:cut_cut_space}, a cut space is generated for the reflex vertex, which provides a set of potential cuts. Two polygons, $P_{\ell}$ and $P_r$, are formed by initializing the cut at the first point of the cut space on Line~\ref{line:cut_two_polygons}. Two sets of altitude directions are generated on Lines~\ref{line:cut_two_sets}-\ref{line:cut_two_sets_2} based on the two polygons. The main loop on Lines~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for} locates candidates for a cut for each combination of directions and each straight segment of the cut space. Lines~\ref{line:cand_trans_pt}-\ref{line:cand_trans_pt_2} locate special points on $S_i$ called transition points for each altitude direction. These points are points on $S_i$ that yield cuts minimizing the sum of altitudes. Transition points are found by locating a point of intersection of $S_i$ and a line $h_i$ parallel to the edge $e_i$ passing through $v$ (left of Figure~\ref{fig:pinch_vertex}). Before moving on to the next straight segment of the cut space, $P_l$ is modified to include $S_i$ in its boundary. $P_r$ is modified to exclude $S_i$ from its boundary. The straight segment $S_i$ may also add a new altitude direction $\theta$, which has to be accounted for in $\Theta_{\ell}$ and $\Theta_r$. These operations are carried out on Lines~\ref{line:cut_modify_1}-\ref{line:opt_cut_end_for}. The algorithm returns the cut that has the lowest cost.
 
 \begin{algorithm}
 	\caption{$\operatorname{find\_optimal\_cut}(P, v)$}
@@ -197,14 +201,16 @@ The re-optimization step operates on a polygon with a reflex vertex. This polygo
 		\REQUIRE Polygon $P=\{Z_0\}$, reflex vertex $v$
 			\STATE $A_{\ell}\gets\emptyset,\;A_r\gets\emptyset$, $U\gets\emptyset$
 			\STATE Find cut space $S$ for $v$	\label{line:cut_cut_space}
-			\STATE $P_{\ell},P_r\gets$ polygons after cut at first endpoint of $S$ \label{line:cut_two_polygons}
+			\STATE $P_{\ell},P_r\gets$ polygons after the cut at first endpoint of $S$ \label{line:cut_two_polygons}
 			\STATE $\Theta_{\ell}\gets$set of directions $\theta$ orthogonal to edges of $P_{\ell}$ \label{line:cut_two_sets}
 			\STATE $\Theta_r\gets$set of directions $\theta$ orthogonal to edges of $P_r$ \label{line:cut_two_sets_2}
 			\FOR{each $S_i\in S$} \label{line:opt_cut_for}
 				\FOR{each $\operatorname{dir}_{\ell}\in \Theta_{\ell}$}
 					\FOR{each $\operatorname{dir}_r\in \Theta_r$}
-						\STATE $u\gets\operatorname{get\_cands}(P_{\ell}$, $P_r$, $S_i$, $\operatorname{dir}_{\ell}$, $\operatorname{dir}_r)$ \label{line:get_cands}
-						\STATE Add tuple $(u, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$ to $U$
+						\STATE $d_{\ell}\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_{\ell}$	\label{line:cand_trans_pt} 
+						\STATE $d_r\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_r$ \label{line:cand_trans_pt_2}						
+						\STATE Add tuple $(d_{\ell}, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$ to $U$
+						\STATE Add tuple $(d_r, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$ to $U$
 					\ENDFOR
 				\ENDFOR
 				\STATE Modify $P_{\ell}$ by adding $S_i$ to its boundary \label{line:cut_modify_1}
@@ -213,32 +219,32 @@ The re-optimization step operates on a polygon with a reflex vertex. This polygo
 			\ENDFOR 
 			\STATE Compute costs for all tuples $(u, \operatorname{dir}_{\ell}, \operatorname{dir}_r)\in U$
 			\RETURN Lowest cost element from $U$
-		%\ENDPROCEDURE 
 	\end{algorithmic}
 \end{algorithm}
-The important step in Algorithm~\ref{alg:optimal_cut} is the function $\operatorname{get\_cands}$ on Line~\ref{line:get_cands}. This function finds candidates for a cut. The procedure is described in Algorithm \ref{alg:find_candidate}.
-Lines~\ref{line:cand_trans_pt}-\ref{line:cand_trans_pt_2} of Algorithm~\ref{alg:find_candidate} obtain special points on $S_i$ called transition points for each polygon and altitude direction. These points are associated with the point on $S_i$ that minimize the sum of altitudes. Transition points are formally introduced in Section~\ref{sec:proof_of_correctness}. On Line~\ref{line:cand_if}, both transition points result in equal value, so one of them is returned. Otherwise, a transition point is chosen based on the direction which has the most significant increase in altitude. This is determined by the altitude direction and the orientation of the cut space segment.
-\begin{algorithm}
-	\caption{$\operatorname{get\_cands}(P_{\ell}, P_r, S_i, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$}
-	\label{alg:find_candidate}
-	\begin{algorithmic}[1]
-		\REQUIRE Two polygons, edge on cut space, two directions
-			\STATE $t_1\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_{\ell}$	\label{line:cand_trans_pt}
-			\STATE $t_2\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_r$ \label{line:cand_trans_pt_2}
-			\IF{$t_1$ is further along cut space then $t_2$}\label{line:cand_if}
-				\STATE $U\gets(t_1, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
-			\ELSE \label{line:cand_else}
-				\STATE $\delta\alpha_{\ell}\gets |\operatorname{proj}_{\operatorname{dir}_{\ell}}S_i|$
-				\STATE $\delta\alpha_r\gets |\operatorname{proj}_{\operatorname{dir}_r}S_i|$
 
-				\IF{$\delta\alpha_{\ell}>\delta\alpha_r$}
-					\STATE $U\gets(t_1, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
-				\ELSE
-					\STATE $U\gets(t_2, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
-				\ENDIF
-			\ENDIF
-	\end{algorithmic}
-\end{algorithm}
+%The important step in Algorithm~\ref{alg:optimal_cut} is the function $\operatorname{get\_cands}$ on Line~\ref{line:get_cands}. This function finds candidates for a cut. The procedure is described in Algorithm \ref{alg:find_candidate}.
+%Lines~\ref{line:cand_trans_pt}-\ref{line:cand_trans_pt_2} of Algorithm~\ref{alg:find_candidate} obtain special points on $S_i$ called transition points for each polygon and altitude direction. These points are associated with the point on $S_i$ that minimize the sum of altitudes. Transition points are formally introduced in Section~\ref{sec:proof_of_correctness}. On Line~\ref{line:cand_if}, both transition points result in equal value, so one of them is returned. Otherwise, a transition point is chosen based on the direction which has the most significant increase in altitude. This is determined by the altitude direction and the orientation of the cut space segment.
+%\begin{algorithm}
+%	\caption{$\operatorname{get\_cands}(P_{\ell}, P_r, S_i, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$}
+%	\label{alg:find_candidate}
+%	\begin{algorithmic}[1]
+%		\REQUIRE Two polygons, edge on cut space, two directions
+%			\STATE $t_1\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_{\ell}$	\label{line:cand_trans_pt}
+%			\STATE $t_2\gets$ transition point on $S_i$ w.r.t $\operatorname{dir}_r$ \label{line:cand_trans_pt_2}
+%			\IF{$t_1$ is further along cut space then $t_2$}\label{line:cand_if}
+%				\STATE $U\gets(t_1, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
+%			\ELSE \label{line:cand_else}
+%				\STATE $\delta\alpha_{\ell}\gets |\operatorname{proj}_{\operatorname{dir}_{\ell}}S_i|$
+%				\STATE $\delta\alpha_r\gets |\operatorname{proj}_{\operatorname{dir}_r}S_i|$
+%
+%				\IF{$\delta\alpha_{\ell}>\delta\alpha_r$}
+%					\STATE $U\gets(t_1, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
+%				\ELSE
+%					\STATE $U\gets(t_2, \operatorname{dir}_{\ell}, \operatorname{dir}_r)$
+%				\ENDIF
+%			\ENDIF
+%	\end{algorithmic}
+%\end{algorithm}
 
 \subsection{Proof of Correctness}
 \label{sec:proof_of_correctness}
@@ -249,7 +255,7 @@ Algorithm~\ref{alg:optimal_cut} provides an optimal decomposing cut. This sectio
 Given a polygon $P$ and a reflex vertex $v$, Algorithm~\ref{alg:optimal_cut} returns a decomposing cut forming two new polygons that minimize $\alpha^*(P_{\ell})+\alpha^*(P_r)$.
 \end{claim}
 
-The rest of this section will provide proof for this claim. Suppose a polygon $P$ is given with a reflex vertex $v$. By Definition~\ref{def:decomposing_cut}, a decomposing cut generates two new polygons, $P_{\ell}$ and $P_r$. The sets of all edges of $P_{\ell}$ and $P_r$ are $E_{\ell}$ and $E_r$ respectively. We are interested in studying how a choice of a cut affects the altitudes of $P_{\ell}$ and $P_r$. Let us parameterize the orientation of a cut with respect to $t$. There is a function $f:\mathbb{R}\to\mathbb{R}^2$ which maps a parameter $t\in[0,1]$ to a point $x\in\mathbb{R}^2$ on the cut space. Let $w_1$ be a point on cut space when $t=0$ corresponding to a cut on edge $e_1$. See Figure~%\ref{fig:cut}. Define $\alpha_i(t)$ as a function that measures altitude orthogonal to edge $e_i$.
+The rest of this section will provide proof for this claim. Suppose a polygon $P$ is given with a reflex vertex $v$. Recall that a decomposing cut generates two new polygons, $P_{\ell}$ and $P_r$. The sets of all edges of $P_{\ell}$ and $P_r$ are $E_{\ell}$ and $E_r$ respectively. We are interested in studying how a choice of a cut affects the altitudes of $P_{\ell}$ and $P_r$. Let us parameterize the orientation of a cut with respect to $t$. There is a function $f:\mathbb{R}\to\mathbb{R}^2$ which maps a parameter $t\in[0,1]$ to a point $x\in\mathbb{R}^2$ on the cut space. Let $w_1$ be a point on cut space when $t=0$ corresponding to a cut on edge $e_1$. See Figure~%\ref{fig:cut}. Define $\alpha_i(t)$ as a function that measures altitude orthogonal to edge $e_i$.
 
 Define the two sets of altitudes as follows:
 \begin{equation}
@@ -329,10 +335,10 @@ There is an altitude associated with the cut itself in $A_{\ell}$ and in $A_r$ t
 
 By Lemma \ref{lemma:min_at_trans_pts}, it is enough to compute the cost of each transition point for each $S_i\in S$ and all combinations of elements from $A_{\ell}$ and $A_r$ and pick one point with lowest cost. This is the procedure described in Algorithm~\ref{alg:optimal_cut}.
 
-\section{Computational Complexity}
-\label{section:single_agent_complexity}
+%\section{Computational Complexity}
+%\label{section:single_agent_complexity}
 
-Algorithm~\ref{alg:find_candidate} is $\mathbb{O}(1)$ since there are no iterations. Algorithm~\ref{alg:optimal_cut} is the core of the algorithm and there are a lot more computation invovled. Finding the cutspace is ....  The inner most loop is $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. So is the second inner most loop. Hence, the run time of two inner loops is $\mathbb{O}(n^2)$ where $n$ is the number of edges in the polygon. The first for loop runs in $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. Hence, the overall polygon runs in $\mathbb{O}(n^3)$ where $n$ is the number of edges in a polygon.
+%Algorithm~\ref{alg:optimal_cut} is the core of the algorithm and there are a lot more computation invovled. Finding the cutspace is ....  The inner most loop is $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. So is the second inner most loop. Hence, the run time of two inner loops is $\mathbb{O}(n^2)$ where $n$ is the number of edges in the polygon. The first for loop runs in $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. Hence, the overall polygon runs in $\mathbb{O}(n^3)$ where $n$ is the number of edges in a polygon.
 
 \begin{figure}
 	\centering
@@ -388,7 +394,11 @@ Define $\underline{P}_{\ell}$ and $\underline{P}_{r}$ to be the polygons on eith
 \section{GTSP Tour Generation}
 \label{section:single_agent_gtsp_tour}
 
-Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$, resulting in a set $D$ of polygons. For each $P_i\in D$, we generate the minimum set $\Gamma_i$ of straight segment footprints. Note, each $\gamma_j\in\Gamma_i$ has two possible traversal directions. We refer to the choice of this direction as $\gamma_j^1$ or $\gamma_j^2$  as shown in Figure~\ref{fig:traversal_directions}. Define $\operatorname{cost}(\gamma_i^m, \gamma_j^l)$ as the robot transition cost from region $\gamma_i$ in $m$ direction to region $\gamma_j$ in $l$ direction where $m,l\in\{1,2\}$ and $i,j\in\{1,\ldots,k\},i\neq j$. This transition cost takes the dynamics of the robot into account. Computing this cost for each pair $\gamma_i^m, \gamma_j^l$, a complete graph $G=(V,E,w)$ is constructed where each vertex $v\in V$ represents $\gamma^m_i$ for some $m\in\{1,2\}$ and $i=\{1,\ldots,k\}$, each edge $e=\{v,z\}$ in $E$ represents transition between vertices $v$ and $z$, and weights represent robot transition costs between vertices. Furthermore, $V$ is partitioned into sets $\{\gamma_i^1,\gamma_i^2\}$ for $i=\{1,\ldots,k\}$. The graph $G$ and the partition define the GTSP instance, and a GTSP tour on this graph gives a coverage path for the robot. 
+Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$, resulting in a set $D$ of polygons. Each $P_i\in D$, is populated with a minimum set $\Gamma_e$ of straight line segments. Note, each $\gamma_j\in\Gamma_e$ has two possible traversal directions. We refer to the choice of this direction as $\gamma_j^1$ or $\gamma_j^2$  as shown in Figure~\ref{fig:traversal_directions}.
+
+Define $\text{cost}(\gamma_i^m, \gamma_j^l)$ as the robot transition cost from line $\gamma_i$ in $m$ direction to region $\gamma_j$ in $l$ direction, where $m,l\in\{1,2\}$ and $i,j\in\{1,\ldots,k\},i\neq j$. This transition cost takes the dynamics of the robot into account. By computing this cost for each pair $\gamma_i^m, \gamma_j^l$, a complete graph $G=(V,E,w)$ is constructed.
+
+In this graph, a vertex $v\in V$ represents one possible choice of direction to traverse a line, $\gamma^m_i$ for some $m\in\{1,2\}$ and $i=\{1,\ldots,k\}$. An edge $e=\{v,z\}$ in $E$ represents transition between vertices $v$ and $z$, and weights represent robot transition costs between vertices. Furthermore, $V$ is partitioned into sets $\{\gamma_i^1,\gamma_i^2\}$ for $i=\{1,\ldots,k\}$. The graph $G$ and the partition define the GTSP instance, and a GTSP tour on this graph gives a coverage path for the robot. This process is demonstrated in Figure~\ref{fig:line_to_gtsp}. 
 
 \begin{figure}
 	\centering
@@ -399,8 +409,8 @@ Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$,
 \begin{figure}
 	\centering
 	\subfile{img/chapter_4/gtsp_ii}
-	\caption{Two possible traversal directions for line $\gamma_j$.}
-	\label{fig:cost}
+	\caption{Process of converting a set of lines into a graph, followed by a GTSP instance.}
+	\label{fig:line_to_gtsp}
 \end{figure}
 
 \section{Simulations}
