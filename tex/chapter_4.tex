@@ -6,8 +6,8 @@
 \chapter{Single Agent Coverage}
 \label{chapter:single_agent_coverage}
 
-In this chapter, we formulate the problem of single agent coverage and propose a solution. The chapter is organized into six sections. Section~\ref{section:single_problem_statement} goes through the formulation of the problem. Section~\ref{section:min_alt_decomposition} proposes an algorithm. Section~\ref{section:single_agent_improvment} contains suggestions for improvements of the algorithm. %%Section~\ref{section:single_agent_gtsp_tour} describes the Generalized Traveling Salesman Problem.
-Lastly, Section~\ref{section:single_agent_simulation} presents the results of the algorithm in the form of simulations.
+In this chapter, we formulate the problem of single agent coverage and propose a solution. The chapter is organized into six sections. Section~\ref{section:single_problem_statement} goes through the formulation of the problem. Section~\ref{section:min_alt_decomposition} proposes an algorithm. %%Section~\ref{section:single_agent_improvment} contains suggestions for improvements of the algorithm.
+Section~\ref{section:single_agent_gtsp_tour} describes the formulation of the problem as a Generalized Traveling Salesman Problem. Lastly, Section~\ref{section:single_agent_simulation} presents the results of the algorithm in the form of simulations.
 
 \section{Problem Statement}
 \label{section:single_problem_statement}
@@ -385,11 +385,11 @@ By Lemma \ref{lemma:min_at_trans_pts}, it is enough to compute the cost of each 
 \end{figure}
 
 
-\section{Improvements to Decomposition}
-\label{section:single_agent_improvment}
-The most computational intensive task in Algorithm~\ref{alg:optimal_cut}  is computing cut candidates for each pair of altitude directions (Line~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for}). The computation load can be reduced by only evaluating a subset of direction pairs as follows.
+%\section{Improvements to Decomposition}
+%\label{section:single_agent_improvment}
+%The most computational intensive task in Algorithm~\ref{alg:optimal_cut}  is computing cut candidates for each pair of altitude directions (Line~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for}). The computation load can be reduced by only evaluating a subset of direction pairs as follows.
 
-Define $\underline{P}_{\ell}$ and $\underline{P}_{r}$ to be the polygons on either side of the cone of bisection. It is important to note that the cone of bisection is not a part of these polygons. We compute look-up tables of altitudes for every direction for $\underline{P}_{\ell}$ and $\underline{P}_{r}$ separately such that $\alpha(\underline{P}_{\ell},\text{dir}_1)$ returns the altitude of $\underline{P}_{\ell}$ in direction $\text{dir}_1$. These look-up tables represent the best case scenario for a pair of directions. In the main loop of Algorithm~\ref{alg:optimal_cut}, we keep track of the best altitude so far. A check is added to the main loop such that for a pair of directions, $\text{dir}_1$ and $\text{dir}_2$, if $\alpha(\underline{P}_{\ell},\operatorname{dir}_1)+\alpha(\underline{P}_{r},\operatorname{dir}_2)$ is larger than the best altitude so far, then this pair of directions cannot be optimal, and no further computation is needed.
+%Define $\underline{P}_{\ell}$ and $\underline{P}_{r}$ to be the polygons on either side of the cone of bisection. It is important to note that the cone of bisection is not a part of these polygons. We compute look-up tables of altitudes for every direction for $\underline{P}_{\ell}$ and $\underline{P}_{r}$ separately such that $\alpha(\underline{P}_{\ell},\text{dir}_1)$ returns the altitude of $\underline{P}_{\ell}$ in direction $\text{dir}_1$. These look-up tables represent the best case scenario for a pair of directions. In the main loop of Algorithm~\ref{alg:optimal_cut}, we keep track of the best altitude so far. A check is added to the main loop such that for a pair of directions, $\text{dir}_1$ and $\text{dir}_2$, if $\alpha(\underline{P}_{\ell},\operatorname{dir}_1)+\alpha(\underline{P}_{r},\operatorname{dir}_2)$ is larger than the best altitude so far, then this pair of directions cannot be optimal, and no further computation is needed.
 
 \section{GTSP Tour Generation}
 \label{section:single_agent_gtsp_tour}
