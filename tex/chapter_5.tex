@@ -184,7 +184,7 @@ Suppose a workspace is to be covered and is populated with some parallel line se
 	\begin{subfigure}{0.5\linewidth}
 		\centering
 		\subfile{img/chapter_5/area_error_i}
-		\caption{\label{fig:area_error_i}}
+		\caption{\label{fig:area_error_ii}}
 	\end{subfigure}
 	\caption{Geometry of the uncovered area.}
 	\label{fig:area_error}
@@ -310,48 +310,99 @@ To complete the proof, concave polygons need to be considered. Recall that any c
 
 \section{Area Allocation Algorithm}
 \label{section:multi_algorithm}
-\textbf{UNDER DEVELOPMENT}
 
-In this section, the algorithm is shown as a solution to Problem~\ref{problem:workspace_decomposition}. The core of the algorithm is described first followed by the description of smaller sub-procedures.
+In this section, the algorithm is presented for Problem~\ref{problem:workspace_decomposition}. The main algorithm is described first followed by the description of smaller sub-procedures.
 
-The main algorithm proposed in this section is a greedy algorithm designed to converge to a local pair-wise minimal solution. The optimization process is initialized with a starting solution. The optimization algorithm performs an iterative pair-wise re-optimization procedure until the cost of the solution converges. The result is a partition with the maximum solution converging to some local minimum.
+The main procedure is shown in Algorithm~\ref{alg:optimization_procedure}. The optimization process is an interative pair-wise re-optimization procedure. The process terminates when the maximum cost in the partition is minimized. The pair-wise optimality is ensured via a linear search over a sampled search space. The whole process is started off with an initial solution.
 
-As an input, $\mathbb{C}$ is provided with the assumption that it is polygonal. A set of $n$ initial positions of $n$ robots is also provided as one of the inputs in the form of $(x,y)$ coordinates. As an initialization step, the polygon $\mathbb{C}$ is partitioned into $n$ subregions of equal area by the anchored area partitioning algorithm. This step is designed to provide the algorithm  with a starting point to be used in the iterative re-optimization procedure. This initial partition acts as a good approximation of an optimal solution. In fact, many existing works model the area as being directly proportional to the work that a robot has to do.
+As an input, a polygon representing $\mathbb{C}$ is provided . A set of $n$ initial positions of $n$ robots is also provided as one of the inputs in the form of $(x,y)$ coordinates. As an initialization step, the polygon $\mathbb{C}$ is partitioned into $n$ subregions of equal area by the anchored area partitioning algorithm~\cite{hert1998polygon}. This step is designed to provide the algorithm  with a starting point to be used in the iterative re-optimization procedure.
 
-An adjacency graph is computed on the resultant partition. For every cell in the partition, an approximation of the coverage cost is computed using metric $\chi$. For every cell with the highest cost, we perform the following re-optimization steps. First, some adjacent cell is picked[MAYBE CELLWITH LOWEST COST]. This pair of adjacent cells is recombined resulting in one region. A procedure is performed that greedily computes an optimal cut that generates two cells and that minimizes the maximum cost of coverage of two cells. The cost and the partition are modified accordingly. The loop is repeated for the next cell with the highest cost in the decomposition. The termination condition for this loops is when the maximum cost over all cells in the decomposition stops decreasing. Algorithm~\ref{alg:optimization_procedure} demonstrates the described procedure.
+An adjacency graph $\mathcal{G}$ is computed on the resultant partition. For every cell in the partition, an approximation of the coverage cost is computed using metric $\chi$. For every cell with the highest cost, the following re-optimization steps are performed. First, an adjacent cell with the lowest cost is picked. These two adjacent cells are modified according to Algorithm~\ref{alg:equitable_cut}. The result of Algorithm~\ref{alg:equitable_cut} are two cells where the maximum cost is minimized. The cost and the partition are modified accordingly. The loop is repeated for the next cell with the highest cost in the decomposition. The termination condition for this loops is when the maximum cost over all cells in the decomposition stops decreasing. Algorithm~\ref{alg:optimization_procedure} demonstrates the described procedure.
 
 \begin{algorithm}
-	%\small
 	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
 	\label{alg:optimization_procedure}
 	\begin{algorithmic}[1]
 		\REQUIRE Polygon $\mathbb{C}=\{Z_0,Z_1,\ldots\}$, Set of starting locations $\{q^0_i\}$
-			%\STATE $V\gets n$ virtual starting locations placed randomly on the boundary of $P$ \label{line:1_start_locs}
-			\STATE $D\gets$ anchored\_area\_partition$(\mathbb{C},\{q^0_i\},\frac{1}{n})$ \label{line:area_part}
-			\STATE $\mathcal{G}\gets$ adjacency graph of $D$
-			\STATE $M\gets\chi(q^0_i,w_i), \forall w_i\in D$ 
-			%\STATE Add all cells in $D$ to the queue $Q$
+			\STATE $D\gets$ anchored\_area\_partition$(\mathbb{C},\{q^0_i\},\frac{1}{n})$. \label{line:area_part}
+			\STATE $\mathcal{G}\gets$ adjacency graph of $D$.
+			\STATE $M\gets\chi(q^0_i,w_i), \forall w_i\in D$.
 			\REPEAT
-				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$
-				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$ with lowest $\chi(q^0_j,w_j)$
-				\STATE $w_{\text{temp}}\gets w_a\cup b_j$
-				\STATE $\Delta\chi\gets\frac{|\chi_2-\chi_1|}{\chi_2+\chi_1}$
-				\STATE $A_t\gets$ Half of area of $w_{\text{temp}}$
-				\STATE $w_i,w_j\gets$ anchored\_area\_partition($w_{\text{temp}},(q^0_i,q^0_j),(A_t+\Delta\chi,A_t-\Delta\chi)$\label{line:distr_opt_cut}
-				%\STATE $\mathbb{E}\gets$ \text{compute\_encirclements}$(p_{\operatorname{temp}})$ \label{line:compute_encirlment}
-				%\STATE $\sigma_{\ell}\gets$ compute\_encirclements($p_{\ell}$) \label{line:recalc_encirclemnts_1}
-				%\STATE $\sigma_r\gets$ compute\_encirclements($p_r$) \label{line:recalc_encirclemnts_2}
-				%\STATE $\sigma_{\ell}\gets$ recalc\_encirclements($p_{\ell},\mathbb{E}, c$) \label{line:recalc_encirclemnts_1}
-				%\STATE $\sigma_r\gets$ recalc\_encirclements($p_r, \mathbb{E}, c$) \label{line:recalc_encirclemnts_2}
-				%\STATE Cost $\gets\chi(s_i,p_{\ell},\sigma_{\ell})+\phi(s_j,p_r,\sigma_r$) 
-				%\STATE Cost $\gets\max\{\chi(s_i,p_{\ell}),\chi(s_j,p_r)\}$ 
-				%\STATE Implement $c$ that resulted in lowest cost, modify $D$.
-				\STATE Modify $\chi(q^0_j,w_j)$ and $\chi(q^0_i,w_i)$ accordingly
-				\STATE Modify $D$ with $w_i,w_j$
-			\UNTIL{Maximum $\chi(q^0_j,w_j)\forall w_j\in D$ stops decreasing}
+				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$.
+				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$ with lowest $\chi(q^0_j,w_j)$.
+				%\STATE $w_{\text{temp}}\gets w_a\cup b_j$
+				\STATE $w_i,w_j\gets$ equitable\_cut($w_a,w_b$).
+				\STATE Modify $M$ with new costs.%\chi(q^0_j,w_j)$ and $\chi(q^0_i,w_i)$ accordingly
+				\STATE Modify $D$ with $w_i,w_j$.
+			\UNTIL{Maximum $\chi(q^0_j,w_j)\in M$ stops decreasing}
 			\RETURN $D$
 	\end{algorithmic}
 \end{algorithm}
+
+Algorithm~\ref{alg:equitable_cut} desribes a procedure for recomputing a cut that would minimize the maximum cost. In this procedure, a search for a cut is performed over a cut space. The cut space is samples with $K$ points. The point that minimizes the maximum cost is selected and a cut is performed.
+\begin{algorithm}
+	\caption{$\text{equitable\_cut}(w_a, w_b)$}
+	\label{alg:equitable_cut}
+	\begin{algorithmic}[1]
+		\REQUIRE Polygon $w_a=\{Z_0,Z_1,\ldots\}$, Polygon $w_b=\{Z_0,Z_1,\ldots\}$
+			\STATE $c\gets$ shared edge between $w_a$ and $w_b$.
+			\STATE $v_s,v_e\gets$ endpoints of $c$.
+			\STATE $w_{\text{temp}}\gets w_a\cup w_b$.
+			\STATE $S\gets$ cut space from $v_s$.
+			\IF{$\chi(w_a)>\chi(w_b)$}
+				\STATE dir$\gets$ CCW
+			\ELSE
+				\STATE dir$\gets$ CW
+			\ENDIF			
+			\FOR{each $v_i\in S$ in direction dir}
+				\STATE $w^{'}_a,w^{'}_b\gets$ cut ($v_s,v_i$)
+				\IF{dir=CW and $\chi(w^{'}_a)>\chi(w^{'}_b)$}
+					\STATE \COMMENT{Reverse inequality sign for CCW}
+					\STATE $V\gets$ sample edge($v_i,v_{i-1}$) with $K$ points
+					\STATE $v_b\gets$ point from $V$ that minimizes the maximum $\{\chi(w^{'}_a),\chi(w^{'}_b)\}$
+					\STATE $c^{'}\gets$ cut ($v_i,v_b$)
+					\STATE $w_a,w_b\gets$ cut $w_{\text{temp}}$ with $c^{'}$
+					\RETURN $w_a,w_b$
+					
+				\ENDIF
+			\ENDFOR
+
+	\end{algorithmic}
+\end{algorithm}
+
+
+%\begin{algorithm}
+%	%\small
+%	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
+%	\label{alg:optimization_procedure}
+%	\begin{algorithmic}[1]
+%		\REQUIRE Polygon $\mathbb{C}=\{Z_0,Z_1,\ldots\}$, Set of starting locations $\{q^0_i\}$
+%			%\STATE $V\gets n$ virtual starting locations placed randomly on the boundary of $P$ \label{line:1_start_locs}
+%			\STATE $D\gets$ anchored\_area\_partition$(\mathbb{C},\{q^0_i\},\frac{1}{n})$ \label{line:area_part}
+%			\STATE $\mathcal{G}\gets$ adjacency graph of $D$
+%			\STATE $M\gets\chi(q^0_i,w_i), \forall w_i\in D$ 
+%			%\STATE Add all cells in $D$ to the queue $Q$
+%			\REPEAT
+%				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$
+%				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$ with lowest $\chi(q^0_j,w_j)$
+%				\STATE $w_{\text{temp}}\gets w_a\cup b_j$
+%				\STATE $\Delta\chi\gets\frac{|\chi_2-\chi_1|}{\chi_2+\chi_1}$
+%				\STATE $A_t\gets$ Half of area of $w_{\text{temp}}$
+%				\STATE $w_i,w_j\gets$ anchored\_area\_partition($w_{\text{temp}},(q^0_i,q^0_j),(A_t+\Delta\chi,A_t-\Delta\chi)$\label{line:distr_opt_cut}
+%				%\STATE $\mathbb{E}\gets$ \text{compute\_encirclements}$(p_{\operatorname{temp}})$ \label{line:compute_encirlment}
+%				%\STATE $\sigma_{\ell}\gets$ compute\_encirclements($p_{\ell}$) \label{line:recalc_encirclemnts_1}
+%				%\STATE $\sigma_r\gets$ compute\_encirclements($p_r$) \label{line:recalc_encirclemnts_2}
+%				%\STATE $\sigma_{\ell}\gets$ recalc\_encirclements($p_{\ell},\mathbb{E}, c$) \label{line:recalc_encirclemnts_1}
+%				%\STATE $\sigma_r\gets$ recalc\_encirclements($p_r, \mathbb{E}, c$) \label{line:recalc_encirclemnts_2}
+%				%\STATE Cost $\gets\chi(s_i,p_{\ell},\sigma_{\ell})+\phi(s_j,p_r,\sigma_r$) 
+%				%\STATE Cost $\gets\max\{\chi(s_i,p_{\ell}),\chi(s_j,p_r)\}$ 
+%				%\STATE Implement $c$ that resulted in lowest cost, modify $D$.
+%				\STATE Modify $\chi(q^0_j,w_j)$ and $\chi(q^0_i,w_i)$ accordingly
+%				\STATE Modify $D$ with $w_i,w_j$
+%			\UNTIL{Maximum $\chi(q^0_j,w_j)\forall w_j\in D$ stops decreasing}
+%			\RETURN $D$
+%	\end{algorithmic}
+%\end{algorithm}
 
 Throughout the algorithm, the metric $\chi$ is computed several times. The metric is analyzed in Section~\ref{section:multi_decomposition_metric}. Algorithm~\ref{alg:metric_algorithm} demonstrates the procedure for computing the metric. The values used in the computation of this metric are described in more details in Section~\ref{section:multi_decomposition_metric}. In this algorithm, values $\mathcal{F}_1,\mathcal{F}_2$, and $\mathcal{F}_3$ are computed. 
 

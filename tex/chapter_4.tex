@@ -394,7 +394,7 @@ Define $\underline{P}_{\ell}$ and $\underline{P}_{r}$ to be the polygons on eith
 \section{GTSP Tour Generation}
 \label{section:single_agent_gtsp_tour}
 
-Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$, resulting in a set $D$ of polygons. Each $P_i\in D$, is populated with a minimum set $\Gamma_e$ of straight line segments. Note, each $\gamma_j\in\Gamma_e$ has two possible traversal directions. We refer to the choice of this direction as $\gamma_j^1$ or $\gamma_j^2$  as shown in Figure~\ref{fig:traversal_directions}.
+Given a polygon $P$, Algorithm~\ref{alg:min_alt_decomposition} is called on $P$, resulting in a set $D$ of polygons. Each $P_i\in D$, is populated with a minimum set $\Gamma_e$ of straight line segments. Note, each line $\gamma_j\in\Gamma_e$ has two possible traversal directions. We refer to the choice of this direction as $\gamma_j^1$ or $\gamma_j^2$  as shown in Figure~\ref{fig:traversal_directions}.
 
 Define $\text{cost}(\gamma_i^m, \gamma_j^l)$ as the robot transition cost from line $\gamma_i$ in $m$ direction to region $\gamma_j$ in $l$ direction, where $m,l\in\{1,2\}$ and $i,j\in\{1,\ldots,k\},i\neq j$. This transition cost takes the dynamics of the robot into account. By computing this cost for each pair $\gamma_i^m, \gamma_j^l$, a complete graph $G=(V,E,w)$ is constructed.
 
