@@ -192,7 +192,7 @@ Algorithm~\ref{alg:min_alt_decomposition} accepts a polygon as the input. On Lin
 
 \subsection{Optimal Decomposing Cut}
 \label{sec:alt_cut_decomposition}
-The re-optimization step operates on a polygon with a reflex vertex. This polygon is formed by removing previous cuts that were made by a convex decomposition. Our algorithm will either generate a new cut or no cut depending on what is optimal with respect to the altitude of the polygon. We do this by searching for optimal decomposing cuts. The algorithm for doing that is shown in Algorithm~\ref{alg:optimal_cut}. The procedure operates on a single chain and a specified reflex vertex in that chain. On Line~\ref{line:cut_cut_space}, a cut space is generated for the reflex vertex, which provides a set of potential cuts. Two polygons, $P_{\ell}$ and $P_r$, are formed by initializing the cut at the first point of the cut space on Line~\ref{line:cut_two_polygons}. Two sets of altitude directions are generated on Lines~\ref{line:cut_two_sets}-\ref{line:cut_two_sets_2} based on the two polygons. The main loop on Lines~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for} locates candidates for a cut for each combination of directions and each straight segment of the cut space. Lines~\ref{line:cand_trans_pt}-\ref{line:cand_trans_pt_2} locate special points on $S_i$ called transition points for each altitude direction. These points are points on $S_i$ that yield cuts minimizing the sum of altitudes. Transition points are found by locating a point of intersection of $S_i$ and a line $h_i$ parallel to the edge $e_i$ passing through $v$ (left of Figure~\ref{fig:pinch_vertex}). Before moving on to the next straight segment of the cut space, $P_l$ is modified to include $S_i$ in its boundary. $P_r$ is modified to exclude $S_i$ from its boundary. The straight segment $S_i$ may also add a new altitude direction $\theta$, which has to be accounted for in $\Theta_{\ell}$ and $\Theta_r$. These operations are carried out on Lines~\ref{line:cut_modify_1}-\ref{line:opt_cut_end_for}. The algorithm returns the cut that has the lowest cost.
+The re-optimization step operates on a polygon with a reflex vertex. This polygon is formed by removing previous cuts that were made by a convex decomposition. Our algorithm will either generate a new cut or no cut depending on what is optimal with respect to the altitude of the polygon. We do this by searching for optimal decomposing cuts. The algorithm for doing that is shown in Algorithm~\ref{alg:optimal_cut}. The procedure operates on a single chain and a specified reflex vertex in that chain. On Line~\ref{line:algo_cut_space}, a cut space is generated for the reflex vertex, which provides a set of potential cuts. Two polygons, $P_{\ell}$ and $P_r$, are formed by initializing the cut at the first point of the cut space on Line~\ref{line:cut_two_polygons}. Two sets of altitude directions are generated on Lines~\ref{line:cut_two_sets}-\ref{line:cut_two_sets_2} based on the two polygons. The main loop on Lines~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for} locates candidates for a cut for each combination of directions and each straight segment of the cut space. Lines~\ref{line:cand_trans_pt}-\ref{line:cand_trans_pt_2} locate special points on $S_i$ called transition points for each altitude direction. These points are points on $S_i$ that yield cuts minimizing the sum of altitudes. Transition points are found by locating a point of intersection of $S_i$ and a line $h_i$ parallel to the edge $e_i$ passing through $v$ (left of Figure~\ref{fig:pinch_vertex}). Before moving on to the next straight segment of the cut space, $P_l$ is modified to include $S_i$ in its boundary. $P_r$ is modified to exclude $S_i$ from its boundary. The straight segment $S_i$ may also add a new altitude direction $\theta$, which has to be accounted for in $\Theta_{\ell}$ and $\Theta_r$. These operations are carried out on Lines~\ref{line:cut_modify_1}-\ref{line:opt_cut_end_for}. The algorithm returns the cut that has the lowest cost.
 
 \begin{algorithm}
 	\caption{$\operatorname{find\_optimal\_cut}(P, v)$}
@@ -200,7 +200,7 @@ The re-optimization step operates on a polygon with a reflex vertex. This polygo
 	\begin{algorithmic}[1]
 		\REQUIRE Polygon $P=\{Z_0\}$, reflex vertex $v$
 			\STATE $A_{\ell}\gets\emptyset,\;A_r\gets\emptyset$, $U\gets\emptyset$
-			\STATE Find cut space $S$ for $v$	\label{line:cut_cut_space}
+			\STATE Find cut space $S$ for $v$	\label{line:algo_cut_space}
 			\STATE $P_{\ell},P_r\gets$ polygons after the cut at first endpoint of $S$ \label{line:cut_two_polygons}
 			\STATE $\Theta_{\ell}\gets$set of directions $\theta$ orthogonal to edges of $P_{\ell}$ \label{line:cut_two_sets}
 			\STATE $\Theta_r\gets$set of directions $\theta$ orthogonal to edges of $P_r$ \label{line:cut_two_sets_2}
@@ -214,10 +214,10 @@ The re-optimization step operates on a polygon with a reflex vertex. This polygo
 					\ENDFOR
 				\ENDFOR
 				\STATE Modify $P_{\ell}$ by adding $S_i$ to its boundary \label{line:cut_modify_1}
-				\STATE Modify $P_r$ by removing $S_i$ from its boundary
+				\STATE Modify $P_r$ by removing $S_i$ from its boundary \label{line:cut_modify_2}
 				\STATE Modify $\Theta_{\ell},\Theta_r$ if new $\theta$ was introduced by $S_i$ \label{line:opt_cut_end_for}
 			\ENDFOR 
-			\STATE Compute costs for all tuples $(u, \operatorname{dir}_{\ell}, \operatorname{dir}_r)\in U$
+			\STATE Compute costs for all tuples $(u, \operatorname{dir}_{\ell}, \operatorname{dir}_r)\in U$ \label{line:sort_tuples}
 			\RETURN Lowest cost element from $U$
 	\end{algorithmic}
 \end{algorithm}
@@ -335,11 +335,6 @@ There is an altitude associated with the cut itself in $A_{\ell}$ and in $A_r$ t
 
 By Lemma \ref{lemma:min_at_trans_pts}, it is enough to compute the cost of each transition point for each $S_i\in S$ and all combinations of elements from $A_{\ell}$ and $A_r$ and pick one point with lowest cost. This is the procedure described in Algorithm~\ref{alg:optimal_cut}.
 
-%\section{Computational Complexity}
-%\label{section:single_agent_complexity}
-
-%Algorithm~\ref{alg:optimal_cut} is the core of the algorithm and there are a lot more computation invovled. Finding the cutspace is ....  The inner most loop is $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. So is the second inner most loop. Hence, the run time of two inner loops is $\mathbb{O}(n^2)$ where $n$ is the number of edges in the polygon. The first for loop runs in $\mathbb{O}(n)$ where $n$ is the number of edges in a polygon. Hence, the overall polygon runs in $\mathbb{O}(n^3)$ where $n$ is the number of edges in a polygon.
-
 \begin{figure}
 	\centering
 	\begin{subfigure}{0.45\linewidth}
@@ -384,12 +379,13 @@ By Lemma \ref{lemma:min_at_trans_pts}, it is enough to compute the cost of each 
 	\label{fig:altitude_cases_pr}
 \end{figure}
 
+\section{Computational Complexity}
+\label{section:single_agent_complexity}
 
-%\section{Improvements to Decomposition}
-%\label{section:single_agent_improvment}
-%The most computational intensive task in Algorithm~\ref{alg:optimal_cut}  is computing cut candidates for each pair of altitude directions (Line~\ref{line:opt_cut_for}-\ref{line:opt_cut_end_for}). The computation load can be reduced by only evaluating a subset of direction pairs as follows.
+The core of the algorithm is Algorithm~\ref{alg:optimal_cut}, where an optimal cut is computed. We start the computational analysis with this algorithm. On Line~\ref{line:algo_cut_space}, a cut space is computed. Its computation is done by computing a visibility polygon centered around the reflex vertex. An efficient $\mathbb{O}(n)$ algorithm for computing a visibility polygon is proposed in~\cite{el1981linear}. Our implementation utilizes the Visilibity~\cite{VisiLibity:08} library. Line~\ref{line:cut_two_polygons} performs a cut of a polygon resulting in two new polygons. This step is performed in $\mathbb{O}(n)$ since it only involves a walk through the chain. On Lines~\ref{line:cut_two_sets}-\ref{line:cut_two_sets_2}, two sets of angles is generated. These steps are both $\mathbb{O}(n)$ in the worst case since it checks all edges of both polygons. On Line~\ref{line:cand_trans_pt}-~\ref{line:cand_trans_pt_2}, transition points are computed. Computing an intersection point of two lines is $\mathbb{O}(1)$. Since we are checking all edges on the boundary, it is $\mathbb{O}(n)$. The inner-most loop iterates $n$ times in the worst case. Same for the middle loop. Hence, the two loops run in $\mathbb{O}(n^3)$. The size of $U$ is $\mathbb{O}(n^3)$. Lines~\ref{line:cut_modify_1}-~\ref{line:opt_cut_end_for} run in $\mathbb{O}(1)$. Hence, the outer-most loop runs in $\mathbb{O}(n^4)$. Finally, Line~\ref{line:sort_tuples} finds the element with the lowest cost. This means that the altitude has to be computed for each element. The altitude as shown in Algorithm~\ref{alg:altitude} has a run time of $\mathbb{O}(n\log{n})$. As an input, the altitude algorithm accepts a polygon. This means a polygon has to be constructed for each element in $U$, which takes $\mathbb{O}(n)$. Therefore, for each element in $U$, the run time for all computations is $\mathbb{O}(n^2\log{n})$. Since there are $\mathbb{O}(n^3)$ elements in $U$, the overall run time for Algorithm~\ref{alg:optimal_cut} is $\mathbb{O}(n^5\log{n})$.
 
-%Define $\underline{P}_{\ell}$ and $\underline{P}_{r}$ to be the polygons on either side of the cone of bisection. It is important to note that the cone of bisection is not a part of these polygons. We compute look-up tables of altitudes for every direction for $\underline{P}_{\ell}$ and $\underline{P}_{r}$ separately such that $\alpha(\underline{P}_{\ell},\text{dir}_1)$ returns the altitude of $\underline{P}_{\ell}$ in direction $\text{dir}_1$. These look-up tables represent the best case scenario for a pair of directions. In the main loop of Algorithm~\ref{alg:optimal_cut}, we keep track of the best altitude so far. A check is added to the main loop such that for a pair of directions, $\text{dir}_1$ and $\text{dir}_2$, if $\alpha(\underline{P}_{\ell},\operatorname{dir}_1)+\alpha(\underline{P}_{r},\operatorname{dir}_2)$ is larger than the best altitude so far, then this pair of directions cannot be optimal, and no further computation is needed.
+The optimization procedure shown in Algorithm~\ref{alg:min_alt_decomposition} has a stopping criteria, which is determined by the polygon, the quality of the initial decomposition, and the size of the polygon. As such, the run time cannot be stated. However, since the acceptance conditions for any new cut is that it is strictly better than the previous cut, the convergence of Algorithm~\ref{alg:min_alt_decomposition} is guaranteed.
+
 
 \section{GTSP Tour Generation}
 \label{section:single_agent_gtsp_tour}
@@ -415,7 +411,7 @@ In this graph, a vertex $v\in V$ represents one possible choice of direction to 
 
 \section{Simulations}
 \label{section:single_agent_simulation}
-Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely\footnote{The Shapely library is available at \url{https://github.com/Toblerity/Shapely}} and Visilibity%\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model.
+Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
 
 Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.
 
