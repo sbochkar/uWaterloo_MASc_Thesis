@@ -6,13 +6,13 @@
 \chapter{Multi-agent Coverage}
 \label{chapter:multi_agent_coverage}
 
-In this chapter, the problem of coverage with multiple robots is introduced. The problem statement is derived in Section~\ref{section:multi_agent_problem_statement}. One of the most important aspects of the algorithm is the metric used during the search algorithm. This metric is designed and analyzed in Section~\ref{section:multi_decomposition_metric}. The algorithm is proposed in Section~\ref{section:multi_algorithm}. Section~\ref{section:multi_comp_analysis} presents the computational complexity analysis of the algorithm. Lastly, Section~\ref{section:multi_simulations} presents simulations and discusses the results.
+In this chapter, the multi-agent coverage problem is introduced. The problem statement is formalized in Section~\ref{section:multi_agent_problem_statement}. One of the important aspects of the algorithm is a decomposition metric used during the search algorithm. The design and analysis of this metric is in Section~\ref{section:multi_decomposition_metric}. The algorithm is proposed in Section~\ref{section:multi_algorithm}. Section~\ref{section:multi_comp_analysis} presents the computational complexity analysis of the algorithm. Lastly, Section~\ref{section:multi_simulations} presents simulations and a discussion of the results.
 
 
 \section{Problem Statement}
 \label{section:multi_agent_problem_statement}
 
-First, we develop the general multi-agent coverage problem statement. Observe that a team of robots that is tasked with coverage may contain robots with different dynamics and coverage footprints. As a result, for every robot $i$ on the team, there is a corresponding set of feasible paths $P_i$. Similarly, each robot in the team has its own coverage map $\mathcal{M}_i(q)$. The coverage space for each robot could then be stated as:
+First, the general multi-agent coverage problem statement is developed. Observe that a team of robots that is tasked with coverage may contain robots with different dynamics and coverage footprints. As a result, for every robot $i$ on the team, there is a corresponding set of feasible paths $P_i$. Similarly, each robot in the team has its own coverage map $\mathcal{M}_i(q)$. The coverage space for each robot could then be stated as:
 \begin{equation}
 	\mathcal{C}_i=\bigcup_{q\in Q_{i,\text{free}}}\mathcal{M}_i(q).
 \end{equation}
@@ -311,61 +311,103 @@ To complete the proof, concave polygons need to be considered. Recall that any c
 \section{Area Allocation Algorithm}
 \label{section:multi_algorithm}
 
-In this section, the algorithm is presented for Problem~\ref{problem:workspace_decomposition}. The main algorithm is described first followed by the description of smaller sub-procedures.
+In this section, the algorithm is presented for Problem~\ref{problem:workspace_decomposition}. We begin by giving an overview of the algorithm followed by a detailed description of each procedure.
 
-The main procedure is shown in Algorithm~\ref{alg:optimization_procedure}. The optimization process is an interative pair-wise re-optimization procedure. The process terminates when the maximum cost in the partition is minimized. The pair-wise optimality is ensured via a linear search over a sampled search space. The whole process is started off with an initial solution.
+The algorithm describes a greedy optimization procedure that generates a decomposition with the minimized maximum cost. The procedure is initialized with some initial decomposition and then iteratively re-optimized through pair-wise suboptimal cuts. The process terminates when no improvements to the existing decomposition are possible. %The pair-wise optimality is ensured via a linear search over a sampled search space. The whole process is started off with an initial solution.
 
-As an input, a polygon representing $\mathbb{C}$ is provided . A set of $n$ initial positions of $n$ robots is also provided as one of the inputs in the form of $(x,y)$ coordinates. As an initialization step, the polygon $\mathbb{C}$ is partitioned into $n$ subregions of equal area by the anchored area partitioning algorithm~\cite{hert1998polygon}. This step is designed to provide the algorithm  with a starting point to be used in the iterative re-optimization procedure.
-
-An adjacency graph $\mathcal{G}$ is computed on the resultant partition. For every cell in the partition, an approximation of the coverage cost is computed using metric $\chi$. For every cell with the highest cost, the following re-optimization steps are performed. First, an adjacent cell with the lowest cost is picked. These two adjacent cells are modified according to Algorithm~\ref{alg:equitable_cut}. The result of Algorithm~\ref{alg:equitable_cut} are two cells where the maximum cost is minimized. The cost and the partition are modified accordingly. The loop is repeated for the next cell with the highest cost in the decomposition. The termination condition for this loops is when the maximum cost over all cells in the decomposition stops decreasing. Algorithm~\ref{alg:optimization_procedure} demonstrates the described procedure.
+The main optimization procedure is shown in Algorithm~\ref{alg:optimization_procedure}. The inputs for the algorithm include a polygon described the coverable space and a set of starting positions for each robot in the coverage team. The optimization procedure is initialized with some decomposition on Line~\ref{line:multi_init_decomp}. This decomposition could be any decomposition that partitions $\mathbb{C}$ into $n$ cells. One Line~\ref{line:multi_adjacency}, the adjacency graph is computed for the decomposition. Cost are computed for all cells in the decomposition and the cell with the maximum cost is identified on Line~\ref{line:multi_cost}. On Line~\ref{line:multi_reopt_recursion}, a recursive procedure is called on the cell with the highest cost. This call returns a new decomposition where some two adjacent cells in the decomposition were re-optimized.
 
 \begin{algorithm}
 	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
 	\label{alg:optimization_procedure}
 	\begin{algorithmic}[1]
 		\REQUIRE Polygon $\mathbb{C}=\{Z_0,Z_1,\ldots\}$, Set of starting locations $\{q^0_i\}$
-			\STATE $D\gets$ anchored\_area\_partition$(\mathbb{C},\{q^0_i\},\frac{1}{n})$. \label{line:area_part}
-			\STATE $\mathcal{G}\gets$ adjacency graph of $D$.
-			\STATE $M\gets\chi(q^0_i,w_i), \forall w_i\in D$.
+			\STATE $\mathcal{D}\gets$ some decomposition of $\mathbb{C}$ consisting of $n$ cells \label{line:multi_init_decomp}
 			\REPEAT
-				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$.
-				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$ with lowest $\chi(q^0_j,w_j)$.
-				%\STATE $w_{\text{temp}}\gets w_a\cup b_j$
-				\STATE $w_i,w_j\gets$ equitable\_cut($w_a,w_b$).
-				\STATE Modify $M$ with new costs.%\chi(q^0_j,w_j)$ and $\chi(q^0_i,w_i)$ accordingly
-				\STATE Modify $D$ with $w_i,w_j$.
-			\UNTIL{Maximum $\chi(q^0_j,w_j)\in M$ stops decreasing}
-			\RETURN $D$
+			\STATE $\mathcal{G}\gets$ adjacency graph of $\mathcal{D}$ \label{line:multi_adjacency}
+			\STATE $\chi^{\max}_i\gets$ the cost and index of highest cost vertex in $\mathcal{G}$ \label{line:multi_cost}
+			\STATE $\mathcal{D}\gets\text{reopt\_recursion}(\mathcal{D},\mathcal{G}, v_i)$ \label{line:multi_reopt_recursion}
+			\UNTIL{$\mathcal{D}$ stops changing}
 	\end{algorithmic}
 \end{algorithm}
 
-Algorithm~\ref{alg:equitable_cut} desribes a procedure for recomputing a cut that would minimize the maximum cost. In this procedure, a search for a cut is performed over a cut space. The cut space is samples with $K$ points. The point that minimizes the maximum cost is selected and a cut is performed.
+On Line~\ref{line:multi_reopt_recursion} of Algorithm~\ref{alg:optimization_procedure}, a recursive procedure is called on the cell with the highest cost. This is because the objective is to minimize the maximum cost. However, depending on the structure of the polygon and the existing decomposition, it may not always be possible to directly re-optimize the cell with the highest cost. An example where this situation may arise is where all adjacent cells to the highest cost cell have a slightly lower cost then the maximum, which results in little room for re-optimization. These high cost adjacent cells should be attempted to be re-optimized with their respective neighbors before concluding that the re-optimization is suboptimal. This procedure is described in Algorithm~\ref{alg:reopt_recursion}.
+
+The Algorithm~\ref{alg:reopt_recursion} takes a decomposition and a vertex representing a cell in the decomposition as inputs. For each neighboring vertex to $v_i$ that has a lower cost then $v_i$, the procedure performs the following steps. On Line~\ref{line:multi_reopt_cut}, a re-optimization cut is attempted for $v_i$ and $v_j$. If the re-optimization cut was not successful, meaning it failed to find a cut that would decrease the pair-wise maximum, then the same procedure is called on $v_j$ on Line~\ref{line:multi_recursive_call}. This procedure returns decomposition with a new cut.
+
 \begin{algorithm}
-	\caption{$\text{equitable\_cut}(w_a, w_b)$}
-	\label{alg:equitable_cut}
+	\caption{$\text{reopt\_recursion}(\mathcal{D}, \mathcal{G}, v_i)$}
+	\label{alg:reopt_recursion}
 	\begin{algorithmic}[1]
-		\REQUIRE Polygon $w_a=\{Z_0,Z_1,\ldots\}$, Polygon $w_b=\{Z_0,Z_1,\ldots\}$
-			\STATE $c\gets$ shared edge between $w_a$ and $w_b$.
-			\STATE $v_s,v_e\gets$ endpoints of $c$.
-			\STATE $w_{\text{temp}}\gets w_a\cup w_b$.
-			\STATE $S\gets$ cut space from $v_s$.
-			\IF{$\chi(w_a)>\chi(w_b)$}
-				\STATE dir$\gets$ CCW
-			\ELSE
-				\STATE dir$\gets$ CW
-			\ENDIF			
-			\FOR{each $v_i\in S$ in direction dir}
-				\STATE $w^{'}_a,w^{'}_b\gets$ cut ($v_s,v_i$)
-				\IF{dir=CW and $\chi(w^{'}_a)>\chi(w^{'}_b)$}
-					\STATE \COMMENT{Reverse inequality sign for CCW}
-					\STATE $V\gets$ sample edge($v_i,v_{i-1}$) with $K$ points
-					\STATE $v_b\gets$ point from $V$ that minimizes the maximum $\{\chi(w^{'}_a),\chi(w^{'}_b)\}$
-					\STATE $c^{'}\gets$ cut ($v_i,v_b$)
-					\STATE $w_a,w_b\gets$ cut $w_{\text{temp}}$ with $c^{'}$
-					\RETURN $w_a,w_b$
-					
+		\REQUIRE Decomposition $\mathcal{D}=\{C_0,C_1,\ldots\}$, Adjacency graph $\mathcal{G}$, Vertex $v_i$
+			\FOR{$v_j\in\mathcal{N}_{v_i}$}
+				\IF{$\chi(v_j)<\chi(v_i)$}
+					\STATE $\mathcal{D}_{\text{new}}\gets\text{reopt\_cut}(v_i,v_j,\mathcal{D},\mathcal{G})$ \label{line:multi_reopt_cut}
+					\IF{$\mathcal{D}_{\text{new}}=\mathcal{D}$}
+						\STATE $\mathcal{D}_{\text{new}}\gets$reopt\_recursion($\mathcal{D},v_j$)\label{line:multi_recursive_call}
+					\ENDIF
+					\RETURN $\mathcal{D}_{\text{new}}$
 				\ENDIF
 			\ENDFOR
+	\end{algorithmic}
+\end{algorithm}
+
+
+
+
+%\begin{algorithm}
+%	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
+%	\label{alg:optimization_procedure}
+%	\begin{algorithmic}[1]
+%		\REQUIRE Polygon $\mathbb{C}=\{Z_0,Z_1,\ldots\}$, Set of starting locations $\{q^0_i\}$
+%			\STATE $D\gets$ anchored\_area\_partition$(\mathbb{C},\{q^0_i\},\frac{1}{n})$. \label{line:area_part}
+%			\STATE $\mathcal{G}\gets$ adjacency graph of $D$.
+%			\STATE $M\gets\chi(q^0_i,w_i), \forall w_i\in D$.
+%			\REPEAT
+%				\STATE $w_a\gets w_i$ from $D$ with highest $\chi(q^0_i,w_i)$.
+%				\STATE $w_b\gets$ some $w_j\in D$ adjacent to $w_a$ with lowest $\chi(q^0_j,w_j)$.
+%				%\STATE $w_{\text{temp}}\gets w_a\cup b_j$
+%				\STATE $w_i,w_j\gets$ equitable\_cut($w_a,w_b$).
+%				\STATE Modify $M$ with new costs.%\chi(q^0_j,w_j)$ and $\chi(q^0_i,w_i)$ accordingly
+%				\STATE Modify $D$ with $w_i,w_j$.
+%			\UNTIL{Maximum $\chi(q^0_j,w_j)\in M$ stops decreasing}
+%			\RETURN $D$
+%	\end{algorithmic}
+%\end{algorithm}
+
+Algorithm~\ref{alg:reopt_cut} describes a procedure for recomputing a cut that would minimize the maximum cost. In this procedure, a search for a cut is performed over a cut space. The cut space is samples with $K$ points. The point that minimizes the maximum cost is selected and a cut is performed.
+\begin{algorithm}
+	\caption{$\text{reopt\_cut}(v_i, v_j, \mathcal{D},\mathcal{G})$}
+	\label{alg:reopt_cut}
+	\begin{algorithmic}[1]
+		\REQUIRE Vertices $v_i, v_j$, Decomposition $\mathcal{D}$, Adjacency graph $\mathcal{G}$
+			\STATE $c\gets$ shared edge between $v_i$ and $v_j$.
+			\STATE $p_s,p_e\gets$ endpoints of $c$.
+			\STATE $w_{\text{temp}}\gets \mathcal{D}(v_i)\cup\mathcal{D}(v_j)$.
+			\STATE $S\gets$ cut space from $p_s$.
+			\IF{$\chi(v_i)>\chi(v_j)$}
+				\STATE dir$\gets$ CW \COMMENT{w.l.g assume $v_i$ is to the left of $c$}
+			\ELSE
+				\STATE dir$\gets$ CCW
+			\ENDIF			
+			\STATE $\mathcal{L}\gets$ sample $S$ with $K$ points
+			\STATE $p_e^{'}\gets$ point from $\mathcal{L}$ that minimizes the maximum $\{\chi(w_a),\chi(_b)\}$
+			\STATE $c^{'}\gets$ cut ($p_s,p_e^{'}$)
+			\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with $c^{'}$
+			\STATE $\mathcal{D}_{\text{new}}\gets\mathcal{D}$ modified with $w_a,w_b$
+			\RETURN $\mathcal{D}_{\text{new}}$
+%			\FOR{each $p_i\in S$ in direction dir}
+%				\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with an edge $(p_s,p_i$)
+%				\IF{dir is CW and $\chi(w_a)>\chi(w_b)$}
+%					\STATE \COMMENT{Reverse inequality sign for CCW}
+%					\STATE $V\gets$ sample edge($v_i,v_{i-1}$) with $K$ points
+%					\STATE $v_b\gets$ point from $V$ that minimizes the maximum $\{\chi(w^{'}_a),\chi(w^{'}_b)\}$
+%					\STATE $c^{'}\gets$ cut ($v_i,v_b$)
+%					\STATE $w_a,w_b\gets$ cut $w_{\text{temp}}$ with $c^{'}$
+%					\RETURN $w_a,w_b$
+%					
+%				\ENDIF
+%			\ENDFOR
 
 	\end{algorithmic}
 \end{algorithm}
@@ -404,7 +446,7 @@ Algorithm~\ref{alg:equitable_cut} desribes a procedure for recomputing a cut tha
 %	\end{algorithmic}
 %\end{algorithm}
 
-Throughout the algorithm, the metric $\chi$ is computed several times. The metric is analyzed in Section~\ref{section:multi_decomposition_metric}. Algorithm~\ref{alg:metric_algorithm} demonstrates the procedure for computing the metric. The values used in the computation of this metric are described in more details in Section~\ref{section:multi_decomposition_metric}. In this algorithm, values $\mathcal{F}_1,\mathcal{F}_2$, and $\mathcal{F}_3$ are computed. 
+Throughout the algorithm, the metric $\chi$ is used extensively. The metric is analyzed in Section~\ref{section:multi_decomposition_metric}. Algorithm~\ref{alg:metric_algorithm} demonstrates the procedure for computing the metric. The values used in the computation of this metric are described in more details in Section~\ref{section:multi_decomposition_metric}. In this algorithm, values $\mathcal{F}_1,\mathcal{F}_2$, and $\mathcal{F}_3$ are computed. 
 
 \begin{algorithm}
 	\caption{$\text{compute\_}\chi(q^0, w)$}
@@ -423,27 +465,27 @@ Throughout the algorithm, the metric $\chi$ is computed several times. The metri
 	\end{algorithmic}
 \end{algorithm}
 
-Another important sub-procedure is the call to anchored area partition procedure. This procedure is based on the work by Hert~\cite{hert1998polygon} and his approach to area partitioning problem. The procedure is summarized in Algorithm~\ref{alg:anchored_area_partition}. This algorithm allows for making cuts without having to discretized the coverable area. Moreover, a series of cuts are made to form $n$ cells with area specified as an input to the algorithm. For brevity, we only show the algorithm for convex polygons here. The full algorithm will be available in the Appendix.
+%Another important sub-procedure is the call to anchored area partition procedure. This procedure is based on the work by Hert~\cite{hert1998polygon} and his approach to area partitioning problem. The procedure is summarized in Algorithm~\ref{alg:anchored_area_partition}. This algorithm allows for making cuts without having to discretized the coverable area. Moreover, a series of cuts are made to form $n$ cells with area specified as an input to the algorithm. For brevity, we only show the algorithm for convex polygons here. The full algorithm will be available in the Appendix.
 
-\begin{algorithm}
-	\caption{$\text{anchored\_area\_partition}(w, (q^0_i,q^0_j), A_1,A_2)$}
-	\label{alg:anchored_area_partition}
-	\begin{algorithmic}[1]
-		\REQUIRE Polygon $w=\{Z_0,Z_1,\ldots\}$, Tuple of starting locations $(q_i,q_j)$, tuple of required areas
-		\STATE $V(w)\gets$ list of vertices in CCW order
-		\STATE Order $q^0_i,q^0_j$ according to this order as well
-		\STATE Initialize the cut $L=(L_s,L_e)$ as an edge $(v_0,q^0_1)$
-		\WHILE{$\text{Area}(w_j)<A_2$ or $L_e!=q^0_2$}
-			\STATE Move $L_e$ CCW
-		\ENDWHILE
-		\IF{$\text{Area}(w_j)<A_2$}
-			\WHILE{$\text{Area}(w_j)<A_2$}
-				\STATE Move $L_s$ CW
-			\ENDWHILE
-		\ENDIF
-		\RETURN $w_i,w_j$
-	\end{algorithmic}
-\end{algorithm}
+%\begin{algorithm}
+%	\caption{$\text{anchored\_area\_partition}(w, (q^0_i,q^0_j), A_1,A_2)$}
+%	\label{alg:anchored_area_partition}
+%	\begin{algorithmic}[1]
+%		\REQUIRE Polygon $w=\{Z_0,Z_1,\ldots\}$, Tuple of starting locations $(q_i,q_j)$, tuple of required areas
+%		\STATE $V(w)\gets$ list of vertices in CCW order
+%		\STATE Order $q^0_i,q^0_j$ according to this order as well
+%		\STATE Initialize the cut $L=(L_s,L_e)$ as an edge $(v_0,q^0_1)$
+%		\WHILE{$\text{Area}(w_j)<A_2$ or $L_e!=q^0_2$}
+%			\STATE Move $L_e$ CCW
+%		\ENDWHILE
+%		\IF{$\text{Area}(w_j)<A_2$}
+%			\WHILE{$\text{Area}(w_j)<A_2$}
+%				\STATE Move $L_s$ CW
+%			\ENDWHILE
+%		\ENDIF
+%		\RETURN $w_i,w_j$
+%	\end{algorithmic}
+%\end{algorithm}
 
 %In Algorithm~\ref{alg:optimization_procedure}, in Line~\ref{line:compute_encirlment}, a procedure is called to compute \emph{encirclements}. The procedure for computing them is shown in Algorithm~\ref{alg:compute_contours}.
 %\begin{algorithm}
