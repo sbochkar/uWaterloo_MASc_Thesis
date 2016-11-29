@@ -411,46 +411,45 @@ In this graph, a vertex $v\in V$ represents one possible choice of direction to 
 
 \section{Simulations}
 \label{section:single_agent_simulation}
-Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
+The decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
 
-Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.
-
-
-\begin{table}
-	\centering
-	\caption{Decomposition methods comparison for multiple test shapes.}
-	\label{table:performance}
-	\begin{tabular}{@{} l rrrr l rrrr l rrrr l@{}}
-		\toprule
-		&& Size & Time & Length & Area \\
-		\cmidrule{3-6}
-		\multirow{4}{*}{Point Decomposition} & Shape 1 & 7144 & 2h & 312.6 & 87.8\%\\
-		& Shape 2 & 7288  & 2h & 306.3 & 86.9\%\\
-		& Shape 3 & 7464 & 2h & 349.3 & 88.3\%\\
-		& Shape 4 & 6736 & 2h & 312.2 & 85.1\%\\
-		\midrule
-		\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
-		& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
-		& Shape 3 & 136 & \bf{6s} & \bf{226.9} & 79.8\%\\
-		& Shape 4 & 116 & \bf{3s} & \bf{226.5} & 88.1\%\\
-		\midrule
-		\multirow{4}{*}{Min Alt Decomposition} & Shape 1 & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
-		& Shape 2 & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
-		& Shape 3 & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
-		& Shape 4 & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
-		\bottomrule
-
-	\end{tabular}
-\end{table}
+%We have evaluated the effectiveness of our method by comparing the results before and after the re-optimization steps. 
 
 
-Performance figures of all three methods are shown in Table~\ref{table:performance}. We compare four characteristics of the three approaches: 1) the size of the GTSP instance, 2) the execution time from start to finish, 3) the total length of the tour, and 4) the area covered by the coverage path as percentage of the total area of the polygon. We note that in all four test shapes, our method reduced the number of turns in the final coverage path. This is shown in the reduction in GTSP size, which is equivalent to the reduction in number of straight line segments. Naturally, since our method uses greedy decomposition as a starting point, it runs more slowly then the pure greedy approach. On average, out method is about three times slower than the greedy approach. However, it is faster then the point decomposition by a factor of 100. 
+%\begin{table}
+%	\centering
+%	\caption{Decomposition methods comparison for multiple test shapes.}
+%	\label{table:multi_performance}
+%	\begin{tabular}{@{} l rrrr l rrrr l rrrr l@{}}
+%		\toprule
+%		&& Size & Time & Length & Area \\
+%		\cmidrule{3-6}
+%		\multirow{4}{*}{Point Decomposition} & Shape 1 & 7144 & 2h & 312.6 & 87.8\%\\
+%		& Shape 2 & 7288  & 2h & 306.3 & 86.9\%\\
+%		& Shape 3 & 7464 & 2h & 349.3 & 88.3\%\\
+%		& Shape 4 & 6736 & 2h & 312.2 & 85.1\%\\
+%		\midrule
+%		\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
+%		& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
+%		& Shape 3 & 136 & \bf{6s} & \bf{226.9} & 79.8\%\\
+%		& Shape 4 & 116 & \bf{3s} & \bf{226.5} & 88.1\%\\
+%		\midrule
+%		\multirow{4}{*}{Min Alt Decomposition} & Shape 1 & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
+%		& Shape 2 & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
+%		& Shape 3 & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
+%		& Shape 4 & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
+%		\bottomrule
+%
+%	\end{tabular}
+%\end{table}
 
-It is worth noting that the overall path lengths are slightly shorter with the greedy decomposition compared to our method. However, this factor is mostly attributed to the fact that greedy decomposition produces many regions whose area is small relative to the size of the footprint. These regions are typically very narrow, which makes it difficult to place lines inside those regions that cover most of the area. Decompositions that produce excessive number of such regions results in a significant portion of the total area of the polygon uncovered. Our method produces fewer regions and leaves less area uncovered. From Table~\ref{table:performance}, the uncovered area left by our method is on average half of the uncovered area left by the greedy approach. It is worth noting that point decomposition in some cases covers less area than the competing algorithms. However, this occurrence is primarily due to our method for generating the approximate decomposition, which does not place any coverage footprints at a distance of less than $r$ from the boundary, leading to uncovered areas near polygon boundaries.
+%Performance figures of all three methods are shown in Table~\ref{table:performance}. We compare four characteristics of the three approaches: 1) the size of the GTSP instance, 2) the execution time from start to finish, 3) the total length of the tour, and 4) the area covered by the coverage path as percentage of the total area of the polygon. We note that in all four test shapes, our method reduced the number of turns in the final coverage path. This is shown in the reduction in GTSP size, which is equivalent to the reduction in number of straight line segments. Naturally, since our method uses greedy decomposition as a starting point, it runs more slowly then the pure greedy approach. On average, out method is about three times slower than the greedy approach. However, it is faster then the point decomposition by a factor of 100. 
 
-Figure~\ref{fig:coverage_results} shows the resultant paths for three different approaches. The line segments are orange and green segments show Dubins transition costs. Note that green segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. The red lines highlight shared edges of adjacent polygons in the decomposition. The first column of figures show the point decomposition. The second column of figures show the greedy decomposition technique. And the last column shows our re-optimization technique. 
+%It is worth noting that the overall path lengths are slightly shorter with the greedy decomposition compared to our method. However, this factor is mostly attributed to the fact that greedy decomposition produces many regions whose area is small relative to the size of the footprint. These regions are typically very narrow, which makes it difficult to place lines inside those regions that cover most of the area. Decompositions that produce excessive number of such regions results in a significant portion of the total area of the polygon uncovered. Our method produces fewer regions and leaves less area uncovered. From Table~\ref{table:performance}, the uncovered area left by our method is on average half of the uncovered area left by the greedy approach. It is worth noting that point decomposition in some cases covers less area than the competing algorithms. However, this occurrence is primarily due to our method for generating the approximate decomposition, which does not place any coverage footprints at a distance of less than $r$ from the boundary, leading to uncovered areas near polygon boundaries.
 
-From Figure~\ref{fig:coverage_results} we can see that our method significantly reduces the number of polygons compared to the greedy decomposition. Inefficiencies in the GTSP tour occur due to the very large size of the GTSP instance, which poses a challenge for the heuristic GLKH solver.
+%Figure~\ref{fig:coverage_results} shows the resultant paths for three different approaches. The line segments are orange and green segments show Dubins transition costs. Note that green segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. The red lines highlight shared edges of adjacent polygons in the decomposition. The first column of figures show the point decomposition. The second column of figures show the greedy decomposition technique. And the last column shows our re-optimization technique. 
+
+%From Figure~\ref{fig:coverage_results} we can see that our method significantly reduces the number of polygons compared to the greedy decomposition. Inefficiencies in the GTSP tour occur due to the very large size of the GTSP instance, which poses a challenge for the heuristic GLKH solver.
 
 \begin{figure*}
 		\centering
