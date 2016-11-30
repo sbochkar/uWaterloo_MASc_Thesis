@@ -529,6 +529,8 @@ Throughout the algorithm, the metric $\chi$ is used extensively. The metric is a
 
 In this section, we perform a computational complexity analysis of the algorithm. Line 1 of Algorithm 7 is performed in $\mathbb{O}(n)$ by iterating over all vertices. Similarly the area of a polygon is computed in $\mathbb{O}(n)$ time. Lines 3 $\mathbb{O}(n)$ have similar execution time. Line 4 is $\mathbb{O}(n^2)$ since all pairs of edges have to be examined. On Line 7, the contours are being computed. The computation of a contours is performed by repeatedly shrinking the boundary of a polygon. Although we use the Shapely library for this, it can be theoretically performed with following steps. 
 
+Computing contours can be done via a simple algorithm proposed by Chen~\cite{chen2005polygon}, which is done in $\mathbb{O}((n+k)\log{n})$
+
 
 
 \section{Simulations}
