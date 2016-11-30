@@ -12,12 +12,12 @@ In this chapter, the multi-agent coverage problem is introduced. The problem sta
 \section{Problem Statement}
 \label{section:multi_agent_problem_statement}
 
-First, the general multi-agent coverage problem statement is developed. Observe that a team of robots that is tasked with coverage may contain robots with different dynamics and coverage footprints. As a result, for every robot $i$ on the team, there is a corresponding free configuration space $Q_{i,\text{free}}$, a set of feasible paths $P_i$, and a coverage map $\mathcal{M}_i(q)$. The coverable space for each robot could then be stated as:
+First, the general multi-agent coverage problem statement is developed. Observe that a team of robots that is tasked with coverage may contain robots with different dynamics and coverage footprints. As a result, for every robot $i$ on the team, there is a corresponding free configuration space $Q_{i,\text{free}}$, a set of feasible paths $P_i$, and a coverage map $\mathcal{M}_i(q)$. \margin{given that it is located at the point $q$?} The coverable space for each robot could\margin{don't use ``could''} then be stated as:
 \begin{equation}
 	\mathcal{C}_i=\bigcup_{q\in Q_{i,\text{free}}}\mathcal{M}_i(q).
 \end{equation}
 
-Amongst $n$ robots in the team, these sets, $\mathcal{C}_1, \mathcal{C}_2,\ldots,\mathcal{C}_n$, may not necessarily be the same. Because of this, there are some regions in the workspace that may be accessible only by certain robots. This complicates the path planning process as the ability of a robot to cover a certain section of the workspace is conditional on the robot's dynamics. In this work, we make a simplifying assumption that if a point on the workspace is coverable by robot $i$, it is coverable by all other robots on the team. In other words, we assume that all robots have the same coverable space. That is:
+Amongst $n$ robots in the team, these sets, $\mathcal{C}_1, \mathcal{C}_2,\ldots,\mathcal{C}_n$, may not necessarily be the same. Because of this, there are some regions in the workspace that may be accessible only by certain robots. This complicates the path planning process as the ability of a robot to cover a certain section of the workspace is conditional on the robot's dynamics. In this work, we make a simplifying assumption that if a point on the workspace is coverable by robot $i$, it is coverable by all other robots on the team. In other words, we assume that all robots have the same coverable space. That is:\todo[inline]{If we are going straight to this assumption, then the problem should just be defined for homogeneous robots.  You can use a remark to discuss the case of heterogeneity.}
 \begin{equation}
 	\mathcal{C}_1=\mathcal{C}_2=\ldots=\mathcal{C}_n=\mathbb{C}.
 \end{equation}
@@ -25,7 +25,7 @@ Amongst $n$ robots in the team, these sets, $\mathcal{C}_1, \mathcal{C}_2,\ldots
 The general problem is now introduced in Problem~\ref{problem:multi_cpp}.
 \begin{problem}[Multi-agent Coverage Path Planning]
 \label{problem:multi_cpp}
-	Given a workspace $W$, $n$ robots, their corresponding coverage maps $\mathcal{M}_i$, and equal coverable spaces, compute $\{p_1,p_2,\ldots,p_n\}$ with the following conditions:
+	Given a workspace $W$, $n$ robots, their corresponding coverage maps $\mathcal{M}_i$\margin{M same for each robot}, and equal coverable spaces, compute $\{p_1,p_2,\ldots,p_n\}$ with the following conditions:
 	\begin{equation}
 	\begin{aligned}
 		& p_i\in P_{i},\ i=1,\dots,n,\\
@@ -137,14 +137,14 @@ Given a polygonal workspace $W$ and a robot with dynamics, the partition metric 
 \subsection{Initialization and Return Distance}
 \label{subsection:init_ret_distance}
 
-A team of $n$ robots have $n$ starting locations, $q^0_1,q^0_2,\ldots,q^0_n$. Depending on the decomposition technique, the starting location of a robot may be some distance away from its assigned cell. Since this travel distance may be significant, it cannot be ignored when computing the cost of the path. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, we should expect robot $i$ to be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
+A team of $n$ robots have $n$ starting locations, $q^0_1,q^0_2,\ldots,q^0_n$. Depending on the decomposition technique, the starting location of a robot may be some distance away from its assigned cell. Since this travel distance may be significant, it cannot be ignored when computing the cost of a path. For example, assume $n$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, robot $i$ should be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
 
-Let us refer to the distance from the starting location of the robot $i$, $q^0_i$, to the begging of the coverage path in $w_i$ and from the end of the path to $q^0_i$ as:
+Let the distance from the starting location of the robot $i$, $q^0_i$, to the begging of the coverage path in $w_i$ and from the end of the path to $q^0_i$ be denoted as:
 \begin{equation}
 	\text{dist}(q^0_i,w_i).
 \end{equation}
 
-This quantity cannot be computed as such because it requires the information about where the coverage path starts and ends. This is not known prior to computing the actual path. The only information available is $q^0_i$ and $w_i$. However, we can compute an approximation of this quantity, $\mathcal{F}_1(q^0_i,w_i)$, that is going to be a lower bound on the actual value. In this work, this is accomplished via twice the shortest Euclidean distance to $w_j$. More formally, 
+This quantity cannot be computed prior to computing the actual coverage path because starting and end points of the coverage component are not known. The only information available is $q^0_i$ and $w_i$. However, this quantity can be approximated. This approximation is denoted by $\mathcal{F}_1(q^0_i,w_i)$ and it is a lower bound on the actual value. In this work, this is accomplished via twice the shortest Euclidean distance to $w_j$. More formally, 
 \begin{equation}
 	\mathcal{F}_1(q^0_i,w_i)=2\min_{x\in\partial w_i}||q^0_i-x||_2.
 \end{equation}
@@ -154,7 +154,7 @@ However, it is clearly a lower bound on the cost of the actual path to get to th
 	\mathcal{F}_1(q^0_i,w_i)\leq\text{dist}(q^0_i,w_i).
 \end{equation}
 
-The benefits of this metric includes its simplicity and ease of computation. However, it is important to note that a straight path from the starting location to the closest point on the boundary of $w_i$ may not be always feasible as it may intersect an obstacle. Therefore, a situation is possible where the distance from the starting location to the assigned region is close but in reality, requires extensive navigation through obstacles. A way to mitigate this situation is by computing the distance of a shortest feasible path to $w_i$. However, this requires computation of a visibility graph.
+The benefits of this metric includes its simplicity and ease of computation. However, it is important to note that a straight path from the starting location to the closest point on the boundary of $w_i$ may not be always feasible as it may intersect an obstacle. Therefore, a situation is possible where the distance from the starting location to the assigned region is close but in reality, requires extensive navigation through obstacles. A way to mitigate this situation is by computing the distance of a shortest feasible path to $w_i$. However, this requires utilization of visibility graphs, which is computationally expensive.
 
 
 \subsection{Length of Straight Line Segments}
@@ -204,7 +204,7 @@ where $a$ and $b$ are the length of two parallel sides of the trapezoid, and $h$
 \begin{equation}
 	\begin{aligned}
 		&a=r\tan{\frac{\theta}{2}},\\
-		&b=r\tan{(90^o-\frac{\theta}{2}})
+		&b=r\tan\left(90^o-\frac{\theta}{2}\right)
 	\end{aligned}
 \end{equation}
 
@@ -237,13 +237,13 @@ The term $|S|$ is problematic because the number of lines is not known prior to 
 \end{equation}%
 
 
-
+\todo[inline]{what is the main result here?  Feels disorganized}
 With this result, we can state a lower bound on the total length of all straight line segments combined as a function of the workspace. Let $\mathcal{F}_2(w_i)$ denote the lower bound on this amount then:
 \begin{equation}
 	\mathcal{F}_2(w_i)=\frac{A_{\text{actual}}-A_{\text{uncovered}}^{\max}}{r}
 \end{equation}
 
-Moreover, because we took the maximum uncovered area, the following is true is well:
+Moreover, because we took the maximum uncovered area, the following is true is well:\margin{punctuate equations properly.}
 \begin{equation}
 	\mathcal{F}_2(w_i)\leq\sum_{i=1}^Nl_i
 \end{equation}
@@ -536,7 +536,7 @@ In this section, we perform a computational complexity analysis of the algorithm
 
 Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
 
-Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.
+%Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.
 
 
 \begin{table}
@@ -551,29 +551,29 @@ Our method was compared to two other approaches. In the first method we use an a
 		& Shape 2 & 7288  & 2h & 306.3 & 86.9\%\\
 		& Shape 3 & 7464 & 2h & 349.3 & 88.3\%\\
 		& Shape 4 & 6736 & 2h & 312.2 & 85.1\%\\
-		\midrule
-		\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
-		& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
-		& Shape 3 & 136 & \bf{6s} & \bf{226.9} & 79.8\%\\
-		& Shape 4 & 116 & \bf{3s} & \bf{226.5} & 88.1\%\\
-		\midrule
-		\multirow{4}{*}{Min Alt Decomposition} & Shape 1 & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
-		& Shape 2 & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
-		& Shape 3 & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
-		& Shape 4 & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
+		%\midrule
+		%\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
+		%& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
+		%& Shape 3 & 136 & \bf{6s} & \bf{226.9} & 79.8\%\\
+		%& Shape 4 & 116 & \bf{3s} & \bf{226.5} & 88.1\%\\
+		%\midrule
+		%\multirow{4}{*}{Min Alt Decomposition} & Shape 1 & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
+		%& Shape 2 & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
+		%& Shape 3 & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
+		%& Shape 4 & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
 		\bottomrule
 
 	\end{tabular}
 \end{table}
 
 
-Performance figures of all three methods are shown in Table~\ref{table:performance}. We compare four characteristics of the three approaches: 1) the size of the GTSP instance, 2) the execution time from start to finish, 3) the total length of the tour, and 4) the area covered by the coverage path as percentage of the total area of the polygon. We note that in all four test shapes, our method reduced the number of turns in the final coverage path. This is shown in the reduction in GTSP size, which is equivalent to the reduction in number of straight line segments. Naturally, since our method uses greedy decomposition as a starting point, it runs more slowly then the pure greedy approach. On average, out method is about three times slower than the greedy approach. However, it is faster then the point decomposition by a factor of 100. 
+%Performance figures of all three methods are shown in Table~\ref{table:performance}. We compare four characteristics of the three approaches: 1) the size of the GTSP instance, 2) the execution time from start to finish, 3) the total length of the tour, and 4) the area covered by the coverage path as percentage of the total area of the polygon. We note that in all four test shapes, our method reduced the number of turns in the final coverage path. This is shown in the reduction in GTSP size, which is equivalent to the reduction in number of straight line segments. Naturally, since our method uses greedy decomposition as a starting point, it runs more slowly then the pure greedy approach. On average, out method is about three times slower than the greedy approach. However, it is faster then the point decomposition by a factor of 100. 
 
-It is worth noting that the overall path lengths are slightly shorter with the greedy decomposition compared to our method. However, this factor is mostly attributed to the fact that greedy decomposition produces many regions whose area is small relative to the size of the footprint. These regions are typically very narrow, which makes it difficult to place lines inside those regions that cover most of the area. Decompositions that produce excessive number of such regions results in a significant portion of the total area of the polygon uncovered. Our method produces fewer regions and leaves less area uncovered. From Table~\ref{table:performance}, the uncovered area left by our method is on average half of the uncovered area left by the greedy approach. It is worth noting that point decomposition in some cases covers less area than the competing algorithms. However, this occurrence is primarily due to our method for generating the approximate decomposition, which does not place any coverage footprints at a distance of less than $r$ from the boundary, leading to uncovered areas near polygon boundaries.
+%It is worth noting that the overall path lengths are slightly shorter with the greedy decomposition compared to our method. However, this factor is mostly attributed to the fact that greedy decomposition produces many regions whose area is small relative to the size of the footprint. These regions are typically very narrow, which makes it difficult to place lines inside those regions that cover most of the area. Decompositions that produce excessive number of such regions results in a significant portion of the total area of the polygon uncovered. Our method produces fewer regions and leaves less area uncovered. From Table~\ref{table:performance}, the uncovered area left by our method is on average half of the uncovered area left by the greedy approach. It is worth noting that point decomposition in some cases covers less area than the competing algorithms. However, this occurrence is primarily due to our method for generating the approximate decomposition, which does not place any coverage footprints at a distance of less than $r$ from the boundary, leading to uncovered areas near polygon boundaries.
 
-Figure~\ref{fig:coverage_results} shows the resultant paths for three different approaches. The line segments are orange and green segments show Dubins transition costs. Note that green segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. The red lines highlight shared edges of adjacent polygons in the decomposition. The first column of figures show the point decomposition. The second column of figures show the greedy decomposition technique. And the last column shows our re-optimization technique. 
+%Figure~\ref{fig:coverage_results} shows the resultant paths for three different approaches. The line segments are orange and green segments show Dubins transition costs. Note that green segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. The red lines highlight shared edges of adjacent polygons in the decomposition. The first column of figures show the point decomposition. The second column of figures show the greedy decomposition technique. And the last column shows our re-optimization technique. 
 
-From Figure~\ref{fig:coverage_results} we can see that our method significantly reduces the number of polygons compared to the greedy decomposition. Inefficiencies in the GTSP tour occur due to the very large size of the GTSP instance, which poses a challenge for the heuristic GLKH solver.
+%From Figure~\ref{fig:coverage_results} we can see that our method significantly reduces the number of polygons compared to the greedy decomposition. Inefficiencies in the GTSP tour occur due to the very large size of the GTSP instance, which poses a challenge for the heuristic GLKH solver.
 
 
 
