@@ -42,9 +42,7 @@
 
 		\coordinate (i) at (0.35,2.35);
 
-		\draw (p1)--(p2)--(p3);
-		\draw (p22)--(p23);
-		\draw (p32)--(p33)--(p34)--(p1);
+		\draw [box] (p1)--(p2)--(p3)--(p22)--(p23)--(p32)--(p33)--(p34)--cycle;
 
 		%First line
 		\fill [covered_area] (1c_u_l) arc (180:0:1);

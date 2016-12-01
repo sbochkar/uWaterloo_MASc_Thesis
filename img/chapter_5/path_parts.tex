@@ -3,7 +3,7 @@
 \documentclass[../../main.tex]{subfiles}
 
 \begin{document}
-	\begin{tikzpicture}[scale=1]
+	\begin{tikzpicture}[scale=1.5]
 
 		\coordinate (p1) at (0,0);
 		\coordinate (p2) at (2,2);
@@ -17,7 +17,7 @@
 		\node at (p1) [right] {$q^0$};
 
 		%Roomba$
-		\node [inner sep=0pt,rotate around={-90:(p2)}] at (p2) {\includegraphics[width=.07\textwidth]{img/chapter_5/roomba.png}};
+		\node [inner sep=0pt,rotate around={-90:(p2)}] at (p2) {\includegraphics[width=.1\textwidth]{img/chapter_5/roomba.png}};
 
 		% Init and return
 		\draw [my_orange,opacity=0.5,line width=0.1cm] (p1)--(1.4,1.6)--(p2);

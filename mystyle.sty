@@ -267,13 +267,21 @@
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
-\newtheorem{definition}{Definition}[section]
+%\newtheorem{definition}{Definition}[section]
 \newtheorem{problem}{Problem}[section]
 \newtheorem{property}{Property}[section]
 \newtheorem{observation}{Observation}[section]
 \newtheorem{lemma}{Lemma}[section]
 \newtheorem{claim}{Claim}[section]
 \newtheorem{proposition}{Proposition}[section]
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+
+\newcommand*{\RE}{\hfill\ensuremath{\bullet}}%
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
