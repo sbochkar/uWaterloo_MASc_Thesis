@@ -170,9 +170,9 @@ The first term in the metric $\chi$ is the term is the following:
 
 This term is designed to approximate the travel distance of a robot from its starting location to its assigned task. To demonstrate the important of this term, consider the following. A team of $N$ robots have $N$ starting locations, $q^0_1,q^0_2,\ldots,q^0_N$. Depending on the decomposition technique, the starting location of a robot may be some distance away from its assigned cell. Since this travel distance may be significant, it cannot be ignored when computing the cost of a path. For example, assume $N$ robots have equal battery charge and same dynamics. In the scenario where robot $i$ is further to its assigned cell then robot $j$, robot $i$ should be responsible for smaller cell than robot $j$. We also assume that after the completion of robot's coverage task, it is required to come back to its original starting location.
 
-\begin{theorem}
+\begin{proposition}
 	$\mathcal{F}_1$ is a lower bound for the actual distance from the robot's initial position to the start of the coverage path.
-\end{theorem}
+\end{proposition}
 \begin{proof}
 	Denote the combined distance from the starting location of the robot $i$, $q^0_i$, to the begging of the coverage path in $w_i$, and the distance from the end of the path to $q^0_i$ be denoted as
 	\begin{equation}
@@ -301,15 +301,15 @@ With an easily computable expression for $A_{\text{uncovered}}^{\max}$, the expr
 	\mathcal{F}_2(w_i)=\frac{A_{\text{actual}}-A_{\text{uncovered}}^{\max}}{r}.
 \end{equation}
 
-\begin{theorem}[Lower Bound of Total Length of Straight Line Segments]
+\begin{proposition}[Lower Bound of Total Length of Straight Line Segments]
 The term $\mathcal{F}_2(w_i)$ is a lower bound to the actual total length of straight line segments in a segmented path.
-\end{theorem}
+\end{proposition}
 \begin{proof}
 The term $A_{\text{uncovered}}^{\max}$ was computed with the value of $\theta_{\max}$ that maximizes the $A_{\text{uncovered}}$ function. Moreover, the cardinality of set $S$ is approximated by $\ceil{\frac{\alpha_{\min}}{r}}$ where $|S|\leq\ceil{\frac{\alpha_{\min}}{r}}$. Hence, the following is true:
 \begin{equation}
 \begin{aligned}
 	&A_{\text{uncovered}}^{\max}\geq A_{\text{uncovered}},\\
-	\Longrightarrow\  &\mathcal{F}_2(w_i)\leq\sum_{i=1}^Nl_i
+	\Longrightarrow\  &\mathcal{F}_2(w_i)\leq\sum_{i=1}^Nl_i.
 	\end{aligned}
 \end{equation}
 \end{proof}
@@ -318,29 +318,52 @@ The term $A_{\text{uncovered}}^{\max}$ was computed with the value of $\theta_{\
 \subsection{Angular Component}
 \label{subsection:angular_component}
 
-According to the cost metric introduced in Section~\ref{section:single_problem_statement}, there are two components in the cost of a coverage path: linear and angular. The term of the approximated cost developed in Section~\ref{subsection:init_ret_distance} and Section~\ref{subsection:sum_straight_segments} both serve as approximations to the linear component. In this section, an approximation for the angular component is designed.
-
-The angular components of a coverage path depends on the type of path itself. Some paths have a particular structure, which makes them suitable for theoretical analysis. For instance, a typical Boustrophedon path contains a set of parallel line segments connected together by transition segments. Since these parallel segments are oriented in the same direction, the transition segments must traverse at least 180$^o$ angular distance. Hence, just by knowing the number of parallel segments allows for computation of the angular distance in the whole path. As a reminder, this could be achieved by computing the altitude as demonstrated in Chapter~\ref{chapter:single_agent_coverage}. However, as shown in Chapter~\ref{chapter:single_agent_coverage}, the Boustrophedon path is not optimal for general polygons. Hence, we deviate from the altitude decomposition technique and instead focus on the shape of the polygon itself. The goal being to compute an approximation of the angular components as a function of the shape of the polygon.
-
-For that purpose, our approach is inspired by concepts such as the medial axis of a workspace and the straight skeleton graphs as reviewed in Chapter~\ref{chapter:background}. Recall that one way to compute a straight skeleton graph is by iteratively computing \emph{contours} of a polygon. Suppose a set of contours, $\mathcal{T}$ is computed by iteratively \emph{shrinking} the boundary of the polygon by distance $r$ inwards. Then the following proposition is made.
-
-\begin{proposition}
-	Given a polygonal convex workspace $W$, suppose that the coverage angle by a Boustrophedon path is $\theta$. Then $360^o|\mathcal{T}|\leq\theta$.
-\end{proposition}
-\begin{proof}
-
-The proof of this proposition starts with convex polygons. Recall the center contour introduced in Chapter~\ref{chapter:background}. The distance from any edge of the convex polygon to the center contour is $\beta$. Suppose that the minimum altitude of the convex polygon under study is $\alpha$. By construction of the center contour and the minimum altitude, the following holds, as shown in Figure~\ref{fig:skeleton_altitude}.
+The last term of the metric $\chi$ is the following:
 \begin{equation}
-	\beta\leq 0.5\alpha.
+	\mathcal{F}_3(w_i)=360^o|\mathcal{T}|.
 \end{equation}
-\simpleplot{img/chapter_5/skeleton_altitude}{Minimum altitude of a convex polygon, $\alpha$. Distance to the center contour, $\beta$.}{fig:skeleton_altitude}
 
-However, $|\mathcal{T}|=\ceil{\frac{\beta}{r}}$ and $\theta=180^o\ceil{\frac{\alpha}{r}}$. Hence, assuming that $\frac{\alpha}{r}$ is exact then
+This term is designed to approximate the angular component of the coverage path. As discussed in Chapter~\ref{chapter:single_agent_coverage}, coverage is achieved through segmented paths. Only transition segments of the segmented paths contribute to the angular component of the cost. In this section, an approximation for the angular components of the coverage path is developed.
+
+\begin{remark}[Angular Component for Boustrophedon Paths]
+Recall that Boustrophedon paths consists of a set of parallel straight line segments connected together by transition segments. In this case, each transition segment travels exactly $180^o$ of rotation to arrive to the next parallel segment. As such, the angular component can be computed exactly given the number of parallel segments. This can be computed by computing the minimum altitude from Chapter~\ref{chapter:single_agent_coverage}. However, recall that Boustrophedon paths may be non-optimal for non-convex environments. Hence, calculating the angular component using Boustrophedon paths may leads to an over approximation.\RE
+\end{remark}
+
+%transition segments of the coverage path. The angular components of a coverage path depends on the type of path itself. Some paths have a particular structure, which makes them suitable for theoretical analysis. For instance, a typical Boustrophedon path contains a set of parallel line segments connected together by transition segments. Since these parallel segments are oriented in the same direction, the transition segments must traverse at least 180$^o$ angular distance. Hence, just by knowing the number of parallel segments allows for computation of the angular distance in the whole path. As a reminder, this could be achieved by computing the altitude as demonstrated in Chapter~\ref{chapter:single_agent_coverage}. However, as shown in Chapter~\ref{chapter:single_agent_coverage}, the Boustrophedon path is not optimal for general polygons. Hence, we deviate from the altitude decomposition technique and instead focus on the shape of the polygon itself. The goal being to compute an approximation of the angular components as a function of the shape of the polygon.
+
+\begin{remark}[Contour Parallel Coverage]
+Another class of coverage paths are contour parallel paths~\cite{held1994pocket}. These paths are generated by performing an operation called a parallel offset on the boundary of the workspace. The result of the operation is a closed contour. If these closed contours are spaced distance $r$ apart then a set of these contours constitute a coverage path. An example of such contours is shown in Figure~\ref{fig:skeleton_altitude}.
+
+Although this type of paths is suitable for convex workspaces, there are a number of shortcomings for concave polygons. For instance, the uncovered areas of the workspace may become disconnected during the traversal of a contour parallel coverage path. However, note that for convex shapes each closed contour has a fixed angular component of $360^o$. This fact can be used in the estimation of the angular component for general polygons.
+\end{remark}
+
+Suppose a set of contours $\mathcal{T}$ is computed by iteratively \emph{shrinking} the boundary of the polygon by distance $r$ inwards.
+\begin{proposition}
+	Given a polygonal convex workspace $W$, suppose a set of contours, $\mathcal{T}$ is computed. Let the coverage angle of a Boustrophedon path be $\Phi$. The the following holds:
+	\begin{equation}
+		360^o|\mathcal{T}|\leq\Phi.
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+The result is shown for convex polygons first. The process of iteratively shrinking the boundary converges to the center contour as shown in thick line in Figure~\ref{fig:skeleton_altitude}. The distance from any edge of the convex polygon to the center contour is $\beta$. Suppose that the minimum altitude of the same convex polygon is $\alpha$. By construction of the center contour and the minimum altitude, the following holds:
+\begin{equation}
+	\beta\leq\frac{\alpha}{2}.
+\end{equation}
+
+\begin{figure}
+	\centering
+	\subfile{img/chapter_5/skeleton_altitude}
+	\caption{Minimum altitude of a convex polygon, $\alpha$. Distance to the center contour, $\beta$.}
+	\label{fig:skeleton_altitude}
+\end{figure}
+
+However, recall that $\Phi=180^o\ceil{\frac{\alpha}{r}}$ and $|\mathcal{T}|=\ceil{\frac{\beta}{r}}$. Assuming that $\frac{\alpha}{r}$ is exact then
 \begin{equation}
 	360^o|\mathcal{T}|\leq180^o\frac{\alpha}{r}
 \end{equation}
 
-To complete the proof, concave polygons need to be considered. Recall that any concave polygon can be decomposed into a set of convex cells. We have also demonstrated that a decomposition can be constructed that minimizes the sum of minimum altitudes over all convex cells. The sum of all minimum altitudes is related to the number of parallel line segments required for coverage. Hence, a coverage angle can also be computed. Also note that every convex cell has its own center contour. However, it was shown that $360^o\frac{\beta}{r}\leq\theta$ for convex polygons. Hence, the summation over all cells will hold as well.
+Recall that concave polygons can be decomposed into a set of convex cells. We have also demonstrated that a decomposition can be constructed that minimizes the sum of minimum altitudes over all convex cells in Chapter~\ref{chapter:single_agent_coverage}. The sum of all minimum altitudes is related to the number of parallel line segments required for coverage. Hence, a coverage angle can also be computed. Also note that every convex cell has its own center contour. However, it was shown that $360^o\frac{\beta}{r}\leq\Phi$ for convex polygons. Hence, the summation over all cells will hold as well.
 \end{proof}
 
 
