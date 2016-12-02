@@ -444,6 +444,45 @@ The Algorithm~\ref{alg:reopt_recursion} takes a decomposition and a vertex repre
 	\end{algorithmic}
 \end{algorithm}
 
+\begin{figure*}
+		\centering
+		\includegraphics[width=0.75\textwidth]{img/chapter_5/demo_1_a.pdf} 
+		\includegraphics[width=0.75\textwidth]{img/chapter_5/demo_2_a.pdf}
+		\includegraphics[width=0.75\textwidth]{img/chapter_5/demo_3_a.pdf} 	
+		\begin{tikzpicture}[remember picture,overlay]
+			\fill [fill=black] (-2.0,6.1) circle [radius=2pt];
+			\fill [fill=black] (-2.0,3.5) circle [radius=2pt];
+			\fill [fill=black] (-2.0,1.2) circle [radius=2pt];
+			
+			\node at (-1.8,6.1) {$3$};
+			\node at (-1.8,3.5) {$3$};
+			\node at (-1.8,1.2) {$3$};
+			
+			\fill [fill=black] (-5.0,6.1) circle [radius=2pt];
+			\fill [fill=black] (-5.0,3.5) circle [radius=2pt];
+			\fill [fill=black] (-5.0,1.2) circle [radius=2pt];
+			
+			\node at (-4.8,6.1) {$2$};
+			\node at (-4.8,3.5) {$2$};
+			\node at (-4.8,1.2) {$2$};			
+
+			\fill [fill=black] (-11.0,6.1) circle [radius=2pt];
+			\fill [fill=black] (-11.0,3.5) circle [radius=2pt];
+			\fill [fill=black] (-11.0,1.2) circle [radius=2pt];
+			
+			\node at (-10.8,6.1) {$1$};
+			\node at (-10.8,3.5) {$1$};
+			\node at (-10.8,1.2) {$1$};			
+
+			%\draw at (-1.0,1.5) circle [radius=0.1cm] node {$3$};
+			%\node at (-1.0,1.5) circle [radius=0.1cm] {$3$};
+
+			%\draw [thin, <->] (12,0)--node [right] {$\beta$} (12,2);			
+		\end{tikzpicture}
+	\caption{Top: initial decomposition. Middle: after first iteration. Bottom: after second iteration.}
+	\label{fig:algo_demo}
+\end{figure*}
+
 
 
 
@@ -631,16 +670,18 @@ Our decomposition algorithm was implemented in Python. The algorithm was impleme
 
 \begin{table}
 	\centering
-	\caption{Decomposition methods comparison for multiple test shapes.}
-	\label{table:performance}
-	\begin{tabular}{@{} l rrrr l rrrr l rrrr l@{}}
+	\caption{Improvement on decomposition.}
+	\label{table:decomposition_improvement}
+	\begin{tabular}{@{}l rrrrr}
 		\toprule
-		&& Size & Time & Length & Area \\
-		\cmidrule{3-6}
-		\multirow{4}{*}{Point Decomposition} & Shape 1 & 7144 & 2h & 312.6 & 87.8\%\\
-		& Shape 2 & 7288  & 2h & 306.3 & 86.9\%\\
-		& Shape 3 & 7464 & 2h & 349.3 & 88.3\%\\
-		& Shape 4 & 6736 & 2h & 312.2 & 85.1\%\\
+		& \multicolumn{2}{c}{Max $\chi$} && \multicolumn{2}{c}{Max Tour Length} \\
+		\cmidrule{2-6}
+		& Old & New & & Old & New \\
+		%&& Size & Time & Length & Area \\
+		\cmidrule{1-6}
+		Shape 1 & 47.5 & \bf{41.6}   && 30.7 & \bf{26.0} \\
+		Shape 2 & 228.1 & \bf{169.3} && 187.0 & \bf{126.7}\\
+		Shape 3 & 207.5 & \bf{180.0} && 169.5 & \bf{152.3}\\
 		%\midrule
 		%\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
 		%& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
@@ -673,10 +714,10 @@ Our decomposition algorithm was implemented in Python. The algorithm was impleme
 		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
 
 		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_orig.pdf}% 	
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt.pdf}
+		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_c2_10.pdf}
 
 		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig.pdf}%
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt.pdf}
+		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_c2_10.pdf}
 
 	\caption{First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results}
