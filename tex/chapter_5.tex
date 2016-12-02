@@ -403,11 +403,9 @@ Recall that concave polygons can be decomposed into a set of convex cells. We ha
 \section{Area Allocation Algorithm}
 \label{section:multi_algorithm}
 
-In this section, the algorithm is presented for Problem~\ref{problem:workspace_allocation}. We begin by giving an overview of the algorithm followed by a detailed description of each procedure.
+The algorithm proposed in this section is based on a greedy pair-wise optimization search from some starting point. The procedure is initialized with any $n$-cell decomposition. For certain adjacent pairs of cells in this decomposition, a search is performed for a new cut that would improve the pair-wise maximum cost. This process terminates when no pair-wise improvements to the decomposition can be made. %The pair-wise optimality is ensured via a linear search over a sampled search space. The whole process is started off with an initial solution.
 
-The algorithm describes a greedy optimization procedure that generates a decomposition with the minimized maximum cost. The procedure is initialized with some initial decomposition and then iteratively re-optimized through pair-wise suboptimal cuts. The process terminates when no improvements to the existing decomposition are possible. %The pair-wise optimality is ensured via a linear search over a sampled search space. The whole process is started off with an initial solution.
-
-The main optimization procedure is shown in Algorithm~\ref{alg:optimization_procedure}. The inputs for the algorithm include a polygon described the coverable space and a set of starting positions for each robot in the coverage team. The optimization procedure is initialized with some decomposition on Line~\ref{line:multi_init_decomp}. This decomposition could be any decomposition that partitions $\mathbb{C}$ into $n$ cells. One Line~\ref{line:multi_adjacency}, the adjacency graph is computed for the decomposition. Cost are computed for all cells in the decomposition and the cell with the maximum cost is identified on Line~\ref{line:multi_cost}. On Line~\ref{line:multi_reopt_recursion}, a recursive procedure is called on the cell with the highest cost. This call returns a new decomposition where some two adjacent cells in the decomposition were re-optimized.
+The optimization strategy is shown in Algorithm~\ref{alg:optimization_procedure}. The goal of this algorithm is to identify the cell with the maximum cost and to attempt re-optimization step. As inputs, the algorithm accepts a polygon describing the coverable space and a set of starting positions for each robot in the team. The optimization procedure is initialized with some decomposition on Line~\ref{line:multi_init_decomp}. This decomposition could be any decomposition that partitions $\mathbb{C}$ into $n$ cells. On Line~\ref{line:multi_adjacency}, the adjacency graph is computed for the current decomposition. Costs are computed for all cells in the decomposition and the cell with the maximum cost is identified on Line~\ref{line:multi_cost}. On Line~\ref{line:multi_reopt_recursion}, a recursive procedure is called on the cell with the highest cost. This procedure returns, if possible, a modified decomposition where some two adjacent cells in the decomposition were re-optimized.
 
 \begin{algorithm}
 	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
@@ -417,15 +415,15 @@ The main optimization procedure is shown in Algorithm~\ref{alg:optimization_proc
 			\STATE $\mathcal{D}\gets$ some decomposition of $\mathbb{C}$ consisting of $n$ cells \label{line:multi_init_decomp}
 			\REPEAT
 			\STATE $\mathcal{G}\gets$ adjacency graph of $\mathcal{D}$ \label{line:multi_adjacency}
-			\STATE $\chi^{\max}_i\gets$ the cost and index of highest cost vertex in $\mathcal{G}$ \label{line:multi_cost}
+			\STATE $\chi^{\max}_i,v_i\gets$ the cost and index of highest cost vertex in $\mathcal{G}$ \label{line:multi_cost}
 			\STATE $\mathcal{D}\gets\text{reopt\_recursion}(\mathcal{D},\mathcal{G}, v_i)$ \label{line:multi_reopt_recursion}
 			\UNTIL{$\mathcal{D}$ stops changing}
 	\end{algorithmic}
 \end{algorithm}
 
-On Line~\ref{line:multi_reopt_recursion} of Algorithm~\ref{alg:optimization_procedure}, a recursive procedure is called on the cell with the highest cost. This is because the objective is to minimize the maximum cost. However, depending on the structure of the polygon and the existing decomposition, it may not always be possible to directly re-optimize the cell with the highest cost. An example where this situation may arise is where all adjacent cells to the highest cost cell have a slightly lower cost then the maximum, which results in little room for re-optimization. These high cost adjacent cells should be attempted to be re-optimized with their respective neighbors before concluding that the re-optimization is suboptimal. This procedure is described in Algorithm~\ref{alg:reopt_recursion}.
+The call on Line~\ref{line:multi_reopt_recursion} of Algorithm~\ref{alg:optimization_procedure} is a recursive procedure called on the cell with the highest cost in the current decomposition. This procedure is recursive to account for situations where the cost of the maximum cell cannot be improved via pair-wise re-optimizations with the cell's neighbors. This situations may arise when the costs of the neighbors are similar to the highest cell. As such, the procedure recursively attempts to re-optimize the neighbors through their children with the hope that in the next iteration, the highest cell can be improved. This procedure is described in Algorithm~\ref{alg:reopt_recursion}.
 
-The Algorithm~\ref{alg:reopt_recursion} takes a decomposition and a vertex representing a cell in the decomposition as inputs. For each neighboring vertex to $v_i$ that has a lower cost then $v_i$, the procedure performs the following steps. On Line~\ref{line:multi_reopt_cut}, a re-optimization cut is attempted for $v_i$ and $v_j$. If the re-optimization cut was not successful, meaning it failed to find a cut that would decrease the pair-wise maximum, then the same procedure is called on $v_j$ on Line~\ref{line:multi_recursive_call}. This procedure returns decomposition with a new cut.
+The Algorithm~\ref{alg:reopt_recursion} is a depth-first traversal of the adjacency graph. Cycles are avoided by considering only cells with lower costs. The procedure accepts a decomposition, an adjacency graph, and a vertex representing a cell in the decomposition as inputs. For each neighboring vertex to $v_i$ that has a lower cost, the procedure performs the following steps. On Line~\ref{line:multi_reopt_cut}, a re-optimization cut is attempted for $v_i$ and $v_j$. If the re-optimization cut was not successful, meaning it failed to find a cut that would decrease the pair-wise maximum, then the same procedure is called on $v_j$ on Line~\ref{line:multi_recursive_call}. If the re-optimization cut was successful then the current is modified with the new cut and the procedure terminates.
 
 \begin{algorithm}
 	\caption{$\text{reopt\_recursion}(\mathcal{D}, \mathcal{G}, v_i)$}
@@ -443,6 +441,74 @@ The Algorithm~\ref{alg:reopt_recursion} takes a decomposition and a vertex repre
 			\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
+
+It should be noted that a breadth-first traversal version of Algorithm~\ref{alg:reopt_recursion} is shown in Algorithm~\ref{alg:reopt_recursion_bft}. With this approach, the all immediate neighbors of the highest cell ate attempted to be re-optimized first before continuing to the next level. It should be noted that in simulations, this approach converged to the same results as the depth-first traversal.
+
+\begin{algorithm}
+	\caption{$\text{reopt\_recursion\_bft}(\mathcal{D}, \mathcal{G}, v_i, Q)$}
+	\label{alg:reopt_recursion_bft}
+	\begin{algorithmic}[1]
+		\REQUIRE Decomposition $\mathcal{D}=\{C_0,C_1,\ldots\}$, Adjacency graph $\mathcal{G}$, Vertex $v_i$, Queue $Q$
+			\IF{$Q$ is empty}
+				\RETURN $\mathcal{D}$
+			\ENDIF
+			\STATE $v_i\gets$ pop from $Q$
+			\FOR{$v_j\in\mathcal{N}_{v_i}$}
+				\IF{$\chi(v_j)<\chi(v_i)$}
+					\STATE $\mathcal{D}_{\text{new}}\gets\text{reopt\_cut}(v_i,v_j,\mathcal{D},\mathcal{G})$ \label{line:multi_reopt_cut}
+					\IF{$\mathcal{D}_{\text{new}}=\mathcal{D}$}
+						\STATE Push $v_j$ to $Q$
+					\ELSE
+						\RETURN $\mathcal{D}_{\text{new}}$
+					\ENDIF
+				\ENDIF
+			\ENDFOR
+			\RETURN $\text{reopt\_recursion\_bft}(\mathcal{D}, \mathcal{G}, v_i, Q)$
+	\end{algorithmic}
+\end{algorithm}
+
+
+Another important procedure is described in Algorithm~\ref{alg:reopt_cut}. It is a procedure for recomputing a cut that would minimize the maximum cost. In this procedure, the two adjacent cells are combined into one cell on Line~\ref{line:poly_union}. A cut space is generated from the origin of the cut on Line~\ref{line:multi_cut_space}. This cut space is sampled with equally spaced with $K$ points on Line~\ref{line:sample_cut_space}. A cut is performed for each points in $\mathcal{L}$ and evaluated. The best cut is found on Line~\ref{line:search}. The cut is then implemented and the current decomposition is modified.
+
+\begin{algorithm}
+	\caption{$\text{reopt\_cut}(v_i, v_j, \mathcal{D},\mathcal{G})$}
+	\label{alg:reopt_cut}
+	\begin{algorithmic}[1]
+		\REQUIRE Vertices $v_i, v_j$, Decomposition $\mathcal{D}$, Adjacency graph $\mathcal{G}$
+			\STATE $c\gets$ shared edge between $v_i$ and $v_j$
+			\STATE $p_s,p_e\gets$ endpoints of $c$
+			\STATE $w_{\text{temp}}\gets \mathcal{D}(v_i)\cup\mathcal{D}(v_j)$ \label{line:poly_union}
+			\STATE $S\gets$ cut space in $w_{\text{temp}}$ generated from $p_s$ \label{line:multi_cut_space}
+			\STATE $\mathcal{L}\gets$ sample $S$ with $K$ points \label{line:sample_cut_space}
+			\STATE $p_e^{'}\gets$ point from $\mathcal{L}$ that minimizes the maximum $\{\chi(w_a),\chi(_b)\}$ \label{line:search}
+			\STATE $c^{'}\gets$ cut ($p_s,p_e^{'}$)
+			\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with $c^{'}$
+			\STATE $\mathcal{D}_{\text{new}}\gets\mathcal{D}$ modified with $w_a,w_b$
+			\RETURN $\mathcal{D}_{\text{new}}$
+	\end{algorithmic}
+\end{algorithm}
+
+Lastly, an algorithm for computing the metric $\chi$ is shown in Algorithm~\ref{alg:metric_algorithm}. Note that this procedure calculates the three terms as a function of the polygon and the starting location of the robot. The detailed description of the computation of these terms was described in Section~\ref{section:multi_decomposition_metric}.
+
+\begin{algorithm}
+	\caption{$\text{compute\_}\chi(q^0, w)$}
+	\label{alg:metric_algorithm}
+	\begin{algorithmic}[1]
+		\REQUIRE Initial position $q^0$, Polygon $w=\{Z_0,Z_1,\ldots\}$ 
+		\STATE $\mathcal{F}_1\gets2\min_{x\in\partial w}||q^0-x||_2$ \label{line:min_dist}
+		\STATE $A_\text{actual}\gets$ area of $w$	\label{line:area}
+		\STATE $\Theta\gets$ angles of all edges w.r.t. the $x$-axis.	\label{line:all_edge}
+		\STATE $\theta_{\max}\gets$ largest difference between any two pairs of elements of $\Theta$ \label{line:all_pairs}
+		\STATE $\alpha_{\min}\gets$ minimum altitude of $w$	\label{line:multi_alt}
+		\STATE $A^{\max}_{\text{uncovered}}\gets\alpha_{\min}r(4\csc{\theta_{\max}}-\pi)$ \label{line:a_uncovered}
+		\STATE $\mathcal{F}_2\gets\frac{A_\text{actual}-A^{\max}_{\text{uncovered}}}{r}$
+		\STATE $\mathcal{T}\gets$ compute contours of $w$	\label{line:contours}
+		\STATE $\mathcal{F}_3\gets360^o|\mathcal{T}|$
+		\RETURN $c_1(\mathcal{F}_1+\mathcal{F}_2)+c_2\mathcal{F}_3$
+	\end{algorithmic}
+\end{algorithm}
+
+An example of the algorithm in action is shown in Figure~\ref{fig:algo_demo}. The top picture depicts the initial decomposition of the rectangular workspace into three cells. The initial positions of the three robots are in the lower left corner of the workspace. The initial decomposition was designed such that the cells two and three has almost equal costs while cell one has the minimum cost. The algorithm identifies the cell three to be the cell with the highest cell. During the recursive call, the algorithm attempts to re-optimize the cut between cell three and two. However, due to costs being almost equal, no improving cuts were found. As a result, a recursive call is called on cell two. Here, cell two is re-optimized with cell one, resulting in lower cost of cell two shown in the middle picture. Finally, the bottom picture shows the next iteration of the algorithm where the cell three is re-optimized with the modified cell two, resulting in the decreased maximum cost. 
 
 \begin{figure*}
 		\centering
@@ -474,6 +540,9 @@ The Algorithm~\ref{alg:reopt_recursion} takes a decomposition and a vertex repre
 			\node at (-10.8,3.5) {$1$};
 			\node at (-10.8,1.2) {$1$};			
 
+			\fill [fill=gray] (-11.72,0.60) circle [radius=4pt];
+			\fill [fill=gray] (-11.64,3.05) circle [radius=4pt];
+			\fill [fill=gray] (-11.73,5.56) circle [radius=4pt];
 			%\draw at (-1.0,1.5) circle [radius=0.1cm] node {$3$};
 			%\node at (-1.0,1.5) circle [radius=0.1cm] {$3$};
 
@@ -484,6 +553,26 @@ The Algorithm~\ref{alg:reopt_recursion} takes a decomposition and a vertex repre
 \end{figure*}
 
 
+
+
+
+%			\IF{$\chi(v_i)>\chi(v_j)$}
+%				\STATE dir$\gets$ CW \COMMENT{w.l.g assume $v_i$ is to the left of $c$}
+%			\ELSE
+%				\STATE dir$\gets$ CCW
+%			\ENDIF			
+%			\FOR{each $p_i\in S$ in direction dir}
+%				\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with an edge $(p_s,p_i$)
+%				\IF{dir is CW and $\chi(w_a)>\chi(w_b)$}
+%					\STATE \COMMENT{Reverse inequality sign for CCW}
+%					\STATE $V\gets$ sample edge($v_i,v_{i-1}$) with $K$ points
+%					\STATE $v_b\gets$ point from $V$ that minimizes the maximum $\{\chi(w^{'}_a),\chi(w^{'}_b)\}$
+%					\STATE $c^{'}\gets$ cut ($v_i,v_b$)
+%					\STATE $w_a,w_b\gets$ cut $w_{\text{temp}}$ with $c^{'}$
+%					\RETURN $w_a,w_b$
+%					
+%				\ENDIF
+%			\ENDFOR
 
 
 %\begin{algorithm}
@@ -505,43 +594,6 @@ The Algorithm~\ref{alg:reopt_recursion} takes a decomposition and a vertex repre
 %			\RETURN $D$
 %	\end{algorithmic}
 %\end{algorithm}
-
-Algorithm~\ref{alg:reopt_cut} describes a procedure for recomputing a cut that would minimize the maximum cost. In this procedure, a search for a cut is performed over a cut space. The cut space is samples with $K$ points. The point that minimizes the maximum cost is selected and a cut is performed.
-\begin{algorithm}
-	\caption{$\text{reopt\_cut}(v_i, v_j, \mathcal{D},\mathcal{G})$}
-	\label{alg:reopt_cut}
-	\begin{algorithmic}[1]
-		\REQUIRE Vertices $v_i, v_j$, Decomposition $\mathcal{D}$, Adjacency graph $\mathcal{G}$
-			\STATE $c\gets$ shared edge between $v_i$ and $v_j$.
-			\STATE $p_s,p_e\gets$ endpoints of $c$.
-			\STATE $w_{\text{temp}}\gets \mathcal{D}(v_i)\cup\mathcal{D}(v_j)$.
-			\STATE $S\gets$ cut space from $p_s$.
-			\IF{$\chi(v_i)>\chi(v_j)$}
-				\STATE dir$\gets$ CW \COMMENT{w.l.g assume $v_i$ is to the left of $c$}
-			\ELSE
-				\STATE dir$\gets$ CCW
-			\ENDIF			
-			\STATE $\mathcal{L}\gets$ sample $S$ with $K$ points
-			\STATE $p_e^{'}\gets$ point from $\mathcal{L}$ that minimizes the maximum $\{\chi(w_a),\chi(_b)\}$
-			\STATE $c^{'}\gets$ cut ($p_s,p_e^{'}$)
-			\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with $c^{'}$
-			\STATE $\mathcal{D}_{\text{new}}\gets\mathcal{D}$ modified with $w_a,w_b$
-			\RETURN $\mathcal{D}_{\text{new}}$
-%			\FOR{each $p_i\in S$ in direction dir}
-%				\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with an edge $(p_s,p_i$)
-%				\IF{dir is CW and $\chi(w_a)>\chi(w_b)$}
-%					\STATE \COMMENT{Reverse inequality sign for CCW}
-%					\STATE $V\gets$ sample edge($v_i,v_{i-1}$) with $K$ points
-%					\STATE $v_b\gets$ point from $V$ that minimizes the maximum $\{\chi(w^{'}_a),\chi(w^{'}_b)\}$
-%					\STATE $c^{'}\gets$ cut ($v_i,v_b$)
-%					\STATE $w_a,w_b\gets$ cut $w_{\text{temp}}$ with $c^{'}$
-%					\RETURN $w_a,w_b$
-%					
-%				\ENDIF
-%			\ENDFOR
-
-	\end{algorithmic}
-\end{algorithm}
 
 
 %\begin{algorithm}
@@ -576,25 +628,6 @@ Algorithm~\ref{alg:reopt_cut} describes a procedure for recomputing a cut that w
 %			\RETURN $D$
 %	\end{algorithmic}
 %\end{algorithm}
-
-Throughout the algorithm, the metric $\chi$ is used extensively. The metric is analyzed in Section~\ref{section:multi_decomposition_metric}. Algorithm~\ref{alg:metric_algorithm} demonstrates the procedure for computing the metric. The values used in the computation of this metric are described in more details in Section~\ref{section:multi_decomposition_metric}. In this algorithm, values $\mathcal{F}_1,\mathcal{F}_2$, and $\mathcal{F}_3$ are computed. 
-
-\begin{algorithm}
-	\caption{$\text{compute\_}\chi(q^0, w)$}
-	\label{alg:metric_algorithm}
-	\begin{algorithmic}[1]
-		\REQUIRE Initial position $q^0$, Polygon $w=\{Z_0,Z_1,\ldots\}$ 
-		\STATE $\mathcal{F}_1\gets2\min_{x\in\partial w}||q^0-x||_2$
-		\STATE $A_\text{actual}\gets$ area of $w$
-		\STATE $\Theta\gets$ angles of all edges w.r.t. the $x$-axis.
-		\STATE $\theta_{\max}\gets$ largest difference between any two pairs of elements of $\Theta$
-		\STATE $A^{\max}_{\text{uncovered}}\gets\alpha_{\min}r(4\csc{\theta_{\max}}-\pi)$
-		\STATE $\mathcal{F}_2\gets\frac{A_\text{actual}-A^{\max}_{\text{uncovered}}}{r}$
-		\STATE $\mathcal{T}\gets$ compute\_contours of $w$
-		\STATE $\mathcal{F}_3\gets360^o|\mathcal{T}|$
-		\RETURN $c_1(\mathcal{F}_1+\mathcal{F}_2)+c_2\mathcal{F}_3$
-	\end{algorithmic}
-\end{algorithm}
 
 %Another important sub-procedure is the call to anchored area partition procedure. This procedure is based on the work by Hert~\cite{hert1998polygon} and his approach to area partitioning problem. The procedure is summarized in Algorithm~\ref{alg:anchored_area_partition}. This algorithm allows for making cuts without having to discretized the coverable area. Moreover, a series of cuts are made to form $n$ cells with area specified as an input to the algorithm. For brevity, we only show the algorithm for convex polygons here. The full algorithm will be available in the Appendix.
 
@@ -654,9 +687,12 @@ Throughout the algorithm, the metric $\chi$ is used extensively. The metric is a
 \section{Computational Complexity}
 \label{section:multi_comp_analysis}
 
-In this section, we perform a computational complexity analysis of the algorithm. Line 1 of Algorithm 7 is performed in $\mathbb{O}(n)$ by iterating over all vertices. Similarly the area of a polygon is computed in $\mathbb{O}(n)$ time. Lines 3 $\mathbb{O}(n)$ have similar execution time. Line 4 is $\mathbb{O}(n^2)$ since all pairs of edges have to be examined. On Line 7, the contours are being computed. The computation of a contours is performed by repeatedly shrinking the boundary of a polygon. Although we use the Shapely library for this, it can be theoretically performed with following steps. 
+The computational complexity analysis is started with Algorithm~\ref{alg:metric_algorithm}. Line~\ref{line:min_dist} computes the minimum distance from a fixed points to a set of points. This operation is performed through an exhaustive search in $\mathbb{O}(n)$ time by iterating over all vertices in the set. On Line~\ref{line:area}, the area of a polygon is computed in $\mathbb{O}(n)$ time by using Gauss's area formula. On Line~\ref{line:all_edge}, a set of angles is computed in $\mathbb{O}(n)$ time by traversing over all edges of the polygon. On Line~\ref{line:all_pairs}, the largest pair-wise difference between any two pairs of elements is computed in $\mathbb{O}(n^2)$ time by evaluating all possible pairings. The minimum altitude is computed using Algorithm~\ref{alg:altitude} in $\mathbb{O}(n^2\log{n})$ time. A set of contours is computed on Line~\ref{line:contours}. In our implementation of this step, a Shapely library is used. The run time of this implementation is not known. However, a robust implementation of contour computation was proposed by Chen~\cite{chen2005polygon}. The algorithm computes one contour in $\mathbb{O}((n+k)\log{n})$ time where $n$ is he number of edges and $k$ can be roughly approximated by the number of non-convex vertices in the polygon. To compute the set of contours $\mathcal{T}$, this operation needs to be called several times. This number is determined by the shape of the polygon. However, a rough approximation of this number can be computed using the minimum altitude, $\frac{\alpha_{\min}}{r}$. As such, the overall complexity of Algorithm~\ref{alg:metric_algorithm} is $\mathbb{O}(\frac{\alpha_{min}}{2}n^2\log{n})$.
 
-Computing contours can be done via a simple algorithm proposed by Chen~\cite{chen2005polygon}, which is done in $\mathbb{O}((n+k)\log{n})$
+Algorithm~\ref{alg:reopt_cut} computes an improving cut if it exists. 
+
+An efficient $\mathbb{O}(n)$ algorithm for computing a visibility polygon is proposed in~\cite{el1981linear}
+
 
 
 
@@ -664,6 +700,7 @@ Computing contours can be done via a simple algorithm proposed by Chen~\cite{che
 \label{section:multi_simulations}
 
 Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
+
 
 %Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.
 
