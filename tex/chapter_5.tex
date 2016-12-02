@@ -475,14 +475,14 @@ Another important procedure is described in Algorithm~\ref{alg:reopt_cut}. It is
 	\label{alg:reopt_cut}
 	\begin{algorithmic}[1]
 		\REQUIRE Vertices $v_i, v_j$, Decomposition $\mathcal{D}$, Adjacency graph $\mathcal{G}$
-			\STATE $c\gets$ shared edge between $v_i$ and $v_j$
+			\STATE $c\gets$ shared edge between $v_i$ and $v_j$ \label{line:shared_edge}
 			\STATE $p_s,p_e\gets$ endpoints of $c$
 			\STATE $w_{\text{temp}}\gets \mathcal{D}(v_i)\cup\mathcal{D}(v_j)$ \label{line:poly_union}
 			\STATE $S\gets$ cut space in $w_{\text{temp}}$ generated from $p_s$ \label{line:multi_cut_space}
 			\STATE $\mathcal{L}\gets$ sample $S$ with $K$ points \label{line:sample_cut_space}
 			\STATE $p_e^{'}\gets$ point from $\mathcal{L}$ that minimizes the maximum $\{\chi(w_a),\chi(_b)\}$ \label{line:search}
 			\STATE $c^{'}\gets$ cut ($p_s,p_e^{'}$)
-			\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with $c^{'}$
+			\STATE $w_a,w_b\gets$cut $w_{\text{temp}}$ with $c^{'}$ \label{line:perform_cut}
 			\STATE $\mathcal{D}_{\text{new}}\gets\mathcal{D}$ modified with $w_a,w_b$
 			\RETURN $\mathcal{D}_{\text{new}}$
 	\end{algorithmic}
@@ -687,13 +687,11 @@ An example of the algorithm in action is shown in Figure~\ref{fig:algo_demo}. Th
 \section{Computational Complexity}
 \label{section:multi_comp_analysis}
 
-The computational complexity analysis is started with Algorithm~\ref{alg:metric_algorithm}. Line~\ref{line:min_dist} computes the minimum distance from a fixed points to a set of points. This operation is performed through an exhaustive search in $\mathbb{O}(n)$ time by iterating over all vertices in the set. On Line~\ref{line:area}, the area of a polygon is computed in $\mathbb{O}(n)$ time by using Gauss's area formula. On Line~\ref{line:all_edge}, a set of angles is computed in $\mathbb{O}(n)$ time by traversing over all edges of the polygon. On Line~\ref{line:all_pairs}, the largest pair-wise difference between any two pairs of elements is computed in $\mathbb{O}(n^2)$ time by evaluating all possible pairings. The minimum altitude is computed using Algorithm~\ref{alg:altitude} in $\mathbb{O}(n^2\log{n})$ time. A set of contours is computed on Line~\ref{line:contours}. In our implementation of this step, a Shapely library is used. The run time of this implementation is not known. However, a robust implementation of contour computation was proposed by Chen~\cite{chen2005polygon}. The algorithm computes one contour in $\mathbb{O}((n+k)\log{n})$ time where $n$ is he number of edges and $k$ can be roughly approximated by the number of non-convex vertices in the polygon. To compute the set of contours $\mathcal{T}$, this operation needs to be called several times. This number is determined by the shape of the polygon. However, a rough approximation of this number can be computed using the minimum altitude, $\frac{\alpha_{\min}}{r}$. As such, the overall complexity of Algorithm~\ref{alg:metric_algorithm} is $\mathbb{O}(\frac{\alpha_{min}}{2}n^2\log{n})$.
+The computational complexity analysis is started with Algorithm~\ref{alg:metric_algorithm}. Line~\ref{line:min_dist} computes the minimum distance from a fixed points to a set of points. This operation is performed through an exhaustive search in $\mathbb{O}(n)$ time by iterating over all vertices in the set. On Line~\ref{line:area}, the area of a polygon is computed in $\mathbb{O}(n)$ time by using Gauss's area formula. On Line~\ref{line:all_edge}, a set of angles is computed in $\mathbb{O}(n)$ time by traversing over all edges of the polygon. On Line~\ref{line:all_pairs}, the largest pair-wise difference between any two pairs of elements is computed in $\mathbb{O}(n^2)$ time by evaluating all possible pairings. The minimum altitude is computed using Algorithm~\ref{alg:altitude} in $\mathbb{O}(n^2\log{n})$ time. A set of contours is computed on Line~\ref{line:contours}. In our implementation of this step, a Shapely library is used. The run time of this implementation is not known. However, a robust implementation of contour computation was proposed by Chen~\cite{chen2005polygon}. The algorithm computes one contour in $\mathbb{O}((n+k)\log{n})$ time where $n$ is he number of edges and $k$ can be roughly approximated by the number of non-convex vertices in the polygon. To compute the set of contours $\mathcal{T}$, this operation needs to be called several times. This number is determined by the shape of the polygon. However, a rough approximation of this number can be computed using the minimum altitude, $\frac{\alpha_{\min}}{r}$. As such, the overall complexity of Algorithm~\ref{alg:metric_algorithm} is $\mathbb{O}(\frac{\alpha_{\min}}{2}n^2\log{n})$.
 
-Algorithm~\ref{alg:reopt_cut} computes an improving cut if it exists. 
+Algorithm~\ref{alg:reopt_cut} computes an improving cut if it exists. Starting with Line~\ref{line:shared_edge}, an edge is found that is common to both adjacent cells. One way of computing such edge is by checking equality for each pair of edges from both polygons. This operation is $\mathbb{O}(mn)$ time where $m$ and $n$ is the number of verticies in left and right polygons respectively. On Line~\ref{line:poly_union}, a union of the two polygons is computed. This operation can be performed by combining the two boundary chains together at the common edge. Since the indices of the shared edge were calculated on Line~\ref{line:shared_edge}, this operation runs in $\mathbb{O}(1)$ time. On Line~\ref{line:multi_cut_space}, a cut space is calculated similarly to Algorithm~\ref{alg:optimal_cut}. Efficient $\mathbb{O}(m+n)$ algorithms for computing a visibility polygon exist such as one in~\cite{el1981linear}. The sampling step on Line~\ref{line:sample_cut_space} computes $K$ samples on the cut space. This operation is simple given a line segment. Hence, this operation has to be performed in $\mathbb{O}(m+n)$ time in the worst case. On Line~\ref{line:search}, a point on the cut space is found that results in the best cost cut. This operation is performed by performing a cut at that point and computing the metric for both polygons. The cut can be performed in $\mathbb{O}(m+n)$ time. The metric $\chi$ has to be computed for both polygons in $\mathbb{O}(\frac{\alpha_{n,\min}}{2}n^2\log{n})$ if $n>m$. Hence, the hole step can be performed in $\mathbb{O}(K\frac{\alpha_{n,\min}}{2}n^2\log{n})$ time. Finally, the decomposition is modified on constant time. 
 
-An efficient $\mathbb{O}(n)$ algorithm for computing a visibility polygon is proposed in~\cite{el1981linear}
-
-
+Finally, Algorithm~\ref{alg:optimization_procedure} is a recursive re-optimization algorithm. The recursive call in Algorithm~\ref{alg:reopt_recursion} can run as many as $N$ times in the worst case where $N$ is the number of cells in the decomposition. However, it is difficult to determine the number of iterations required for Algorithm~\ref{alg:optimization_procedure} to converge. It is clear that this algorithm converges because only the cut that decrease the maximum pair-wise cost are allowed. As such, the whole adjacent graph is traversed looking for possible improvement cuts. If no such cuts were identified then the algorithm terminates.
 
 
 \section{Simulations}
@@ -701,49 +699,52 @@ An efficient $\mathbb{O}(n)$ algorithm for computing a visibility polygon is pro
 
 Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
 
+% Comparing competing approaches
+The approach was tested on its ability to improve the existing decomposition with the goal to minimize the maximum cost. Several test shapes of varying complexity were used in simulations. The initial decomposition of the polygons was performed by hand. In all test runs, four robots were used with starting locations usually located at the corners of the polygon. To relate the metric $\chi$ to the actual cost of the coverage path, actual coverage paths are computed for each robot in the team using Algorithm~\ref{alg:min_alt_decomposition}.
 
-%Our method was compared to two other approaches. In the first method we use an approximate point decomposition of the workspace from~\cite{arkin2000approximation}. Each point is assigned eight headings. These headings represent possible traversal directions for that point. Finally, the GTSP tour of minimum cost is computed as in%~\cite{le2012dubins}. In the second method, we compute the coverage path as in Section~\ref{sec:gtsp_tour}, but where the re-optimization procedure is not performed on the initial decomposition. For the initial decomposition, a Python library for greedy convex decomposition is used, based on~\cite{fernandez2008practical}. We tested all approaches on four different workspaces of similar size but various complexity. The workspaces are based on test environments used in~\cite{choi2009online}.
-
+%Discussing the metrics in the table. The analysis of the trends from the table.
+Performance figures for the algorithm are shown in Table~\ref{table:decomposition_improvement_max} and Table~\ref{table:decomposition_improvement_deviation}. We compare the improvements in the maximum cost $\chi$ as well as the actual lengths of the coverage paths. This comparison demonstrates that our approach works as intended in minimizing the maximum cost. We also compare the mean absolute deviation of costs over all cells in the decomposition. These figures should show that this approach works by distributing the workload amongst all robots in the team. The lengths of the coverage paths were computed by solving the single agent coverage problem for each robot in the team using the approach introduced in Chapter~\ref{chapter:single_agent_coverage}. We note that the algorithm has improved the maximum value of metric $\chi$ on average by 17\% and the actual length of the coverage path by 19\%. The mean absolute deviation was also reduced by 62.4\% and 57.9\% for metric $\chi$ and path lengths respectively.
 
 \begin{table}
 	\centering
-	\caption{Improvement on decomposition.}
-	\label{table:decomposition_improvement}
-	\begin{tabular}{@{}l rrrrr}
+	\caption{Improvement to the maximum costs.}
+	\label{table:decomposition_improvement_max}
+	\begin{tabular}{@{}l rrrrrrr}
 		\toprule
-		& \multicolumn{2}{c}{Max $\chi$} && \multicolumn{2}{c}{Max Tour Length} \\
-		\cmidrule{2-6}
-		& Old & New & & Old & New \\
+		& \multicolumn{3}{c}{Max $\chi$} && \multicolumn{3}{c}{Max Tour Length} \\
+		\cmidrule{2-4} \cmidrule{6-8}
+		& \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%} & & \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%}  \\
 		%&& Size & Time & Length & Area \\
-		\cmidrule{1-6}
-		Shape 1 & 47.5 & \bf{41.6}   && 30.7 & \bf{26.0} \\
-		Shape 2 & 228.1 & \bf{169.3} && 187.0 & \bf{126.7}\\
-		Shape 3 & 207.5 & \bf{180.0} && 169.5 & \bf{152.3}\\
-		%\midrule
-		%\multirow{4}{*}{Greedy Decomposition} & Shape 1 & 96 & \bf{2s} & \bf{231.0} & 91.6\%\\
-		%& Shape 2 & 86 & \bf{2s} & \bf{216.8} & 84.6\%\\
-		%& Shape 3 & 136 & \bf{6s} & \bf{226.9} & 79.8\%\\
-		%& Shape 4 & 116 & \bf{3s} & \bf{226.5} & 88.1\%\\
-		%\midrule
-		%\multirow{4}{*}{Min Alt Decomposition} & Shape 1 & \bf{78} & 2s & 242.3 & \bf{95.1\%}\\
-		%& Shape 2 & \bf{80} & 7s & 228.9 & \bf{91.7\%} \\
-		%& Shape 3 & \bf{92} & 15s & 228.1 & \bf{89.1\%} \\
-		%& Shape 4 & \bf{88} & 13s & 234.4 & \bf{93.5\%}\\
+		\cmidrule{1-8}
+		Shape 1 & 47.5 & \bf{41.6}   & 12.4\% && 30.7 & \bf{26.0}   & 15.2\% \\
+		Shape 2 & 228.1 & \bf{169.3} & 25.8\% && 187.0 & \bf{126.7} & 32.2\% \\
+		Shape 3 & 207.5 & \bf{180.0} & 13.2\% && 169.5 & \bf{152.3} & 10.1\% \\
+		\bottomrule
+
+	\end{tabular}
+\end{table}
+
+\begin{table}
+	\centering
+	\caption{Improvement to the deviation on costs.}
+	\label{table:decomposition_improvement_deviation}
+	\begin{tabular}{@{}l rrrrrrr}
+		\toprule
+		& \multicolumn{3}{c}{Deviation $\chi$} && \multicolumn{3}{c}{Deviation Tour Length} \\
+		\cmidrule{2-4} \cmidrule{6-8}
+		& \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%} & & \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%}  \\
+		%&& Size & Time & Length & Area \\
+		\cmidrule{1-8}
+		Shape 1 & 5.00 & \bf{0.08} & 98.3\% && 4.33 & \bf{0.88} & 79.8\% \\
+		Shape 2 & 51.6 & \bf{17.3} & 66.4\% && 49.0 & \bf{12.2} & 75.1\% \\
+		Shape 3 & 50.0 & \bf{38.8} & 22.5\% && 42.7 & \bf{34.7} & 18.7\% \\
 		\bottomrule
 
 	\end{tabular}
 \end{table}
 
 
-%Performance figures of all three methods are shown in Table~\ref{table:performance}. We compare four characteristics of the three approaches: 1) the size of the GTSP instance, 2) the execution time from start to finish, 3) the total length of the tour, and 4) the area covered by the coverage path as percentage of the total area of the polygon. We note that in all four test shapes, our method reduced the number of turns in the final coverage path. This is shown in the reduction in GTSP size, which is equivalent to the reduction in number of straight line segments. Naturally, since our method uses greedy decomposition as a starting point, it runs more slowly then the pure greedy approach. On average, out method is about three times slower than the greedy approach. However, it is faster then the point decomposition by a factor of 100. 
-
-%It is worth noting that the overall path lengths are slightly shorter with the greedy decomposition compared to our method. However, this factor is mostly attributed to the fact that greedy decomposition produces many regions whose area is small relative to the size of the footprint. These regions are typically very narrow, which makes it difficult to place lines inside those regions that cover most of the area. Decompositions that produce excessive number of such regions results in a significant portion of the total area of the polygon uncovered. Our method produces fewer regions and leaves less area uncovered. From Table~\ref{table:performance}, the uncovered area left by our method is on average half of the uncovered area left by the greedy approach. It is worth noting that point decomposition in some cases covers less area than the competing algorithms. However, this occurrence is primarily due to our method for generating the approximate decomposition, which does not place any coverage footprints at a distance of less than $r$ from the boundary, leading to uncovered areas near polygon boundaries.
-
-%Figure~\ref{fig:coverage_results} shows the resultant paths for three different approaches. The line segments are orange and green segments show Dubins transition costs. Note that green segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. The red lines highlight shared edges of adjacent polygons in the decomposition. The first column of figures show the point decomposition. The second column of figures show the greedy decomposition technique. And the last column shows our re-optimization technique. 
-
-%From Figure~\ref{fig:coverage_results} we can see that our method significantly reduces the number of polygons compared to the greedy decomposition. Inefficiencies in the GTSP tour occur due to the very large size of the GTSP instance, which poses a challenge for the heuristic GLKH solver.
-
-
+Figure~\ref{fig:decomposition_results} demonstrates decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. Initial positions of robots are shown as a thick circle located on the boundary of the polygon. The boundary of cells are shown in dashed gray dashed lines. Furthermore. Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each region shown in red lines. The dotes segments of the path represent transitions segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of the figure demonstrates the initial decomposition and the second columns shows the decomposition after the applying our algorithm. It should be noted that due to implementation issues with the computational geometry libraries, cells with holes in them are not supported. 
 
 \begin{figure*}
 		\centering
