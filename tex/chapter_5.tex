@@ -716,9 +716,9 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 		& \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%} & & \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%}  \\
 		%&& Size & Time & Length & Area \\
 		\cmidrule{1-8}
-		Shape 1 & 47.5 & \bf{41.6}   & 12.4\% && 30.7 & \bf{26.0}   & 15.2\% \\
-		Shape 2 & 228.1 & \bf{169.3} & 25.8\% && 187.0 & \bf{126.7} & 32.2\% \\
-		Shape 3 & 207.5 & \bf{180.0} & 13.2\% && 169.5 & \bf{152.3} & 10.1\% \\
+		Shape 1 & 47.5 & \bf{41.6}   & 12.4\% && 30.7  & \bf{26.0}  & 15.3\% \\
+		Shape 2 & 228.1 & \bf{155.3} & 31.9\% && 187.6 & \bf{115.4} & 38.5\% \\
+		Shape 3 & 218.8 & \bf{185.0} & 15.4\% && 193.3 & \bf{152.7} & 21.0\% \\
 		\bottomrule
 
 	\end{tabular}
@@ -736,8 +736,8 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 		%&& Size & Time & Length & Area \\
 		\cmidrule{1-8}
 		Shape 1 & 5.00 & \bf{0.08} & 98.3\% && 4.33 & \bf{0.88} & 79.8\% \\
-		Shape 2 & 51.6 & \bf{17.3} & 66.4\% && 49.0 & \bf{12.2} & 75.1\% \\
-		Shape 3 & 50.0 & \bf{38.8} & 22.5\% && 42.7 & \bf{34.7} & 18.7\% \\
+		Shape 2 & 51.6 & \bf{2.99} & 94.2\% && 49.0 & \bf{0.81} & 98.3\% \\
+		Shape 3 & 68.0 & \bf{17.1} & 74.8\% && 63.6 & \bf{18.3} & 71.3\% \\
 		\bottomrule
 
 	\end{tabular}
@@ -752,10 +752,13 @@ Figure~\ref{fig:decomposition_results} demonstrates decompositions together with
 		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
 
 		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_orig.pdf}% 	
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_c2_10.pdf}
+		%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_c2_10.pdf}
+		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_BETTER.pdf}
 
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig.pdf}%
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_c2_10.pdf}
+		%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig.pdf}%
+		%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_c2_10.pdf}
+		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig_BETTER.pdf}%
+		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_BETTER.pdf}
 
 	\caption{First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results}
