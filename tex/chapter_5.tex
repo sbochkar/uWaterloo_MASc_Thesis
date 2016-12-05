@@ -746,23 +746,41 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 
 Figure~\ref{fig:decomposition_results} demonstrates decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. Initial positions of robots are shown as a thick circle located on the boundary of the polygon. The boundary of cells are shown in dashed gray dashed lines. Furthermore. Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each region shown in red lines. The dotes segments of the path represent transitions segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of the figure demonstrates the initial decomposition and the second columns shows the decomposition after the applying our algorithm. It should be noted that due to implementation issues with the computational geometry libraries, cells with holes in them are not supported. 
 
-\begin{figure*}
-		\centering
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_orig.pdf}% 
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_orig.pdf}% 
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
 
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_orig.pdf}% 	
-		%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_c2_10.pdf}
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_BETTER.pdf}
+	\caption{Demonstration of the re-optimization procedure.}
+	\label{fig:decomposition_results_i}
 
-		%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig.pdf}%
-		%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_c2_10.pdf}
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig_BETTER.pdf}%
-		\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_BETTER.pdf}
+\end{figure}
+
+%\begin{figure*}
+\begin{figure}
+	\centering
+	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_orig.pdf}% 
+	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
+
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_orig.pdf}% 	
+	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_c2_10.pdf}
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_BETTER.pdf}
+
+	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig.pdf}%
+	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_c2_10.pdf}
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig_BETTER.pdf}%
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_BETTER.pdf}
+
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_orig.pdf}%
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_reopt.pdf}
+
+	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_orig.pdf}%
+	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_reopt.pdf}
 
 	\caption{First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results}
-\end{figure*}
+\end{figure}
+%\end{figure*}
 
 
 \end{document}
