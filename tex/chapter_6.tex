@@ -34,12 +34,30 @@ The quality of the path produced by the proposed method can be increased via a s
 \end{figure}
 
 
-\section{Improvement to Multi-Agent Coverage}
+\section{Improvements to Multi-Agent Coverage}
 \label{section:future_multi}
 
-One of the main mechanisms for re-optimization is the search for improving pair-wise cut for two polygons. This is one of the most computationally intensive tasks. This search can be improved by considering other search techniques, i.e., binary search. Better techniques could results in few iterations requires to converge to a minimum, thus reducing the computational burden.
+One of the main mechanisms for re-optimization is the search for an improving pair-wise cut for two polygons. In this work, the search is limited to a cone of bisection for all reflex vertices. There is no guarantee that the search space of this approach contains the optimal. COnsidering other search techniques could prove to be beneficial in aiding the search for optimal cuts. For example, by also considering cuts outside the cone of bisection, the search space is increased and the chances of finding an optimal cut are improved. Also, better search techniques could be used to improve the computational burden of the algorithm, i.e., binary search. Better techniques could results in few iterations requires to converge to a minimum, thus reducing the computational burden.
 
-%In this thesis, a recursive algorithm was proposed that searches for improving cuts between the highest cost cell and its neighbors. If such a cut is not found, the algorithm searches for a cut for the neighbors for the purpose of modifying the neighbors enough to allow for improvement in the highest cost cell. However, there are other approaches to achieve this goal.
+The main limitation of Algorithm~\ref{alg:optimization_procedure} is the greedy nature of choosing neighbor to the current cell for re-optimization. That is, a neighboring cell is chosen only if it has a lower cost compared to the current cell. This condition creates a possibility of a situation where the proposed algorithm terminates but there possible modifications to the decompositions are still possible. An example is provided in Figure~\ref{figure:algo_stuck} where the nodes represent cells, the edges represent adjacency between cells, and the number represent the value of metric $\chi$. Suppose that no cut exists that could improve the maximum of cells with costs ten and two. The proposed algorithm will terminate after one iteration. However, it is possible that making a cut for cells with cost three and seven that increases the maximum up to but not including ten. Such operation could result in a increased search space for a cut that could decrease the global maximum cost of ten.
+
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}
+		\draw [->] (0,5)--(2,5);
+		\draw [->] (2,5)--(4,5);
+
+		\node[draw, circle, fill=gray] at (0,5) {$10$};
+		\node[draw, circle, fill=white] at (2,5) {$3$};
+		\node[draw, circle, fill=white] at (4,5) {$7$};
+
+	\end{tikzpicture}
+	\caption{An example where the current re-optimization technique terminates.}
+	\label{figure:algo_stuck}
+\end{figure}
+
+  %In this thesis, a recursive algorithm was proposed that searches for improving cuts between the highest cost cell and its neighbors. If such a cut is not found, the algorithm searches for a cut for the neighbors for the purpose of modifying the neighbors enough to allow for improvement in the highest cost cell. However, there are other approaches to achieve this goal.
 
 
 \end{document}
