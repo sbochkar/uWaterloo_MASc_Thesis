@@ -12,8 +12,6 @@ In this chapter, the multi-agent coverage problem is introduced. The problem sta
 \section{Problem Statement}
 \label{section:multi_agent_problem_statement}
 
-%First, the general multi-agent coverage problem statement is developed. Observe that a team of robots that is tasked with coverage may contain robots with different dynamics and coverage footprints. As a result, for every robot $i$ on the team, there is a corresponding free configuration space $Q_{i,\text{free}}$, a set of feasible paths $P_i$, and a coverage map $\mathcal{M}_i(q)$. \margin{given that it is located at the point $q$?} The coverable space for each robot could\margin{don't use ``could''} then be stated as:
-
 A multi-agent coverage task is defined over a workspace $W$ and a team of $N$ robots. The workspace $W$ represents the area to be covered. The robots on the team are tasked with coverage. Each robot on a team has the same dynamics and hence, the same free configuration space $Q_{i,\text{free}}$. Each robot also has a coverage map $\mathcal{M}_i(q)$, which maps a configuration $q$ of robot $i$ to a set of points directly under the robot's coverage footprint. The objective of the problem is to compute a path for each robot such that the entire coverable space $\mathbb{C}$ is covered and the maximum path cost amongst all robot is minimized. This objective is motivated by the following.
 
 Complicated tasks can be solved in a distributed manner with a team of robots. This is where the overall task is divided into $N$ subtasks and assigned to $N$ robots in the team. With this setup, it is often undesirable when one robot finishes its assigned subtask much later than other robots. This leads to excessive idle times for the rest of the team and unnecessarily long execution time for the overall task. This issue can be addressed if the subtask with the longest execution time is redistributed amongst other members of the team such that the duration of the overall task is reduced. In other words, amongst a collection of $N$ subtasks, one would like to modify subtasks such that the longest duration is minimized. As an example, such cost organization was used in~\cite{carlsson2009solving} for multi-depot vehicle routing problem.
@@ -47,19 +45,10 @@ Formally, this problem is introduced in Problem~\ref{problem:multi_cpp}.
 	\begin{equation}
 		\mathcal{E}(p_i)=c_1\ell(p_i)+c_2a(p_i).
 	\end{equation}
-	Notably, this cost consists of two components: linear and angular. 
+	Notably, this cost consists of two components: linear and angular. Similar assumption about the dynamics of the robots is made where $c_2\gg c_1$.
 
 \RE
 \end{remark}
-
-%Amongst $n$ robots in the team, these sets, $\mathcal{C}_1, \mathcal{C}_2,\ldots,\mathcal{C}_n$, may not necessarily be the same. Because of this, there are some regions in the workspace that may be accessible only by certain robots. This complicates the path planning process as the ability of a robot to cover a certain section of the workspace is conditional on the robot's dynamics. In this work, we make a simplifying assumption that if a point on the workspace is coverable by robot $i$, it is coverable by all other robots on the team. In other words, we assume that all robots have the same coverable space. That is:\todo[inline]{If we are going straight to this assumption, then the problem should just be defined for homogeneous robots.  You can use a remark to discuss the case of heterogeneity.}
-%\begin{equation}
-%	\mathcal{C}_1=\mathcal{C}_2=\ldots=\mathcal{C}_n=\mathbb{C}.
-%\end{equation}
-
-%The general problem is now introduced in Problem~\ref{problem:multi_cpp}.
-
-
 
 Similar to steps taken in Chapter~\ref{section:single_problem_statement}, the Problem~\ref{problem:multi_cpp} is modified by reducing the search space for paths to a set of segmented feasible paths. The problem statement for this problem is shown in Problem~\ref{problem:multi_cpp_with_lines}.
 \begin{problem}[Multi-agent Coverage Path Planning with Straight Line Segments]
@@ -88,8 +77,6 @@ By conditions stated in Problem~\ref{problem:multi_cpp_with_lines}, a team of ro
 Notice that equation~(\ref{eq:partition_condition}) suggests some sort of decomposition of $\mathbb{C}$.
 This observation motivates our decoupled approach to this problem. The first subproblem computes a $n$-cell decomposition for each agent followed by a single-agent path planning for each cell individually. The evaluation of the decomposition is performed with a metric designed to approximate the coverage path cost. This first subproblem is stated in Problem~\ref{problem:workspace_allocation}.
 
-%Notice that equation~(\ref{eq:partition_condition}) suggests some sort of decomposition of $\mathbb{C}$. This observation was used as a motivation behind our proposed approach. Hence, given that a few requirements are satisfied, it is possible to arrive to a solution of Problem~\ref{problem:multi_cpp_with_lines} if $w_i,i=1,\ldots,n$ are computed first followed by the computation of paths for each individual cell. The requirement for this to be true is that the computation of the decomposition has to take into account the capabilities of the robots. With our approach, we accomplish this by designing a metric $\chi$ in Section~\ref{section:multi_decomposition_metric}, which assigns an approximation cost of a path for a given polygon. Our approach consists of two decoupled subproblems: a decomposition problem and a single agent path planning problem. The first subproblem is stated in Problem~\ref{problem:workspace_allocation}.
-
 \begin{problem}[Workspace Allocation]
 \label{problem:workspace_allocation}
 	Given a workspace $W$ and $N$ robots with same dynamics, compute a decomposition of $\mathbb{C}$ into $\{w_1,w_2,\dots,w_N\}$ such that
@@ -104,7 +91,15 @@ This observation motivates our decoupled approach to this problem. The first sub
 
 We note that the second subproblem is the problem solved in Chapter~\ref{chapter:single_agent_coverage} and will not be covered in this section. The rest of this chapter focuses on the decomposition problem.
 
+%\begin{equation}
+%	\mathcal{C}_1=\mathcal{C}_2=\ldots=\mathcal{C}_n=\mathbb{C}.
+%\end{equation}
 
+%The general problem is now introduced in Problem~\ref{problem:multi_cpp}.
+
+%Amongst $n$ robots in the team, these sets, $\mathcal{C}_1, \mathcal{C}_2,\ldots,\mathcal{C}_n$, may not necessarily be the same. Because of this, there are some regions in the workspace that may be accessible only by certain robots. This complicates the path planning process as the ability of a robot to cover a certain section of the workspace is conditional on the robot's dynamics. In this work, we make a simplifying assumption that if a point on the workspace is coverable by robot $i$, it is coverable by all other robots on the team. In other words, we assume that all robots have the same coverable space. That is:\todo[inline]{If we are going straight to this assumption, then the problem should just be defined for homogeneous robots.  You can use a remark to discuss the case of heterogeneity.}
+
+%Notice that equation~(\ref{eq:partition_condition}) suggests some sort of decomposition of $\mathbb{C}$. This observation was used as a motivation behind our proposed approach. Hence, given that a few requirements are satisfied, it is possible to arrive to a solution of Problem~\ref{problem:multi_cpp_with_lines} if $w_i,i=1,\ldots,n$ are computed first followed by the computation of paths for each individual cell. The requirement for this to be true is that the computation of the decomposition has to take into account the capabilities of the robots. With our approach, we accomplish this by designing a metric $\chi$ in Section~\ref{section:multi_decomposition_metric}, which assigns an approximation cost of a path for a given polygon. Our approach consists of two decoupled subproblems: a decomposition problem and a single agent path planning problem. The first subproblem is stated in Problem~\ref{problem:workspace_allocation}.
 
 %Suppose a decomposition of $\mathbb{C}$ is given with a guarantee that $\max_{i=1,\ldots,n}\{\mathcal{E}_i(p_i)\}$ would be minimized provided that all $p_i$ have the lowest possible cost. The decomposition is a set of cells $\{w_i\}$ where $\cup_{i=1}^nw_i=\mathbb{C}$. Provided with this set, one has to compute a lowest cost path $p_i$ for each $w_i$ in the decomposition for a solution to Problem~\ref{problem:multi_cpp_with_lines}.
 
@@ -142,7 +137,6 @@ The solution to Problem~\ref{problem:multi_cpp_with_lines} is a set of cells for
 \label{definition:decomp_metric}
 Given a polygonal workspace $W$ and a robot with dynamics, the partition metric $\chi:W,Q\to\mathbb{R}$ maps the workspace and the robot dynamics to an approximation of a coverage path cost in the following way:
 	\begin{equation}
-		%\chi(w_j,q_j^0)=c_1(\text{dist}(q^0_j,w_j)+K\text{Area}(w_j))+c_2360^o\text{Turns}(w_j).
 		\chi(w_j,q_j^0)=c_1[\mathcal{F}_1(q^0_j,w_j)+\mathcal{F}_2(w_j)]+c_2\mathcal{F}_3(w_j).
 	\end{equation}
 Here, $w_j$ refers to a workspace assigned to robot $j$ and $q^0_j$ refers to the initial position of robot $j$, $\mathcal{F}_1, \mathcal{F}_2,\text{ and }\mathcal{F}_3$ refers to individual terms in the metric.
@@ -151,7 +145,6 @@ Here, $w_j$ refers to a workspace assigned to robot $j$ and $q^0_j$ refers to th
 \begin{remark}[Segmented Coverage Path Structure]
 The design of the metric $\chi$ is motivated by the structure of a coverage path. A coverage path $p_i$ for a robot $i$ consists of three parts. The first part is the segment of the path from the starting location of the robot to its assigned region. The second part consisting of all the straight line segments used in the segmented coverage path. The last part includes all the transition segments connecting the straight segments together as shown in Figure~\ref{fig:path_parts}. Notice that the first two parts could be used as approximations for the linear component cost of the coverage path while the thirst part could be approximating the angular component. The following subsections discuss all three components in detail. \RE
 \end{remark}
-%The two terms, $\ell(p_i)$ and $a(p_i)$, are the linear and angular components of the path $p_i$. The metric $\chi$ attempts to emulate this structure. To that end, the following observation about the structure of a coverage path is important. 
 
 \begin{figure}
 	\centering
@@ -215,14 +208,6 @@ Suppose a workspace $w_i$ is filled with non-overlapping parallel straight line 
 	\label{fig:line_footprint}
 \end{figure}
 
-%Recall from Chapter~\ref{chapter:single_agent_coverage} that the coverage is achieved through the type of paths called segmented paths. In Section~\ref{section:single_problem_statement}, a relation between the area of the workspace and the total length of all straight line segments is demonstrated:
-%\begin{equation}
-%	\sum_i \ell_i\approx\frac{A-nk}{r}.
-%\end{equation}
-%The area of a workspace can be used to estimate a linear component of the path cost. In this section, we show that with some modifications to the area, a lower bound estimate for the length of straight line segments can be computed cheaply.
-
-
-%\begin{remark}[$A_{\text{covered}}$ and $A_{\text{actual}}$ relation.]
 Note that $A_{\text{covered}}$ is not known prior to computing the coverage path. But it can be computed from the following relation: 
 \begin{equation}
 	A_{\text{covered}}=A_{\text{actual}}-A_{\text{uncovered}}.
@@ -256,6 +241,12 @@ The term $A_{\text{uncovered}}^{\max}$ was computed with the value of $\theta_{\
 \end{equation}
 \end{proof}
 
+%Recall from Chapter~\ref{chapter:single_agent_coverage} that the coverage is achieved through the type of paths called segmented paths. In Section~\ref{section:single_problem_statement}, a relation between the area of the workspace and the total length of all straight line segments is demonstrated:
+%\begin{equation}
+%	\sum_i \ell_i\approx\frac{A-nk}{r}.
+%\end{equation}
+%The area of a workspace can be used to estimate a linear component of the path cost. In this section, we show that with some modifications to the area, a lower bound estimate for the length of straight line segments can be computed cheaply.
+
 
 \subsection{Angular Component}
 \label{subsection:angular_component}
@@ -270,7 +261,6 @@ where $\mathcal{T}$ is a set of contours.
 Contours were used for coverage path planning before for computing a contour-parallel paths~\cite{held1991computational}. A contour is a closed chain generated by \emph{shrinking} the polygon's boundary inwards by a fixed distance. If this process is performed repeatedly where each resultant contour is shrunk by distance $2r$ every iteration, eventually these contours will converge to a point or a line called the center contour as shown in Figure~\ref{fig:skeleton_altitude}. Let us denote the set of these closed contours, spaced distance $2r$ apart where $r$ is the radius of the coverage footprint, as $\mathcal{T}$. An example of such a set is shown in Figure~\ref{fig:skeleton_altitude}.
 
 The computation of these contours requires no knowledge of the actual coverage path as is solely determined by the shape of the polygon. Furthermore, the angular component of each contour is at least $360^o$. This fact and the following proposition leads to the form of $\mathcal{F}_3$ shown in equation~\ref{eq:f3}.
-
 
 \begin{proposition}
 	Given a polygonal convex workspace $W$, suppose a set of contours, $\mathcal{T}$ is computed. Let the coverage angle of a Boustrophedon path be $\Phi$. The the following holds:
@@ -322,7 +312,7 @@ Recall that concave polygons can be decomposed into a set of convex cells. We ha
 
 The algorithm proposed in this section is based on a greedy pair-wise optimization search from some starting point. The procedure is initialized with any $n$-cell decomposition. For certain adjacent pairs of cells in this decomposition, a search is performed for a new cut that would improve the pair-wise maximum cost. This process terminates when no pair-wise improvements to the decomposition can be made. %The pair-wise optimality is ensured via a linear search over a sampled search space. The whole process is started off with an initial solution.
 
-The optimization strategy is shown in Algorithm~\ref{alg:optimization_procedure}. The goal of this algorithm is to identify the cell with the maximum cost and to attempt re-optimization step. As inputs, the algorithm accepts a polygon describing the coverable space and a set of starting positions for each robot in the team. The optimization procedure is initialized with some decomposition on Line~\ref{line:multi_init_decomp}. This decomposition could be any decomposition that partitions $\mathbb{C}$ into $n$ cells. On Line~\ref{line:multi_adjacency}, the adjacency graph is computed for the current decomposition. Costs are computed for all cells in the decomposition and the cell with the maximum cost is identified on Line~\ref{line:multi_cost}. On Line~\ref{line:multi_reopt_recursion}, a recursive procedure is called on the cell with the highest cost. This procedure returns, if possible, a modified decomposition where some two adjacent cells in the decomposition were re-optimized.
+The optimization strategy is shown in Algorithm~\ref{alg:optimization_procedure}. The goal of this algorithm is to identify a cell with the maximum cost and attempt a re-optimization step. As inputs, the algorithm accepts a polygon describing the coverable space and a set of starting positions for each robot in the team. The optimization procedure is initialized with some decomposition on Line~\ref{line:multi_init_decomp}. This decomposition could be any decomposition that partitions $\mathbb{C}$ into $n$ cells. On Line~\ref{line:multi_adjacency}, the adjacency graph is computed for the current decomposition. Costs are computed for all cells in the decomposition and the cell with the maximum cost is identified on Line~\ref{line:multi_cost}. On Line~\ref{line:multi_reopt_recursion}, a recursive procedure is called on the cell with the highest cost. This procedure returns, if possible, a modified decomposition where some two adjacent cells in the decomposition were re-optimized. This procedure terminated when the decomposition remains unchanged after the re-optimization step.
 
 \begin{algorithm}
 	\caption{$\text{optimization\_procedure}(\mathbb{C}, \{q^0_i\})$}
@@ -340,7 +330,7 @@ The optimization strategy is shown in Algorithm~\ref{alg:optimization_procedure}
 
 The call on Line~\ref{line:multi_reopt_recursion} of Algorithm~\ref{alg:optimization_procedure} is a recursive procedure called on the cell with the highest cost in the current decomposition. This procedure is recursive to account for situations where the cost of the maximum cell cannot be improved via pair-wise re-optimizations with the cell's neighbors. This situations may arise when the costs of the neighbors are similar to the highest cell. As such, the procedure recursively attempts to re-optimize the neighbors through their children with the hope that in the next iteration, the highest cell can be improved. This procedure is described in Algorithm~\ref{alg:reopt_recursion}.
 
-The Algorithm~\ref{alg:reopt_recursion} is a depth-first traversal of the adjacency graph. Cycles are avoided by considering only cells with lower costs. The procedure accepts a decomposition, an adjacency graph, and a vertex representing a cell in the decomposition as inputs. For each neighboring vertex to $v_i$ that has a lower cost, the procedure performs the following steps. On Line~\ref{line:multi_reopt_cut}, a re-optimization cut is attempted for $v_i$ and $v_j$. If the re-optimization cut was not successful, meaning it failed to find a cut that would decrease the pair-wise maximum, then the same procedure is called on $v_j$ on Line~\ref{line:multi_recursive_call}. If the re-optimization cut was successful then the current is modified with the new cut and the procedure terminates.
+The Algorithm~\ref{alg:reopt_recursion} is a depth-first traversal of the adjacency graph. Cycles are avoided by restricting recursive calls to cells with lower costs. The procedure accepts a decomposition, an adjacency graph, and a vertex representing a cell in the decomposition as inputs. For each neighboring vertex to $v_i$ that has a lower cost, the procedure performs the following steps. On Line~\ref{line:multi_reopt_cut}, a re-optimization cut is attempted for $v_i$ and $v_j$. If the re-optimization cut was not successful, meaning it failed to find a cut that would decrease the pair-wise maximum, then the same procedure is called on $v_j$ on Line~\ref{line:multi_recursive_call}. If the re-optimization cut was successful then the current decomposition is modified with the new cut and the procedure terminates.
 
 \begin{algorithm}
 	\caption{$\text{reopt\_recursion}(\mathcal{D}, \mathcal{G}, v_i)$}
@@ -359,7 +349,7 @@ The Algorithm~\ref{alg:reopt_recursion} is a depth-first traversal of the adjace
 	\end{algorithmic}
 \end{algorithm}
 
-It should be noted that a breadth-first traversal version of Algorithm~\ref{alg:reopt_recursion} is shown in Algorithm~\ref{alg:reopt_recursion_bft}. With this approach, the all immediate neighbors of the highest cell ate attempted to be re-optimized first before continuing to the next level. It should be noted that in simulations, this approach converged to the same results as the depth-first traversal.
+It should be noted that a breadth-first traversal version of Algorithm~\ref{alg:reopt_recursion} is also available and is shown in Algorithm~\ref{alg:reopt_recursion_bft}. With this approach, the all immediate neighbors of the highest cell are attempted to be re-optimized first before continuing to the next level. It should be noted that in simulations, this approach converged to the same results as the depth-first traversal.
 
 \begin{algorithm}
 	\caption{$\text{reopt\_recursion\_bft}(\mathcal{D}, \mathcal{G}, v_i, Q)$}
@@ -385,7 +375,7 @@ It should be noted that a breadth-first traversal version of Algorithm~\ref{alg:
 \end{algorithm}
 
 
-Another important procedure is described in Algorithm~\ref{alg:reopt_cut}. It is a procedure for recomputing a cut that would minimize the maximum cost. In this procedure, the two adjacent cells are combined into one cell on Line~\ref{line:poly_union}. A cut space is generated from the origin of the cut on Line~\ref{line:multi_cut_space}. This cut space is sampled with equally spaced with $K$ points on Line~\ref{line:sample_cut_space}. A cut is performed for each points in $\mathcal{L}$ and evaluated. The best cut is found on Line~\ref{line:search}. The cut is then implemented and the current decomposition is modified.
+Another important procedure is described in Algorithm~\ref{alg:reopt_cut}. It is a procedure for recomputing a cut that would minimize the maximum cost. In this procedure, the two adjacent cells are combined into one cell on Line~\ref{line:poly_union}. A cut space is generated from the origin of the cut on Line~\ref{line:multi_cut_space}. This cut space is sampled with equally spaced $K$ points on Line~\ref{line:sample_cut_space}. A cut is performed for each point in $\mathcal{L}$ and evaluated. The best cut is found on Line~\ref{line:search}. This cut could be the original cut if no improving cuts were found. The cut is then implemented and the current decomposition is modified.
 
 \begin{algorithm}
 	\caption{$\text{reopt\_cut}(v_i, v_j, \mathcal{D},\mathcal{G})$}
@@ -425,7 +415,7 @@ Lastly, an algorithm for computing the metric $\chi$ is shown in Algorithm~\ref{
 	\end{algorithmic}
 \end{algorithm}
 
-An example of the algorithm in action is shown in Figure~\ref{fig:algo_demo}. The top picture depicts the initial decomposition of the rectangular workspace into three cells. The initial positions of the three robots are in the lower left corner of the workspace. The initial decomposition was designed such that the cells two and three has almost equal costs while cell one has the minimum cost. The algorithm identifies the cell three to be the cell with the highest cell. During the recursive call, the algorithm attempts to re-optimize the cut between cell three and two. However, due to costs being almost equal, no improving cuts were found. As a result, a recursive call is called on cell two. Here, cell two is re-optimized with cell one, resulting in lower cost of cell two shown in the middle picture. Finally, the bottom picture shows the next iteration of the algorithm where the cell three is re-optimized with the modified cell two, resulting in the decreased maximum cost. 
+An example of the algorithm in action is shown in Figure~\ref{fig:algo_demo}. The top picture depicts the initial decomposition of the rectangular workspace into three cells. The initial positions of the three robots are in the lower left corner of the workspace. The initial decomposition was designed such that the cells two and three has almost equal costs while cell one has the minimum cost. The algorithm identifies the cell three to be the cell with the highest cost. During the recursive call, the algorithm attempts to re-optimize the cut between cell three and two. However, due to costs being almost equal, no improving cuts were found. As a result, a recursive call is called on cell two. Here, cell two is re-optimized with cell one, resulting in lower cost of cell two shown in the middle picture. Finally, the bottom picture shows the next iteration of the algorithm where the cell three is re-optimized with the modified cell two, resulting in the decreased maximum cost. 
 
 \begin{figure*}
 		\centering
@@ -460,10 +450,7 @@ An example of the algorithm in action is shown in Figure~\ref{fig:algo_demo}. Th
 			\fill [fill=gray] (-11.72,0.60) circle [radius=4pt];
 			\fill [fill=gray] (-11.64,3.05) circle [radius=4pt];
 			\fill [fill=gray] (-11.73,5.56) circle [radius=4pt];
-			%\draw at (-1.0,1.5) circle [radius=0.1cm] node {$3$};
-			%\node at (-1.0,1.5) circle [radius=0.1cm] {$3$};
 
-			%\draw [thin, <->] (12,0)--node [right] {$\beta$} (12,2);			
 		\end{tikzpicture}
 	\caption{Top: initial decomposition. Middle: after first iteration. Bottom: after second iteration.}
 	\label{fig:algo_demo}
@@ -604,9 +591,9 @@ An example of the algorithm in action is shown in Figure~\ref{fig:algo_demo}. Th
 \section{Computational Complexity}
 \label{section:multi_comp_analysis}
 
-The computational complexity analysis is started with Algorithm~\ref{alg:metric_algorithm}. Line~\ref{line:min_dist} computes the minimum distance from a fixed points to a set of points. This operation is performed through an exhaustive search in $\mathbb{O}(n)$ time by iterating over all vertices in the set. On Line~\ref{line:area}, the area of a polygon is computed in $\mathbb{O}(n)$ time by using Gauss's area formula. On Line~\ref{line:all_edge}, a set of angles is computed in $\mathbb{O}(n)$ time by traversing over all edges of the polygon. On Line~\ref{line:all_pairs}, the largest pair-wise difference between any two pairs of elements is computed in $\mathbb{O}(n^2)$ time by evaluating all possible pairings. The minimum altitude is computed using Algorithm~\ref{alg:altitude} in $\mathbb{O}(n^2\log{n})$ time. A set of contours is computed on Line~\ref{line:contours}. In our implementation of this step, a Shapely library is used. The run time of this implementation is not known. However, a robust implementation of contour computation was proposed by Chen~\cite{chen2005polygon}. The algorithm computes one contour in $\mathbb{O}((n+k)\log{n})$ time where $n$ is he number of edges and $k$ can be roughly approximated by the number of non-convex vertices in the polygon. To compute the set of contours $\mathcal{T}$, this operation needs to be called several times. This number is determined by the shape of the polygon. However, a rough approximation of this number can be computed using the minimum altitude, $\frac{\alpha_{\min}}{r}$. As such, the overall complexity of Algorithm~\ref{alg:metric_algorithm} is $\mathbb{O}(\frac{\alpha_{\min}}{2}n^2\log{n})$.
+The run time of Algorithm~\ref{alg:metric_algorithm} is determined as follows. Line~\ref{line:min_dist} computes the minimum distance from a fixed points to a set of points. This operation is performed through an exhaustive search in $\mathbb{O}(n)$ time by iterating over all vertices in the set. On Line~\ref{line:area}, the area of a polygon is computed in $\mathbb{O}(n)$ time by using Gauss's area formula. On Line~\ref{line:all_edge}, a set of angles is computed in $\mathbb{O}(n)$ time by traversing over all edges of the polygon. On Line~\ref{line:all_pairs}, the largest pair-wise difference between any two pairs of elements is computed in $\mathbb{O}(n^2)$ time by evaluating all possible pairings. The minimum altitude is computed using Algorithm~\ref{alg:altitude} in $\mathbb{O}(n^2\log{n})$ time. A set of contours is computed on Line~\ref{line:contours}. In our implementation of this step, a Shapely library is used. The run time of this implementation is not known. However, a robust implementation of contour computation was proposed by Chen~\cite{chen2005polygon}. The algorithm computes one contour in $\mathbb{O}((n+k)\log{n})$ time where $n$ is he number of edges and $k$ can be roughly approximated by the number of convex vertices in the polygon. Hence, $n+k=2n$ for convex polygons. Furthermore, to compute the set of contours $\mathcal{T}$, this operation needs to be called several times. This number of times is determined by the shape of the polygon. However, a upper bound on this number can be computed using the minimum altitude of a polygon, $\frac{\alpha_{\min}}{r}$. As such, the overall complexity of Algorithm~\ref{alg:metric_algorithm} is $\mathbb{O}(n^2\log{n}+\frac{\alpha_{\min}}{r}n\log{n})$.
 
-Algorithm~\ref{alg:reopt_cut} computes an improving cut if it exists. Starting with Line~\ref{line:shared_edge}, an edge is found that is common to both adjacent cells. One way of computing such edge is by checking equality for each pair of edges from both polygons. This operation is $\mathbb{O}(mn)$ time where $m$ and $n$ is the number of verticies in left and right polygons respectively. On Line~\ref{line:poly_union}, a union of the two polygons is computed. This operation can be performed by combining the two boundary chains together at the common edge. Since the indices of the shared edge were calculated on Line~\ref{line:shared_edge}, this operation runs in $\mathbb{O}(1)$ time. On Line~\ref{line:multi_cut_space}, a cut space is calculated similarly to Algorithm~\ref{alg:optimal_cut}. Efficient $\mathbb{O}(m+n)$ algorithms for computing a visibility polygon exist such as one in~\cite{el1981linear}. The sampling step on Line~\ref{line:sample_cut_space} computes $K$ samples on the cut space. This operation is simple given a line segment. Hence, this operation has to be performed in $\mathbb{O}(m+n)$ time in the worst case. On Line~\ref{line:search}, a point on the cut space is found that results in the best cost cut. This operation is performed by performing a cut at that point and computing the metric for both polygons. The cut can be performed in $\mathbb{O}(m+n)$ time. The metric $\chi$ has to be computed for both polygons in $\mathbb{O}(\frac{\alpha_{n,\min}}{2}n^2\log{n})$ if $n>m$. Hence, the hole step can be performed in $\mathbb{O}(K\frac{\alpha_{n,\min}}{2}n^2\log{n})$ time. Finally, the decomposition is modified on constant time. 
+Algorithm~\ref{alg:reopt_cut} computes an improving cut if it exists. Starting with Line~\ref{line:shared_edge}, an edge is found that is common to both adjacent cells. One way of computing such edge is by checking equality for each pair of edges from both polygons. This operation is $\mathbb{O}(mn)$ time where $m$ and $n$ is the number of verticies in left and right polygons respectively. On Line~\ref{line:poly_union}, a union of the two polygons is computed. This operation can be performed by combining the two boundary chains together at the common edge. Since the indices of the shared edge were calculated on Line~\ref{line:shared_edge}, this operation runs in $\mathbb{O}(1)$ time. On Line~\ref{line:multi_cut_space}, a cut space is calculated similarly to Algorithm~\ref{alg:optimal_cut}. Efficient $\mathbb{O}(m+n)$ algorithms for computing a visibility polygon exist such as one in~\cite{el1981linear}. The sampling step on Line~\ref{line:sample_cut_space} computes $K$ samples on the cut space. This operation is simple given a line segment. Hence, this operation has to be performed in $\mathbb{O}(m+n)$ time in the worst case, potentially on every edge of a combined polygon. On Line~\ref{line:search}, a point on the cut space is found that results in the best cost cut. This operation is performed by performing cuts at every point in the set and computing the metric for both polygons. Followed by choosing a cut with the best cost. The cut can be performed in $\mathbb{O}(m+n)$ time. The metric $\chi$ has to be computed for both polygons in $\mathbb{O}(n^2\log{n}+\frac{\alpha_{\min}}{r}n\log{n})$ if $n>m$. Hence, the whole step can be performed in $\mathbb{O}(K(m+n)(\frac{\alpha_{n,\min}}{r}n^2\log{n})$ time if $n>m$. Finally, the decomposition is modified in constant time. 
 
 Finally, Algorithm~\ref{alg:optimization_procedure} is a recursive re-optimization algorithm. The recursive call in Algorithm~\ref{alg:reopt_recursion} can run as many as $N$ times in the worst case where $N$ is the number of cells in the decomposition. However, it is difficult to determine the number of iterations required for Algorithm~\ref{alg:optimization_procedure} to converge. It is clear that this algorithm converges because only the cut that decrease the maximum pair-wise cost are allowed. As such, the whole adjacent graph is traversed looking for possible improvement cuts. If no such cuts were identified then the algorithm terminates.
 
@@ -616,10 +603,8 @@ Finally, Algorithm~\ref{alg:optimization_procedure} is a recursive re-optimizati
 
 Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
 
-% Comparing competing approaches
 The approach was tested on its ability to improve the existing decomposition with the goal to minimize the maximum cost. Several test shapes of varying complexity were used in simulations. The initial decomposition of the polygons was performed by hand. In all test runs, four robots were used with starting locations usually located at the corners of the polygon. To relate the metric $\chi$ to the actual cost of the coverage path, actual coverage paths are computed for each robot in the team using Algorithm~\ref{alg:min_alt_decomposition}.
 
-%Discussing the metrics in the table. The analysis of the trends from the table.
 Performance figures for the algorithm are shown in Table~\ref{table:decomposition_improvement_max} and Table~\ref{table:decomposition_improvement_deviation}. We compare the improvements in the maximum cost $\chi$ as well as the actual lengths of the coverage paths. This comparison demonstrates that our approach works as intended in minimizing the maximum cost. We also compare the mean absolute deviation of costs over all cells in the decomposition. These figures should show that this approach works by distributing the workload amongst all robots in the team. The lengths of the coverage paths were computed by solving the single agent coverage problem for each robot in the team using the approach introduced in Chapter~\ref{chapter:single_agent_coverage}. We note that the algorithm has improved the maximum value of metric $\chi$ on average by 20\% and the actual length of the coverage path by 24\%. The mean absolute deviation was also reduced by 74.6\% and 70.0\% for metric $\chi$ and path lengths respectively.
 
 \begin{table}
@@ -665,7 +650,7 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 \end{table}
 
 
-Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and Figure~\ref{fig:decomposition_results_ii} demonstrates decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. Initial positions of robots are shown as a thick circle located on the boundary of the polygon. The boundary of cells are shown in dashed gray dashed lines. Furthermore. Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each region shown in red lines. The dotes segments of the path represent transitions segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of the figure demonstrates the initial decomposition and the second columns shows the decomposition after the applying our algorithm. It should be noted that due to implementation issues with the computational geometry libraries, cells with holes in them are not supported. 
+Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and Figure~\ref{fig:decomposition_results_ii} demonstrates decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. it should be noted that after re-optimizations, the robots do not necessarily retain their previous color. Initial positions of robots are shown as a thick circle located on the boundary of the polygon. The boundary of cells are shown in dashed gray dashed lines. Furthermore. Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each region shown in red lines. The dotes segments of the path represent transitions segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of the figure demonstrates the initial decomposition and the second columns shows the decomposition after the applying our algorithm. It should be noted that due to implementation issues with the computational geometry libraries, cells with holes in them are not supported. 
 
 \begin{figure}
 	\centering
@@ -677,18 +662,10 @@ Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and
 
 \end{figure}
 
-%\begin{figure*}
 \begin{figure}
 	\centering
-	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_orig.pdf}% 
-	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
-
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_orig.pdf}% 	
-	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_c2_10.pdf}
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_BETTER.pdf}
-
-	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig.pdf}%
-	%\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_c2_10.pdf}
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig_BETTER.pdf}%
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_BETTER.pdf}
 	\caption{First column: decomposition before re-optimization. Second column: after re-optimization.}
@@ -697,18 +674,13 @@ Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and
 
 \begin{figure}
 	\centering
-
-
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_orig.pdf}%
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_reopt.pdf}
-
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_orig.pdf}%
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_reopt.pdf}
-
 	\caption{First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results_ii}
 \end{figure}
-%\end{figure*}
 
 
 \end{document}
