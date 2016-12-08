@@ -29,6 +29,14 @@ The general coverage problem is defined in Problem~\ref{problem:min_cost_cpp}.
 
 In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, and a coverage footprint map are given. The objective is to compute a path that lies entirely in the free configuration space of the robot such that the footprint of the whole path is equal to the coverable space and the cost of the path is minimized. A number of aspects of this problem makes it difficult. For instance, the set of feasible paths $W$ contains infinitely many paths. Also, it is difficult to directly check the satisfiability of conditions~(\ref{condition:full_coverage}). As such, several assumptions and heuristics are used throughout this work.
 
+\begin{assumption}[Polygonal Workspace]
+	The workspace is assumed to be polygonal,simply connected, and noise free. 
+\end{assumption}
+
+\begin{assumption}[General Robot Model Assumption]
+	We deal with kinematic robot models with $v_{\max}$ as the maximum velocity. In Section~\ref{section:single_agent_simulation}, we utilize Dubins' car model for our simulations. We assume robot's coverage footprint is a circle of radius $r$. The localization problem is assumed to be solved. 
+\end{assumption}
+
 
 \subsection{Conversion to Segmented Paths}
 \label{subsection:conversion_to_segmented}
@@ -44,7 +52,7 @@ A set of feasible segmented paths is defined as
 	\begin{equation}
 		P_{\text{segmented}}=\{p_i\ |\ p_i\subseteq Q_{\text{free}},\  p_i=\{s_1,t_1,s_2,t_2,\dots,s_n,t_n\}\},
 	\end{equation}
-	where $s_i$ refers to $i$th straight line segment and $t_i$ refers to $i$th transition segment.
+	where $s_i$ refers to $i^{\text{th}}$ straight line segment and $t_i$ refers to $i^{\text{th}}$ transition segment.
 \end{definition}
 
 Problem~\ref{problem:min_cost_cpp} is modified accordingly with a modified search space of feasible paths.
