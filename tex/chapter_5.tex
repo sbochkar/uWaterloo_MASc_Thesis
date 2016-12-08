@@ -589,7 +589,7 @@ Our decomposition algorithm was implemented in Python. The algorithm was impleme
 
 The approach was tested on its ability to improve the existing decomposition with the goal to minimize the maximum cost. Several test shapes of varying complexity were used in simulations. The initial decomposition of the polygons was performed by hand. In all test runs, four robots were used with starting locations usually located at the corners of the polygon. For Algorithm~\ref{alg:reopt_cut}, $K$ is set to 100. To relate the metric $\chi$ to the actual cost of the coverage path, actual coverage paths are computed for each robot in the team using Algorithm~\ref{alg:min_alt_decomposition}.
 
-Performance figures for the algorithm are shown in Table~\ref{table:decomposition_improvement_max} and Table~\ref{table:decomposition_improvement_deviation}. We compare the improvements in the maximum cost $\chi$ as well as the actual lengths of the coverage paths. This comparison demonstrates that our approach works as intended in minimizing the maximum cost. We also compare the mean absolute deviation of costs over all cells in the decomposition. These figures should show that this approach works by distributing the workload amongst all robots in the team. The lengths of the coverage paths were computed by solving the single agent coverage problem for each robot in the team using the approach introduced in Chapter~\ref{chapter:single_agent_coverage}. We note that the algorithm has improved the maximum value of metric $\chi$ on average by 20\% and the actual length of the coverage path by 24\%. The mean absolute deviation was also reduced by 74.6\% and 70.0\% for metric $\chi$ and path lengths respectively.
+Performance figures for the algorithm are shown in Table~\ref{table:decomposition_improvement_max} and Table~\ref{table:decomposition_improvement_deviation}. We compare the improvements in the maximum cost $\chi$ as well as the actual lengths of the coverage paths. This comparison demonstrates that our approach works as intended in minimizing the maximum cost. We also compare the range of costs over four cells in the decomposition. This comparison is to demonstrate the distributiion of workload amongst all robots in the team. The lengths of the coverage paths were computed by solving the single agent coverage problem for each robot in the team using the approach introduced in Chapter~\ref{chapter:single_agent_coverage}. We note that the algorithm has improved the maximum value of metric $\chi$ on average by 20\% and the actual length of the coverage path by 24\%. The mean absolute deviation was also reduced by 74.6\% and 70.0\% for metric $\chi$ and path lengths respectively.
 
 \begin{table}
 	\centering
@@ -612,25 +612,27 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 
 \begin{table}
 	\centering
-	\caption{Improvement to the mean absolute deviation on costs.}
+	\caption{Improvement to the range of costs.}
 	\label{table:decomposition_improvement_deviation}
 	\begin{tabular}{@{}l rrrrrrr}
 		\toprule
-		& \multicolumn{3}{c}{Deviation $\chi$} && \multicolumn{3}{c}{Deviation Tour Length} \\
+		& \multicolumn{3}{c}{Range $\chi$} && \multicolumn{3}{c}{Range of Tour Lengths} \\
 		\cmidrule{2-4} \cmidrule{6-8}
 		& \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%} & & \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%}  \\
 		\cmidrule{1-8}
-		Shape 1 & 5.00 & \bf{0.08} & 98.3\% && 4.33 & \bf{0.88} & 79.8\% \\
-		Shape 2 & 51.6 & \bf{2.99} & 94.2\% && 49.0 & \bf{0.81} & 98.3\% \\
-		Shape 3 & 68.0 & \bf{17.1} & 74.8\% && 63.6 & \bf{18.3} & 71.3\% \\
-		Shape 4 & 43.1 & \bf{17.5} & 59.4\% && 39.1 & \bf{19.4} & 50.1\% \\
-		Shape 5 & 43.8 & \bf{23.1} & 47.1\% && 41.1 & \bf{19.5} & 52.3\% \\
+		Shape 1 & 15.0  & \bf{0.30} & -\% && 14.5  & \bf{3.40} & -\% \\
+		Shape 2 & 169.0 & \bf{8.30} & -\% && 157.4 & \bf{3.00} & -\% \\
+		Shape 3 & 150.8 & \bf{49.0} & -\% && 151.3 & \bf{58.0} & -\% \\
+		Shape 4 & 130.0 & \bf{64.5} & -\% && 121.6 & \bf{65.2} & -\% \\
+		Shape 5 & 113.7 & \bf{38.2} & -\% && 108.3 & \bf{42.0} & -\% \\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
 
-Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and Figure~\ref{fig:decomposition_results_ii} demonstrates decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. it should be noted that after re-optimizations, the robots do not necessarily retain their previous color. Initial positions of robots are shown as a thick circle located on the boundary of the polygon. The boundary of cells are shown in dashed gray dashed lines. Furthermore. Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each region shown in red lines. The dotes segments of the path represent transitions segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of the figure demonstrates the initial decomposition and the second columns shows the decomposition after the applying our algorithm. It should be noted that due to implementation issues with the computational geometry libraries, cells with holes in them are not supported. 
+Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and Figure~\ref{fig:decomposition_results_ii} demonstrates decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. it should be noted that after re-optimizations, the robots do not necessarily retain their previous color. Initial positions of robots are shown as a thick circle located on the boundary of the polygon. The boundary of cells are shown in dashed gray dashed lines. Furthermore. Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each region shown in red lines. The dotes segments of the path represent transitions segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of the figure demonstrates the initial decomposition and the second columns shows the decomposition after the applying our algorithm.
+
+There are several observations that should be made with regards to the solutions shown in the figures. First, the re-optimization algorithm shows very good results for shapes one and two where the maximum is decreases and the range of values is relatively small. However, this range is larger for shapes three, four, and five. This phenomenon could be attributed to a limitation in our implementation of the computational geometry operations. Specifically, Algorithm~\ref{alg:reopt_cut} cannot consider a pair of adjacent cells where the union of them contains a hole even if there exists improving cuts. This limitation is evident in the example with shape five in the second column of Figure~\ref{fig:decomposition_results_ii}. Here, the yellow cell is never considered for re-optimization because combining it with any of its two adjacent cells results in the presence of a hole. As such, this particular cell is not changed throughout iterations of the algorithms.
 
 \begin{figure}
 	\centering
