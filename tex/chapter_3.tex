@@ -152,7 +152,7 @@ Another important problem is called the Generalized Traveling Salesman Problem (
 Given a complete graph $G=(V,E,w)$ and a vertex partition $\{V_1,V_2,\ldots,V_m\}$, compute a tour of $G$ that includes exactly one vertex from each subset $V_i$ and the sum of edge weights is minimized. An example of a GTSP tour is shown in Figure~\ref{fig:gtsp_tour}.
 \end{problem}
 
-A TSP problem is known to be NP-hard. A GTSP problem can be solved as a reduction to a TSP problem~\cite{noon1993efficient}. As such, the time to compute an optimal solution \emph{blows up} with the size of the input to these problems. However, there are numerous approximate and suboptimal solutions available. One of them is solver called GLKH, which utilizes a Lin-Kernighan TSP heuristic~\cite{helsgaun2009general}. In this thesis, we utilize the GLKH solver for solving GTSP problems.
+A TSP problem is known to be NP-hard. A GTSP problem can be solved as a reduction to a TSP problem~\cite{noon1993efficient}. However, there are numerous approximate and suboptimal solutions available. One of them is solver called GLKH, which utilizes a Lin-Kernighan TSP heuristic~\cite{helsgaun2009general}. In this thesis, we utilize the GLKH solver for solving GTSP problems.
 
 %\section{Contours Introduction}
 %\label{section:background_contours}
