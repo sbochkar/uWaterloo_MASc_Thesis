@@ -254,7 +254,7 @@ The term $A_{\text{uncovered}}^{\max}$ was computed with the value of $\theta_{\
 The last term is designed to approximate the angular component of the coverage path. As discussed in Chapter~\ref{chapter:single_agent_coverage}, coverage is achieved through segmented paths. With such paths, only transition segments contribute to the angular component of the cost. One can calculate the angular component of the path by computing the path and counting the transition segments. However, this  is computationally intensive. In this section, we develop an approximation for the angular component of the coverage path that makes use of a set of contours. This last term of the metric $\chi$ is the following:
 \begin{equation}
 	\label{eq:f3}
-	\mathcal{F}_3(w_i)=360^o|\mathcal{T}|
+	\mathcal{F}_3(w_i)=360^o|\mathcal{T}|.
 \end{equation}%
 where $\mathcal{T}$ is a set of contours.
 
@@ -263,7 +263,7 @@ Contours were used for coverage path planning before for computing a contour-par
 The computation of these contours requires no knowledge of the actual coverage path as is solely determined by the shape of the polygon. Furthermore, the angular component of each contour is at least $360^o$. This fact and the following proposition leads to the form of $\mathcal{F}_3$ shown in equation~\ref{eq:f3}.
 
 \begin{proposition}
-	Given a polygonal convex workspace $W$, suppose a set of contours, $\mathcal{T}$ is computed. Let the coverage angle of a Boustrophedon path be $\Phi$. The the following holds:
+	Given a polygonal workspace $W$, suppose a set of contours $\mathcal{T}$ is computed. Let the coverage angle of a Boustrophedon path for $W$ be $\Phi$. Then the following holds:
 	\begin{equation}
 		360^o|\mathcal{T}|\leq\Phi.
 	\end{equation}
@@ -284,27 +284,11 @@ The result is shown for convex polygons first. The process of iteratively shrink
 
 However, recall that $\Phi=180^o\ceil{\frac{\alpha}{r}}$ and $|\mathcal{T}|=\ceil{\frac{\beta}{r}}$. Assuming that $\frac{\alpha}{r}$ is exact then
 \begin{equation}
-	360^o|\mathcal{T}|\leq180^o\frac{\alpha}{r}
+	360^o|\mathcal{T}|\leq180^o\frac{\alpha}{r}.
 \end{equation}
 
 Recall that concave polygons can be decomposed into a set of convex cells. We have also demonstrated that a decomposition can be constructed that minimizes the sum of minimum altitudes over all convex cells in Chapter~\ref{chapter:single_agent_coverage}. The sum of all minimum altitudes is related to the number of parallel line segments required for coverage. Hence, a coverage angle can also be computed. Also note that every convex cell has its own center contour. However, it was shown that $360^o\frac{\beta}{r}\leq\Phi$ for convex polygons. Hence, the summation over all cells will hold as well.
 \end{proof}
-
-%\begin{figure}
-%	\centering
-%	\begin{subfigure}{0.5\linewidth}
-%		\centering
-%		\subfile{img/chapter_5/area_complexity}%
-%		\caption{\label{fig:area_complexity_i}}
-%	\end{subfigure}%
-%	\begin{subfigure}{0.5\linewidth}
-%		\centering
-%		\subfile{img/chapter_5/area_complexity_b}
-%		\caption{\label{fig:area_complexity_ii}}
-%	\end{subfigure}
-%	\caption{An example of polygons with same area but various complexity.}
-%	\label{fig:area_complexity}
-%\end{figure}
 
 
 \section{Area Allocation Algorithm}
@@ -593,7 +577,7 @@ An example of the algorithm in action is shown in Figure~\ref{fig:algo_demo}. Th
 
 The run time of Algorithm~\ref{alg:metric_algorithm} is determined as follows. Line~\ref{line:min_dist} computes the minimum distance from a fixed points to a set of points. This operation is performed through an exhaustive search in $\mathbb{O}(n)$ time by iterating over all vertices in the set. On Line~\ref{line:area}, the area of a polygon is computed in $\mathbb{O}(n)$ time by using Gauss's area formula. On Line~\ref{line:all_edge}, a set of angles is computed in $\mathbb{O}(n)$ time by traversing over all edges of the polygon. On Line~\ref{line:all_pairs}, the largest pair-wise difference between any two pairs of elements is computed in $\mathbb{O}(n^2)$ time by evaluating all possible pairings. The minimum altitude is computed using Algorithm~\ref{alg:altitude} in $\mathbb{O}(n^2\log{n})$ time. A set of contours is computed on Line~\ref{line:contours}. In our implementation of this step, a Shapely library is used. The run time of this implementation is not known. However, a robust implementation of contour computation was proposed by Chen~\cite{chen2005polygon}. The algorithm computes one contour in $\mathbb{O}((n+k)\log{n})$ time where $n$ is he number of edges and $k$ can be roughly approximated by the number of convex vertices in the polygon. Hence, $n+k=2n$ for convex polygons. Furthermore, to compute the set of contours $\mathcal{T}$, this operation needs to be called several times. This number of times is determined by the shape of the polygon. However, a upper bound on this number can be computed using the minimum altitude of a polygon, $\frac{\alpha_{\min}}{r}$. As such, the overall complexity of Algorithm~\ref{alg:metric_algorithm} is $\mathbb{O}(n^2\log{n}+\frac{\alpha_{\min}}{r}n\log{n})$.
 
-Algorithm~\ref{alg:reopt_cut} computes an improving cut if it exists. Starting with Line~\ref{line:shared_edge}, an edge is found that is common to both adjacent cells. One way of computing such edge is by checking equality for each pair of edges from both polygons. This operation is $\mathbb{O}(mn)$ time where $m$ and $n$ is the number of verticies in left and right polygons respectively. On Line~\ref{line:poly_union}, a union of the two polygons is computed. This operation can be performed by combining the two boundary chains together at the common edge. Since the indices of the shared edge were calculated on Line~\ref{line:shared_edge}, this operation runs in $\mathbb{O}(1)$ time. On Line~\ref{line:multi_cut_space}, a cut space is calculated similarly to Algorithm~\ref{alg:optimal_cut}. Efficient $\mathbb{O}(m+n)$ algorithms for computing a visibility polygon exist such as one in~\cite{el1981linear}. The sampling step on Line~\ref{line:sample_cut_space} computes $K$ samples on the cut space. This operation is simple given a line segment. Hence, this operation has to be performed in $\mathbb{O}(m+n)$ time in the worst case, potentially on every edge of a combined polygon. On Line~\ref{line:search}, a point on the cut space is found that results in the best cost cut. This operation is performed by performing cuts at every point in the set and computing the metric for both polygons. Followed by choosing a cut with the best cost. The cut can be performed in $\mathbb{O}(m+n)$ time. The metric $\chi$ has to be computed for both polygons in $\mathbb{O}(n^2\log{n}+\frac{\alpha_{\min}}{r}n\log{n})$ if $n>m$. Hence, the whole step can be performed in $\mathbb{O}(K(m+n)(\frac{\alpha_{n,\min}}{r}n^2\log{n})$ time if $n>m$. Finally, the decomposition is modified in constant time. 
+Algorithm~\ref{alg:reopt_cut} computes an improving cut if it exists. Starting with Line~\ref{line:shared_edge}, an edge is found that is common to both adjacent cells. One way of computing such edge is by checking equality for each pair of edges from both polygons. This operation is $\mathbb{O}(mn)$ time where $m$ and $n$ is the number of verticies in left and right polygons respectively. On Line~\ref{line:poly_union}, a union of the two polygons is computed. This operation can be performed by combining the two boundary chains together at the common edge. Since the indices of the shared edge were calculated on Line~\ref{line:shared_edge}, this operation runs in $\mathbb{O}(1)$ time. On Line~\ref{line:multi_cut_space}, a cut space is calculated similarly to Algorithm~\ref{alg:optimal_cut}. Efficient $\mathbb{O}(m+n)$ algorithms for computing a visibility polygon exist such as one in~\cite{el1981linear}. The sampling step on Line~\ref{line:sample_cut_space} computes $K$ samples on the cut space. This operation is simple given a line segment. Hence, this operation has to be performed in $\mathbb{O}(m+n)$ time in the worst case, potentially on every edge of a combined polygon. On Line~\ref{line:search}, a point on the cut space is found that results in the best cost cut. This operation is performed by performing cuts at every point in the set and computing the metric for both polygons. Followed by choosing a cut with the best cost. The cut can be performed in $\mathbb{O}(m+n)$ time. The metric $\chi$ has to be computed for both polygons in $\mathbb{O}(n^2\log{n}+\frac{\alpha_{\min}}{r}n\log{n})$ if $n>m$. Hence, the whole step can be performed in $\mathbb{O}\left(K(m+n)(\frac{\alpha_{n,\min}}{r}n^2\log{n})\right)$ time if $n>m$. Finally, the decomposition is modified in constant time. 
 
 Finally, Algorithm~\ref{alg:optimization_procedure} is a recursive re-optimization algorithm. The recursive call in Algorithm~\ref{alg:reopt_recursion} can run as many as $N$ times in the worst case where $N$ is the number of cells in the decomposition. However, it is difficult to determine the number of iterations required for Algorithm~\ref{alg:optimization_procedure} to converge. It is clear that this algorithm converges because only the cut that decrease the maximum pair-wise cost are allowed. As such, the whole adjacent graph is traversed looking for possible improvement cuts. If no such cuts were identified then the algorithm terminates.
 
@@ -603,7 +587,7 @@ Finally, Algorithm~\ref{alg:optimization_procedure} is a recursive re-optimizati
 
 Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
 
-The approach was tested on its ability to improve the existing decomposition with the goal to minimize the maximum cost. Several test shapes of varying complexity were used in simulations. The initial decomposition of the polygons was performed by hand. In all test runs, four robots were used with starting locations usually located at the corners of the polygon. To relate the metric $\chi$ to the actual cost of the coverage path, actual coverage paths are computed for each robot in the team using Algorithm~\ref{alg:min_alt_decomposition}.
+The approach was tested on its ability to improve the existing decomposition with the goal to minimize the maximum cost. Several test shapes of varying complexity were used in simulations. The initial decomposition of the polygons was performed by hand. In all test runs, four robots were used with starting locations usually located at the corners of the polygon. For Algorithm~\ref{alg:reopt_cut}, $K$ is set to 100. To relate the metric $\chi$ to the actual cost of the coverage path, actual coverage paths are computed for each robot in the team using Algorithm~\ref{alg:min_alt_decomposition}.
 
 Performance figures for the algorithm are shown in Table~\ref{table:decomposition_improvement_max} and Table~\ref{table:decomposition_improvement_deviation}. We compare the improvements in the maximum cost $\chi$ as well as the actual lengths of the coverage paths. This comparison demonstrates that our approach works as intended in minimizing the maximum cost. We also compare the mean absolute deviation of costs over all cells in the decomposition. These figures should show that this approach works by distributing the workload amongst all robots in the team. The lengths of the coverage paths were computed by solving the single agent coverage problem for each robot in the team using the approach introduced in Chapter~\ref{chapter:single_agent_coverage}. We note that the algorithm has improved the maximum value of metric $\chi$ on average by 20\% and the actual length of the coverage path by 24\%. The mean absolute deviation was also reduced by 74.6\% and 70.0\% for metric $\chi$ and path lengths respectively.
 
@@ -677,6 +661,5 @@ Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and
 	\caption{Decomposition results for shape 4 and 5. First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results_ii}
 \end{figure}
-
 
 \end{document}
