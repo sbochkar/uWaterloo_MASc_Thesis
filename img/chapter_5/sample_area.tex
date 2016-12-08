@@ -1,0 +1,72 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (0,2);
+		\coordinate (p3) at (2,4);
+		\coordinate (p4) at (2,0);
+
+		\coordinate (p21) at (2,0);
+		\coordinate (p22) at (2,4);
+		\coordinate (p23) at (4,6);
+		\coordinate (p24) at (4,0);
+
+		\coordinate (p31) at (4,0);
+		\coordinate (p32) at (4,6);
+		\coordinate (p33) at (6,8);
+		\coordinate (p34) at (6,0);
+
+		\coordinate (1c_u_l) at (0,1.58);
+		\coordinate (1c_l_l) at (0,1);
+		\coordinate (1c_u_r) at (2,1.58);
+		\coordinate (1c_u_c) at (1,1.58);
+		\coordinate (1c_l_c) at (1,1);
+
+		\coordinate (2c_u_l) at (2,3.58);
+		\coordinate (2c_u_r) at (4,3.58);
+		\coordinate (2c_l_l) at (2,1);
+		\coordinate (2c_u_c) at (3,3.58);
+		\coordinate (2c_l_c) at (3,1);
+
+		\coordinate (3c_u_l) at (4,5.58);
+		\coordinate (3c_l_l) at (4,1);
+		\coordinate (3c_u_r) at (6,5.58);
+		\coordinate (3c_u_c) at (5,5.58);
+		\coordinate (3c_l_c) at (5,1);
+
+
+
+		\coordinate (i) at (0.35,2.35);
+
+		\draw [box] (p1)--(p2)--(p3)--(p22)--(p23)--(p32)--(p33)--(p34)--cycle;
+
+		%First line
+		\fill [covered_area] (1c_u_l) arc (180:0:1);
+		\fill [covered_area] (1c_l_l) arc (180:360:1);
+		\fill [covered_area] (1c_l_l) rectangle (1c_u_r);
+		\draw [dashed] (1c_u_c)--(1c_l_c);
+
+		\fill [covered_area] (2c_u_l) arc (180:0:1);
+		\fill [covered_area] (2c_l_l) arc (180:360:1);
+		\fill [covered_area] (2c_l_l) rectangle (2c_u_r);
+		\draw [dashed] (2c_l_c)--(2c_u_c);
+
+		\fill [covered_area] (3c_u_l) arc (180:0:1);
+		\fill [covered_area] (3c_l_l) arc (180:360:1);
+		\fill [covered_area] (3c_l_l) rectangle (3c_u_r);
+		\draw [dashed] (3c_l_c)--(3c_u_c);
+
+		%\draw [<->] (c1)--node [below] {$2r$}(c2);
+		%\draw [<->] (c1)++(1,0)--node [below] {$r$}(i);
+
+		%\draw [dashed] (p1)--++(0,3);
+		%\draw [very thin] (i) arc (30:90:0.4) node [yshift=0.2cm,xshift=0.2cm] {$\theta$};
+
+		%\draw [very thin, dashed] (c3)--(p3);
+		%\draw [very thin] (p3)++(0,-0.4) arc (270:220:0.4) node [yshift=0.3cm,xshift=0.1cm] {$\theta$};
+	\end{tikzpicture}
+\end{document}

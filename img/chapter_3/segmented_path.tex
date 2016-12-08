@@ -1,0 +1,25 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+	\coordinate(a1) at (0,0);
+	\coordinate(a2) at (4,0);
+	\coordinate(a3) at (4,1);
+	\coordinate(a4) at (0,2);
+	\coordinate(a5) at (1,2.5);
+	\coordinate(a6) at (5,3);
+
+	\draw[straight_segment] 	(a1)--node[above]{$s_1$}(a2);
+	\draw[transition_segment]   (a2) arc (-90:90:0.5cm) node [above] {$t_1$};
+	\draw[straight_segment]		(a3)--node[above]{$s_2$}(a4);
+	\draw[transition_segment] 	(a4) arc (260:60:0.5cm) node [above] {$t_2$};
+	\draw[transition_segment] 	(a5) arc (280:200:0.5cm);
+	\draw[straight_segment]		(a5)--node[above]{$s_3$}(a6);
+
+	\node [below left] at (0,1.5) {$p_j$};
+
+	\end{tikzpicture}
+\end{document}	

@@ -616,15 +616,13 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 		& \multicolumn{3}{c}{Max $\chi$} && \multicolumn{3}{c}{Max Tour Length} \\
 		\cmidrule{2-4} \cmidrule{6-8}
 		& \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%} & & \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%}  \\
-		%&& Size & Time & Length & Area \\
 		\cmidrule{1-8}
-		Shape 1 & 47.5 & \bf{41.6}   & 12.4\% && 30.7  & \bf{26.0}  & 15.3\% \\
+		Shape 1 & 47.5  & \bf{41.6}  & 12.4\% && 30.7  & \bf{26.0}  & 15.3\% \\
 		Shape 2 & 228.1 & \bf{155.3} & 31.9\% && 187.6 & \bf{115.4} & 38.5\% \\
 		Shape 3 & 218.8 & \bf{185.0} & 15.4\% && 193.3 & \bf{152.7} & 21.0\% \\
 		Shape 4 & 202.5 & \bf{173.2} & 14.5\% && 165.1 & \bf{140.0} & 15.2\% \\
 		Shape 5 & 235.0 & \bf{169.5} & 27.9\% && 194.3 & \bf{137.9} & 29.0\% \\
 		\bottomrule
-
 	\end{tabular}
 \end{table}
 
@@ -637,7 +635,6 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 		& \multicolumn{3}{c}{Deviation $\chi$} && \multicolumn{3}{c}{Deviation Tour Length} \\
 		\cmidrule{2-4} \cmidrule{6-8}
 		& \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%} & & \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%}  \\
-		%&& Size & Time & Length & Area \\
 		\cmidrule{1-8}
 		Shape 1 & 5.00 & \bf{0.08} & 98.3\% && 4.33 & \bf{0.88} & 79.8\% \\
 		Shape 2 & 51.6 & \bf{2.99} & 94.2\% && 49.0 & \bf{0.81} & 98.3\% \\
@@ -645,7 +642,6 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 		Shape 4 & 43.1 & \bf{17.5} & 59.4\% && 39.1 & \bf{19.4} & 50.1\% \\
 		Shape 5 & 43.8 & \bf{23.1} & 47.1\% && 41.1 & \bf{19.5} & 52.3\% \\
 		\bottomrule
-
 	\end{tabular}
 \end{table}
 
@@ -657,7 +653,7 @@ Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_orig.pdf}% 
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
 
-	\caption{Demonstration of the re-optimization procedure.}
+	\caption{Decomposition results for shape 1. Left:decomposition before re-optimization. Right:decomposition after re-optimization.}
 	\label{fig:decomposition_demo}
 
 \end{figure}
@@ -668,7 +664,7 @@ Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_BETTER.pdf}
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig_BETTER.pdf}%
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_BETTER.pdf}
-	\caption{First column: decomposition before re-optimization. Second column: after re-optimization.}
+	\caption{Decomposition results for shape 2 and 3. First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results}
 \end{figure}
 
@@ -678,7 +674,7 @@ Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_reopt.pdf}
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_orig.pdf}%
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_reopt.pdf}
-	\caption{First column: decomposition before re-optimization. Second column: after re-optimization.}
+	\caption{Decomposition results for shape 4 and 5. First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results_ii}
 \end{figure}
 

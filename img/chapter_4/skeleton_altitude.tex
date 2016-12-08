@@ -1,0 +1,20 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\draw [box] (0,0) rectangle (10,4);
+
+		\foreach \x in {0.5,1.0,...,2} {
+			\draw (\x,\x) rectangle (10-\x, 4-\x);
+		}
+
+		\draw [ultra thick] (2,2) -- (8,2);
+
+		\draw [thin, <->] (11,0)--node [right] {$\alpha$} (11,4);
+		\draw [thin, <->] (12,0)--node [right] {$\beta$} (12,2);
+
+	\end{tikzpicture}
+\end{document}

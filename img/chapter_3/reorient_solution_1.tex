@@ -1,0 +1,22 @@
+%!TEX root = ../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+		\draw [box] (0.0,0.0) rectangle (5,4);
+		\draw [fill=gray, thick] (1.0,1.0) rectangle (4,3);
+		\draw [thick, dashed, fill=yellow, opacity=0.3] (0.0, 1.0) rectangle (1.0, 3);
+		\draw [thick, dashed, fill=yellow, opacity=0.3] (4.0, 1.0) rectangle (5.0, 3);
+
+		\draw [] (0.3, 0.3)--(4.7, 0.3);
+		\draw [] (0.3, 0.7)--(4.7, 0.7);
+		\draw [] (0.3, 3.7)--(4.7, 3.7);
+		\draw [] (0.3, 3.3)--(4.7, 3.3);
+
+		\foreach \y in {1.1,1.5,...,2.9} {
+			\draw (0.3, \y)--(0.7, \y);
+			\draw (4.3, \y)--(4.7, \y);
+		}
+	\end{tikzpicture}
+\end{document}	

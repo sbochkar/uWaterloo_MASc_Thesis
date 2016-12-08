@@ -1,0 +1,18 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\draw [box] (p1) node[below ]{$p_1$}--node[below]{$E_1$}++(p2) node[below]{$p_2$}--node[above right]{$E_2$}(p3)node[above]{$p_3$}--node[above left]{$E_3$}(p1);
+
+		\draw [dashed] (p1)--(c);
+		\draw [dashed] (p2)--(c);
+		\draw [dashed] (p3)--(c);
+
+		\draw [fill] (c) circle (0.1cm) node [above right] {$c$};
+
+		\draw [very thin](2.85,0.2)--(3.05,0.2)--(3.05,0)--(2.85,0)--node[right]{$\alpha$}(c);
+	\end{tikzpicture}
+\end{document}

@@ -1,0 +1,33 @@
+%!TEX root = ../../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\coordinate (p1) at (0,0);
+		\coordinate (p2) at (0,2);
+		\coordinate (p3) at (2,4);
+		\coordinate (p4) at (2,0);
+		\coordinate (c1) at (0,1.58);
+		\coordinate (c2) at (2,1.58);
+		\coordinate (c3) at (1,1.58);
+		\coordinate (i) at (0.35,2.35);
+
+		\draw (p1)--(p2)--(p3)--(p4);
+		\node at (0,1.8) [left] {$a$};
+		\node at (2,2.5) [right] {$b$};
+
+		\fill [covered_area] (c1) arc (180:0:1);
+		\fill [covered_area] (p1)--(c1)--(c2)--(2,0)--cycle;
+
+		\draw [<->] (c1)--node [below] {$2r$}(c2);
+		\draw [<->] (c1)++(1,0)--node [below] {$r$}(i);
+
+		\draw [dashed] (p1)--++(0,3);
+		\draw [very thin] (i) arc (30:90:0.4) node [yshift=0.2cm,xshift=0.2cm] {$\theta$};
+
+		\draw [very thin, dashed] (c3)--(p3);
+		\draw [very thin] (p3)++(0,-0.4) arc (270:220:0.4) node [yshift=0.3cm,xshift=0.1cm] {$\theta$};
+	\end{tikzpicture}
+\end{document}

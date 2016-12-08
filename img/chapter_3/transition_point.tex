@@ -1,0 +1,22 @@
+%!TEX root = ../main.tex
+
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+	\begin{tikzpicture}[scale=1]
+
+		\draw [box] (0,0)--(8,1)--(4,3.8)--(2,4)--cycle;
+		\draw [dashed] (0,0)--(0,5);
+		\draw [dashed] (0,5)--(2,4);
+		\draw [dashed] (-0.5,-0.075)--(8.5,1.075);
+		\draw [dashed] (-0.5,3.7)--(8.5,4.85) node [above] {$h_i$};
+
+		\draw [fill] (0,5) circle [radius=0.1] node [above] {$f(b)$};
+		\draw [fill] (0,0) circle [radius=0.1] node [below] {$f(a)$};
+		\draw [fill] (2,4) circle [radius=0.1] node [above=1.0] {$v$};
+		\draw [fill] (0,3.75) circle [radius=0.1] node [rotate=90, anchor=south east] {$f(t_{1,\text{trans}})$};
+
+		\node [below] at (4,0.5) {$e_i$};
+		\node [below] at (4,2.5) {$P_{\ell}$};
+	\end{tikzpicture}
+\end{document}
