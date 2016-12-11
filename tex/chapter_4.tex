@@ -206,7 +206,7 @@ By Proposition~\ref{prop:min_alt_dirs_convex}, minimum altitude can be computed 
 \subsection{Decoupled Problem Statement}
 \label{subsection:decoupled_problem_statement}
 
-As stated before, the Boustrophedon paths are not optimal for non-convex polygons. However, it can act as a starting point in an optimization. A more sophisticated approach is to decompose $W$ into polygons $w_0,w_1,\ldots,w_k$, where for each $w_i$, the coverage is achieved through the Boustrophedon path. The straight line segments in each such path should be oriented to minimize the number of lines. For example, the polygon in Figure~\ref{fig:reorder_regions} is decomposed into four regions. Lines in the two regions on the sides of the polygon are reoriented to reduce the number of lines in those regions. For the optimal orientation, we define the $\theta$ altitude of a polygon.
+As stated before, the Boustrophedon paths are not optimal for non-convex polygons. However, it can act as a starting point in an optimization. A more sophisticated approach is to decompose $W$ into polygons $w_0,w_1,\ldots,w_k$, where for each $w_i$, the coverage is achieved through the Boustrophedon path. The straight line segments in each such path should be oriented to minimize the number of lines. For example, the polygon in Figure~\ref{fig:reorder_regions} is decomposed into four regions. Lines in the two regions on the sides of the polygon are reoriented to reduce the number of lines in those regions.
 
 With the notion of altitude for general polygons, the problem statement becomes as follows.
 \begin{problem}[Min Altitude Decomposition]

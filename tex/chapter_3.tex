@@ -47,12 +47,12 @@ A set of all feasible paths is denoted by $P$:
 	\label{fig:configuration_space}
 \end{figure}
 
-As an example, in this thesis, a kinematic model of Dubins' car~\cite{dubins1957curves} is used. The kinematic model is as follows:
+In this thesis, a kinematic model of Dubins' car~\cite{dubins1957curves} is used. The kinematic model is as follows:
 \begin{equation}
 	\begin{aligned}
 		& \dot{x}=V\cos{\theta},\\
 		& \dot{y}=V\sin{\theta},\\
-		& \dot{\theta}=u.
+		& \dot{\theta}=u
 	\end{aligned}
 \end{equation}
 where $(x,y)$ is a position of the robot and $V$ is the linear constant speed of a car, $u$ is the turn rate, which is bounded. The maximum turning rate corresponds to the minimum turning radius $R_{\min}$. With this model, the configuration space of a car is $R^2\times\Theta$
@@ -152,7 +152,7 @@ Another important problem is called the Generalized Traveling Salesman Problem (
 Given a complete graph $G=(V,E,w)$ and a vertex partition $\{V_1,V_2,\ldots,V_m\}$, compute a tour of $G$ that includes exactly one vertex from each subset $V_i$ and the sum of edge weights is minimized. An example of a GTSP tour is shown in Figure~\ref{fig:gtsp_tour}.
 \end{problem}
 
-A TSP problem is known to be NP-hard. A GTSP problem can be solved as a reduction to a TSP problem~\cite{noon1993efficient}. However, there are numerous approximate and suboptimal solutions available. One of them is solver called GLKH, which utilizes a Lin-Kernighan TSP heuristic~\cite{helsgaun2009general}. In this thesis, we utilize the GLKH solver for solving GTSP problems.
+A TSP problem is known to be NP-hard. A GTSP problem can be solved as a reduction to a TSP problem~\cite{noon1993efficient}. However, there are numerous approximate and suboptimal solutions available. One of them is a solver called GLKH, which utilizes a Lin-Kernighan TSP heuristic~\cite{helsgaun2009general}. In this thesis, we utilize the GLKH solver for solving GTSP problems.
 
 %\section{Contours Introduction}
 %\label{section:background_contours}
