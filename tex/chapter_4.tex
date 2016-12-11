@@ -38,7 +38,7 @@ In Problem~\ref{problem:min_cost_cpp}, a workspace $W$, a robot with dynamics, a
 \end{assumption}
 
 
-\subsection{Conversion to Segmented Paths}
+\subsection{Utilizing Segmented Paths}
 \label{subsection:conversion_to_segmented}
 
 \begin{assumption}[Reduced Set of Feasible Paths]
@@ -315,7 +315,7 @@ Algorithm~\ref{alg:optimal_cut} provides an optimal decomposing cut. This sectio
 Given a polygon $W$ and a reflex vertex $v$, Algorithm~\ref{alg:optimal_cut} returns a decomposing cut forming two new polygons that minimize $\alpha^*(W_{\ell})+\alpha^*(W_r)$.
 \end{claim}
 
-The rest of this section will provide proof for this claim. Suppose a polygon $W$ is given with a reflex vertex $v$. Recall that a decomposing cut generates two new polygons, $W_{\ell}$ and $W_r$. The sets of all edges of $W_{\ell}$ and $W_r$ are $E_{\ell}$ and $E_r$ respectively. We are interested in studying how a choice of a cut affects the altitudes of $W_{\ell}$ and $W_r$. Let us parameterize the orientation of a cut with respect to $t$. There is a function $f:\mathbb{R}\to\mathbb{R}^2$ that maps a parameter $t\in[0,1]$ to a point $x\in\mathbb{R}^2$ on the cut space. Let $w_1$ be a point on cut space when $t=0$ corresponding to a cut on edge $e_1$. See Figure~\ref{fig:transition_point}. Define $\alpha_i(t)$ as a function that measures altitude orthogonal to edge $e_i$.
+The rest of this section will provide proof for this claim. Suppose a polygon $W$ is given with a reflex vertex $v$. Recall that a decomposing cut generates two new polygons, $W_{\ell}$ and $W_r$. The sets of all edges of $W_{\ell}$ and $W_r$ are $E_{\ell}$ and $E_r$ respectively. We are interested in studying how a choice of a cut affects the altitudes of $W_{\ell}$ and $W_r$. Let us parameterize the orientation of a cut with respect to $t$. There is a function $f:\mathbb{R}\to\mathbb{R}^2$ that maps a parameter $t\in[0,1]$ to a point $x\in\mathbb{R}^2$ on the cut space. Let $w_1$ be a point on cut space when $t=0$ corresponding to a cut on edge $e_1$. See Figure~\ref{fig:pinch_vertex}. Define $\alpha_i(t)$ as a function that measures altitude orthogonal to edge $e_i$.
 
 Define the two sets of altitudes as follows:
 \begin{equation}

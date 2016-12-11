@@ -600,13 +600,13 @@ Finally, Algorithm~\ref{alg:optimization_procedure} is a recursive re-optimizati
 
 Our decomposition algorithm was implemented in Python. The algorithm was implemented with the help of computational geometry libraries including Shapely~\cite{Shapely:13} and Visilibity\cite{VisiLibity:08}. The heuristic solver GLKH~\cite{helsgaun2000effective} was used as a GTSP solver. Transition costs between segments were computed assuming a Dubins' vehicle model~\cite{dubins1957curves}.
 
-The approach was tested on its ability to improve the existing decomposition with the goal to minimize the maximum cost. Several test shapes of varying complexity were used in simulations. The initial decomposition of the polygons was performed by hand. In all test runs, four robots were used with starting locations usually located at the corners of the polygon. For Algorithm~\ref{alg:reopt_cut}, $K$ is set to 100. To relate the metric $\chi$ to the actual cost of the coverage path, actual coverage paths are computed for each robot in the team using Algorithm~\ref{alg:min_alt_decomposition}.
+The approach was tested on its ability to improve the existing decomposition with the goal to minimize the maximum cost. Several test shapes of varying complexity were used in simulations. The initial decomposition of the polygons was performed by hand. In all test runs, four robots were used with starting locations usually located at the corners of the polygon. For Algorithm~\ref{alg:reopt_cut}, $K$ is set to 100. To relate the metric $\chi$ to the length of the coverage path, actual coverage paths are computed for each robot in the team using Algorithm~\ref{alg:min_alt_decomposition}.
 
-Performance figures for the algorithm are shown in Table~\ref{table:decomposition_improvement_max} and Table~\ref{table:decomposition_improvement_deviation}. We compare the improvements in the maximum cost $\chi$ as well as the actual lengths of the coverage paths. This comparison demonstrates that our approach works as intended in minimizing the maximum cost. We also compare the range of costs over four cells in the decomposition. This comparison is to demonstrate the distributiion of workload amongst all robots in the team. The lengths of the coverage paths were computed by solving the single agent coverage problem for each robot in the team using the approach introduced in Chapter~\ref{chapter:single_agent_coverage}. We note that the algorithm has improved the maximum value of metric $\chi$ on average by 20\% and the actual length of the coverage path by 24\%. The mean absolute deviation was also reduced by 74.6\% and 70.0\% for metric $\chi$ and path lengths respectively.
+Performance figures for the algorithm are shown in Table~\ref{table:decomposition_improvement_max} and Table~\ref{table:decomposition_improvement_deviation}. We compare the improvements in the maximum cost $\chi$ as well as the actual lengths of the coverage paths. This comparison demonstrates that our approach works as intended in minimizing the maximum cost. We also compare the range of costs over four cells in the decomposition. This comparison is to demonstrate the distribution of workloads amongst all robots in the team. The lengths of the coverage paths were computed by solving the single agent coverage problem for each robot in the team using the approach introduced in Chapter~\ref{chapter:single_agent_coverage}. We note that the algorithm has improved the maximum value of metric $\chi$ on average by 26\% and the actual length of the coverage path by 28\%, which suggests that the algorithm works as intended. This is confirmed bu the data on the range of costs, which was also reduced by 96\% and 84\% for metric $\chi$ and path lengths respectively. The reduction in the range of costs demonstrates that the resultant costs over four cells is close together. It should be noted that the data from the tables demonstrate strong correlation between the metric $\chi$ and the actual coverage path length, which suggests validity of the metric's design.
 
 \begin{table}
 	\centering
-	\caption{Improvement to the maximum costs.}
+	\caption{Improvement to the maximum cost.}
 	\label{table:decomposition_improvement_max}
 	\begin{tabular}{@{}l rrrrrrr}
 		\toprule
@@ -634,48 +634,48 @@ Performance figures for the algorithm are shown in Table~\ref{table:decompositio
 		\cmidrule{2-4} \cmidrule{6-8}
 		& \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%} & & \multicolumn{1}{c}{Old} & \multicolumn{1}{c}{New} & \multicolumn{1}{c}{\%}  \\
 		\cmidrule{1-8}
-		Shape 1 & 15.0  & \bf{0.30} & -\% && 14.5  & \bf{3.40} & -\% \\
-		Shape 2 & 169.0 & \bf{8.30} & -\% && 157.4 & \bf{3.00} & -\% \\
+		Shape 1 & 15.0  & \bf{0.3}  & 98.00\% && 14.5  & \bf{3.4}  & 76.55\% \\
+		Shape 2 & 169.0 & \bf{8.3}  & 95.09\% && 157.4 & \bf{3.0}  & 98.09\% \\
 		Shape 3 & 146.3 & \bf{11.3} & 92.29\% && 142.5 & \bf{28.5} & 79.98\% \\
-		Shape 4 & 121.6 & \bf{5.85} & 95.19\% && 122.4 & \bf{22.6} & 81.51\% \\
-		Shape 5 & 80.8 & \bf{0.017} & 99.98\% && 89.8 & \bf{14.5} & 83.84\% \\
+		Shape 4 & 121.6 & \bf{5.9}  & 95.19\% && 122.4 & \bf{22.6} & 81.51\% \\
+		Shape 5 & 80.8  & \bf{0.02} & 99.98\% && 89.8  & \bf{14.5} & 83.84\% \\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
+Figure~\ref{fig:decomposition_results} and Figure~\ref{fig:decomposition_results_ii} demonstrate decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. It should be noted that after re-optimizations, the robots do not necessarily retain their previous color. Initial positions of robots are shown as thick circles located on the boundary of the polygon. The boundary of a cell is shown in a dashed gray line. Furthermore, Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each cell shown with red lines. The dotted segments of the path represent transition segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of a robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of figures demonstrates the initial decomposition and the second column shows the decomposition after re-optimization.
 
-Figure~\ref{fig:decomposition_demo}, Figure~\ref{fig:decomposition_results}, and Figure~\ref{fig:decomposition_results_ii} demonstrates decompositions together with the coverage paths. The assignment of paths to the robot is done with color coding. it should be noted that after re-optimizations, the robots do not necessarily retain their previous color. Initial positions of robots are shown as a thick circle located on the boundary of the polygon. The boundary of cells are shown in dashed gray dashed lines. Furthermore. Algorithm~\ref{alg:min_alt_decomposition} from Chapter~\ref{chapter:single_agent_coverage} may add minimum altitude cuts in each region shown in red lines. The dotes segments of the path represent transitions segments computed using Dubin's vehicle model. Note that these segments do not necessarily indicate the path of the robot but rather show the cost associated with the transition. As such, they may cross the boundary of the polygon. The first column of the figure demonstrates the initial decomposition and the second columns shows the decomposition after the applying our algorithm.
-
-There are several observations that should be made with regards to the solutions shown in the figures. First, the re-optimization algorithm shows very good results for shapes one and two where the maximum is decreases and the range of values is relatively small. However, this range is larger for shapes three, four, and five. This phenomenon could be attributed to a limitation in our implementation of the computational geometry operations. Specifically, Algorithm~\ref{alg:reopt_cut} cannot consider a pair of adjacent cells where the union of them contains a hole even if there exists improving cuts. This limitation is evident in the example with shape five in the second column of Figure~\ref{fig:decomposition_results_ii}. Here, the yellow cell is never considered for re-optimization because combining it with any of its two adjacent cells results in the presence of a hole. As such, this particular cell is not changed throughout iterations of the algorithms.
+We should note the limitation of our implementation that arises when cells contain holes. Due to the limitation of the computational geometry library, Algorithm~\ref{alg:reopt_cut} cannot consider a pair of adjacent cells where the union of them contains a hole even if there exists improving cuts. This limitation is evident in the example shown in Figure~\ref{fig:decomposition_results_iii}. Here, the yellow cell from the second column is never considered for re-optimization because combining it with any of its two adjacent cells results in the presence of a hole. As such, this particular cell is not changed throughout iterations of the algorithm.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_orig.pdf}% 
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_1_reopt.pdf}
-
-	\caption{Decomposition results for shape 1. Left:decomposition before re-optimization. Right:decomposition after re-optimization.}
-	\label{fig:decomposition_demo}
-
-\end{figure}
-
-\begin{figure}
-	\centering
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_orig.pdf}% 	
 	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_2_reopt_BETTER.pdf}
-	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig_BETTER.pdf}%
-	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_BETTER.pdf}
-	\caption{Decomposition results for shape 2 and 3. First column: decomposition before re-optimization. Second column: after re-optimization.}
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_orig_no_holes.pdf}%
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_3_reopt_no_holes.pdf}
+	\caption{Decomposition results for shape 1,2, and 3. First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results}
 \end{figure}
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_orig.pdf}%
-	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_reopt.pdf}
-	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_orig.pdf}%
-	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_reopt.pdf}
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_orig_no_holes.pdf}%
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_4_reopt_no_holes.pdf}
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_orig_no_holes.pdf}%
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_reopt_no_holes.pdf}
 	\caption{Decomposition results for shape 4 and 5. First column: decomposition before re-optimization. Second column: after re-optimization.}
 	\label{fig:decomposition_results_ii}
 \end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_orig.pdf}%
+	\includegraphics[width=0.45\textwidth]{img/chapter_5/ID_5_reopt.pdf}
+	\caption{Hole Re-optimization  results for shape 4 and 5. First column: decomposition before re-optimization. Second column: after re-optimization.}
+	\label{fig:decomposition_results_iii}
+\end{figure}
+
 
 \end{document}
