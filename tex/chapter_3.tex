@@ -104,6 +104,60 @@ A \emph{simple polygon} is a non-intersecting chain of straight line segments fo
 
 A \emph{reflex vertex} is a vertex in one of the chains of $P$ that has an internal angle of more than $\pi$. As such, a polygon is \emph{convex} if and only if there are no reflex vertices. Conversely, a polygon is non-convex if and only if it contains at least one reflex vertex. Note that the presence of a hole guarantees at least one reflex vertex.
 
+\begin{definition}[Cone of bisection]
+\label{def:cone_of_bisection}
+Suppose a non-convex polygon $P$ containing a reflex vertex $v$ is given. Let $d_{\ell}=\{v_k, v\}$ and $d_r=\{v, v_l\}$ be the two adjacent edges of $v$. The \emph{cone of bisection} at $v$ is defined by two line segments, $e_{\ell}=\{v, w_{\ell}\}$ and $e_r=\{v, w_{r}\}$ that are parallel to $d_r$ and $d_{\ell}$ respectively with $w_{\ell}, w_{r}\in{\partial P\setminus\{v\}}$. See Figure~\ref{fig:cut}.
+\end{definition}
+
+\begin{definition}[Cut space]
+\label{def:cut_space}
+Consider a non-convex polygon $P$ with reflex vertex $v$, along with the cone of bisection. The cut space is a set $S\subset\partial P$ of all points on $\partial P$ between $w_{\ell}$ and $w_{r}$ visible from $v$.
+\end{definition}
+
+The cut space $S$ can be represented by its straight line segments $S_1,\ldots,S_L$ where $\bigcup_{i=1}^LS_i\subseteq S$.
+
+
+%\begin{definition}[Intermediate Cut]
+%\label{def:intermediate_cut}
+%Given a non-convex polygon $P=\{Z_0,\ldots\}$ with a reflex vertex $v$, an intermediate cut is a straight line segment $e=\{v,w\}$, where $v\in Z_i$ and $w\in Z_j, i\neq j$. In other words, an intermediate cut connects two chains $Z_i, Z_j\in P$ where $i\neq j$.
+%\end{definition}
+
+\begin{definition}[Decomposing Cut]
+\label{def:decomposing_cut}
+Given a non-convex polygon $P$ with a reflex vertex $v$, a decomposing cut is a straight line segment $e=\{v,w\}$ within the cone of bisection of $v$ where $v,w$ belong to the same chain. See Figure~\ref{fig:cut}.
+\end{definition}
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[scale=0.7]
+		\coordinate (x_0) at (0.25,5);
+		\coordinate (x_1) at (7.75,5);
+
+		\draw [very thick] (0,0)--(3,0)--(4,1)--(5,0)--(8,0)--(8,5)--(0,5)--(0,0);
+		\draw [dashed] (4,1)--(x_0);
+		\draw [dashed] (4,1)--(x_1);
+		\draw [ultra thick] (x_0)--(x_1);
+		\draw (4,1)--(4.5,5);
+
+		\draw [fill] (4,1) circle [radius=0.1] node [below] {$v$};
+		\draw [fill] (x_0) circle [radius=0.1] node [above] {$w_{\ell}$};
+		\draw [fill] (x_1) circle [radius=0.1] node [above] {$w_r$};
+		
+		\node [above right] at (0,0) {$P_{\ell}$};
+		\node [above left] at (8,0) {$P_r$};
+		\node [above] at (3.5,5) {$S$};
+		\node at (2,2.5) {$e_{\ell}$};
+		\node at (6,2.5) {$e_r$};
+		\node at (4.5,2.5) {$c$};
+		\node [above left] at (3.5,0.5) {$d_{\ell}$};
+		\node [above right] at (4.5,0.5) {$d_r$};
+
+	\end{tikzpicture}
+	\caption{Decomposing cut originating at a reflex vertex.}
+	\label{fig:cut}
+\end{figure}
+
+
 \section{Traveling Salesman Problem Preliminaries}
 \label{section:GTSP}
 

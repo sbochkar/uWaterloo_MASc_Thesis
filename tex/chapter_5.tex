@@ -346,7 +346,7 @@ It should be noted that a breadth-first traversal version of Algorithm~\ref{alg:
 			\STATE $v_i\gets$ pop from $Q$
 			\FOR{$v_j\in\mathcal{N}_{v_i}$}
 				\IF{$\chi(v_j)<\chi(v_i)$}
-					\STATE $\mathcal{D}_{\text{new}}\gets\text{reopt\_cut}(v_i,v_j,\mathcal{D},\mathcal{G})$ \label{line:multi_reopt_cut}
+					\STATE $\mathcal{D}_{\text{new}}\gets\text{reopt\_cut}(v_i,v_j,\mathcal{D},\mathcal{G})$ \label{line:multi_reopt_cut_bft}
 					\IF{$\mathcal{D}_{\text{new}}=\mathcal{D}$}
 						\STATE Push $v_j$ to $Q$
 					\ELSE
